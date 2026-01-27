@@ -22,7 +22,7 @@
 ### 1. Cloner le projet
 
 ```bash
-git clone [https://github.com/antsamadagascar/mean-crud.git](https://github.com/antsamadagascar/m1p13mean-nyantsa-nantenaina.git)
+git clone https://github.com/antsamadagascar/m1p13mean-nyantsa-nantenaina.git
 cd m1p13mean-nyantsa-nantenaina
 ```
 
