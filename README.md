@@ -58,8 +58,8 @@ mongod --dbpath /var/lib/mongodb
 
 ##  URLs de l'application sur server prod
 
-- **Frontend** : https://mean-crud-frontend.onrender.com
-- **Backend** :  https://mean-crud-backend-26qf.onrender.com/
+- **Frontend** : https://m1p13mean-nyantsa-nantenaina.onrender.com/
+- **Backend** : https://m1p13mean-nyantsa-nantenaina-backend.onrender.com
 
 ---
 
