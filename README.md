@@ -33,7 +33,11 @@ cd backend
 npm install
 npm run dev
 ```
-
+build in production mode :
+```bash
+cd backend
+npx ng build --configuration production
+```
 ### 3. Frontend
 
 ```bash
@@ -41,7 +45,10 @@ cd frontend
 npm install
 ng serve --open
 ```
-
+build in production mode :
+```bash
+ng build --configuration production
+```
 ### 4. MongoDB
 
 ```bash
