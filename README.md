@@ -1,6 +1,6 @@
 # PROJET MEAN Master 1 - Promotion 13 – version 1
 
-Application simple de gestion d'articles  simuler avec le stack MEAN (MongoDB, Express, Angular, Node.js).
+
 
 ---
 
