@@ -1,4 +1,4 @@
-# Application MEAN - CRUD Articles
+# PROJET MEAN Master 1 - Promotion 13 – version 1
 
 Application simple de gestion d'articles  simuler avec le stack MEAN (MongoDB, Express, Angular, Node.js).
 
@@ -6,10 +6,6 @@ Application simple de gestion d'articles  simuler avec le stack MEAN (MongoDB, E
 
 ##  Fonctionnalités
 
-- Créer, lire, modifier et supprimer des articles
-- Interface Angular réactive
-- API RESTful avec Express
-- Base de données MongoDB
 
 ---
 
