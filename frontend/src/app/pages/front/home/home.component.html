@@ -15,13 +15,44 @@
       </div>
       
       <!-- Status Cards -->
-      <div class="status-card-body" *ngIf="connectionStatus?.connected">
-        <div class="status-item">
-          <i class="fas fa-database"></i>
-          <div class="status-details">
-            <span class="status-label">Base de données</span>
-            <span class="status-value">{{ connectionStatus?.database }}</span>
+      <div class="status-cards" *ngIf="!loading">
+        
+        <!-- Connection Status Card -->
+        <div class="status-card" 
+             [class.connected]="connectionStatus?.connected" 
+             [class.disconnected]="!connectionStatus?.connected">
+          
+          <div class="status-card-header">
+            <i class="fas fa-circle status-icon" 
+               [class.connected]="connectionStatus?.connected"></i>
+            <span class="status-title">
+              {{ connectionStatus?.connected ? 'Système opérationnel' : 'Système hors ligne' }}
+            </span>
           </div>
+          
+          <!-- SI CONNECTÉ -->
+          <div class="status-card-body" *ngIf="connectionStatus?.connected">
+            <div class="status-item">
+              <i class="fas fa-database"></i>
+              <div class="status-details">
+                <span class="status-label">Base de données</span>
+                <span class="status-value">{{ connectionStatus?.database }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <!-- SI DÉCONNECTÉ -->
+          <div class="status-card-body" *ngIf="!connectionStatus?.connected">
+            <p class="error-message">
+              <i class="fas fa-exclamation-triangle"></i>
+              Impossible de se connecter au serveur. Base : {{ connectionStatus?.database }}
+            </p>
+            <button class="btn-retry" (click)="reloadStatus()">
+              <i class="fas fa-sync-alt"></i>
+              Réessayer
+            </button>
+          </div>
+          
         </div>
       </div>
       
