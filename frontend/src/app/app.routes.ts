@@ -5,7 +5,7 @@ import { FrontLayoutComponent } from './layouts/front-layout/front-layout.compon
 export const routes: Routes = [
   // Route Admin
   {
-    path: 'admin',
+    path: 'backoffice',
     component: AdminLayoutComponent,
     children: [
       { 
