@@ -1,0 +1,232 @@
+<div class="admin-layout">
+  
+  <!-- Sidebar Desktop -->
+  <aside class="sidebar" [class.collapsed]="!sidebarOpen">
+    
+    <div class="sidebar-header">
+      <h2 *ngIf="sidebarOpen">Akoor City</h2>
+      <span *ngIf="!sidebarOpen" class="logo-mini">AC</span>
+    </div>
+    
+    <nav class="sidebar-nav">
+      
+      <!-- Section: Principal -->
+      <div class="nav-section">
+        <button class="section-header" 
+                (click)="toggleSection('main')" 
+                *ngIf="sidebarOpen">
+          <span class="section-title">Principal</span>
+          <span class="section-icon" [class.rotated]="!sections.main">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.main">
+          <a *ngFor="let item of mainMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             class="nav-item"
+             [title]="item.label">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Section: Gestion -->
+      <div class="nav-section">
+        <button class="section-header" 
+                (click)="toggleSection('management')" 
+                *ngIf="sidebarOpen">
+          <span class="section-title">Gestion</span>
+          <span class="section-icon" [class.rotated]="!sections.management">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.management">
+          <a *ngFor="let item of managementMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             class="nav-item"
+             [title]="item.label">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Section: Configuration -->
+      <div class="nav-section">
+        <button class="section-header" 
+                (click)="toggleSection('config')" 
+                *ngIf="sidebarOpen">
+          <span class="section-title">Configuration</span>
+          <span class="section-icon" [class.rotated]="!sections.config">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.config">
+          <a *ngFor="let item of configMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             class="nav-item"
+             [title]="item.label">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- When collapsed, show all items without sections -->
+      <ng-container *ngIf="!sidebarOpen">
+        <a *ngFor="let item of allMenuItems" 
+           [routerLink]="item.path" 
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{exact: item.exact}"
+           class="nav-item"
+           [title]="item.label">
+          <i class="nav-icon {{ item.icon }}"></i>
+        </a>
+      </ng-container>
+      
+    </nav>
+    
+  </aside>
+  
+  <!-- Sidebar Mobile (Overlay) -->
+  <div class="mobile-sidebar-overlay" 
+       [class.active]="mobileMenuOpen" 
+       (click)="closeMobileMenu()">
+  </div>
+  
+  <aside class="sidebar-mobile" [class.active]="mobileMenuOpen">
+    
+    <div class="sidebar-header">
+      <h2>Akoor City</h2>
+      <button class="close-btn" (click)="closeMobileMenu()">×</button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      
+      <!-- Section: Principal -->
+      <div class="nav-section">
+        <button class="section-header" (click)="toggleSection('main')">
+          <span class="section-title">Principal</span>
+          <span class="section-icon" [class.rotated]="!sections.main">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.main">
+          <a *ngFor="let item of mainMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             (click)="closeMobileMenu()"
+             class="nav-item">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Section: Gestion -->
+      <div class="nav-section">
+        <button class="section-header" (click)="toggleSection('management')">
+          <span class="section-title">Gestion</span>
+          <span class="section-icon" [class.rotated]="!sections.management">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.management">
+          <a *ngFor="let item of managementMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             (click)="closeMobileMenu()"
+             class="nav-item">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Section: Configuration -->
+      <div class="nav-section">
+        <button class="section-header" (click)="toggleSection('config')">
+          <span class="section-title">Configuration</span>
+          <span class="section-icon" [class.rotated]="!sections.config">›</span>
+        </button>
+        
+        <div class="section-content" [class.collapsed]="!sections.config">
+          <a *ngFor="let item of configMenuItems" 
+             [routerLink]="item.path" 
+             routerLinkActive="active"
+             [routerLinkActiveOptions]="{exact: item.exact}"
+             (click)="closeMobileMenu()"
+             class="nav-item">
+            <i class="nav-icon {{ item.icon }}"></i>
+            <span class="label">{{ item.label }}</span>
+          </a>
+        </div>
+      </div>
+      
+    </nav>
+    
+  </aside>
+  
+  <!-- Main Content -->
+  <div class="main-content" [class.sidebar-collapsed]="!sidebarOpen">
+    
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <button class="toggle-btn desktop-only" (click)="toggleSidebar()">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </button>
+        <button class="toggle-btn mobile-only" (click)="toggleMobileMenu()">
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+          <span class="burger-line"></span>
+        </button>
+        <h1>Administration</h1>
+      </div>
+      <div class="header-right">
+        <div class="user-menu" (click)="toggleUserMenu()">
+          <span class="user-name">Nantenaina KELY</span>
+          <div class="user-avatar">AN</div>
+        </div>
+        
+        <!-- User Dropdown Menu -->
+        <div class="user-dropdown" [class.active]="userMenuOpen">
+          <div class="dropdown-item" (click)="viewProfile()">
+            <i class="fas fa-user"></i>
+            <span>Mon profil</span>
+          </div>
+          <div class="dropdown-item" (click)="viewSettings()">
+            <i class="fas fa-cog"></i>
+            <span>Paramètres</span>
+          </div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item logout" (click)="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Déconnexion</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Page Content -->
+    <main class="content">
+      <router-outlet />
+    </main>
+    
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p>© 2026 Akoor City. Tous droits réservés.</p>
+        <p class="authors">Ratovonandrasana Aina Ny Antsa · Raherimalala Fanomezantsoa Nirina Nantenaina</p>
+      </div>
+    </footer>
+    
+  </div>
+  
+</div>

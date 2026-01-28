@@ -1,52 +1,52 @@
 {
-  "hash": "741e99f6",
+  "hash": "d1ad9a9c",
   "configHash": "227f31c3",
-  "lockfileHash": "dec93fd8",
-  "browserHash": "2bfc00cc",
+  "lockfileHash": "aaeb34ec",
+  "browserHash": "6bd8bb4d",
   "optimized": {
     "@angular/common": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
       "file": "@angular_common.js",
-      "fileHash": "c4de839f",
+      "fileHash": "39c1cf63",
       "needsInterop": false
     },
     "@angular/common/http": {
       "src": "../../../../../../node_modules/@angular/common/fesm2022/http.mjs",
       "file": "@angular_common_http.js",
-      "fileHash": "58db19bc",
+      "fileHash": "b81be90e",
       "needsInterop": false
     },
     "@angular/core": {
       "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
       "file": "@angular_core.js",
-      "fileHash": "a93ce16b",
+      "fileHash": "edba4aac",
       "needsInterop": false
     },
     "@angular/platform-browser": {
       "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
       "file": "@angular_platform-browser.js",
-      "fileHash": "8f85e01d",
+      "fileHash": "c0f5c933",
       "needsInterop": false
     },
     "@angular/router": {
       "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
       "file": "@angular_router.js",
-      "fileHash": "1597fb18",
+      "fileHash": "72a3ef30",
       "needsInterop": false
     }
   },
   "chunks": {
-    "chunk-6Z4Y6EN4": {
-      "file": "chunk-6Z4Y6EN4.js"
+    "chunk-2GXF4SUX": {
+      "file": "chunk-2GXF4SUX.js"
     },
-    "chunk-CJNYY6WE": {
-      "file": "chunk-CJNYY6WE.js"
+    "chunk-UZ3W7IA7": {
+      "file": "chunk-UZ3W7IA7.js"
     },
-    "chunk-ZF3X55FX": {
-      "file": "chunk-ZF3X55FX.js"
+    "chunk-5WZBBLBH": {
+      "file": "chunk-5WZBBLBH.js"
     },
-    "chunk-IZFJSKTX": {
-      "file": "chunk-IZFJSKTX.js"
+    "chunk-NUL3GHVN": {
+      "file": "chunk-NUL3GHVN.js"
     },
     "chunk-JDTKFCUY": {
       "file": "chunk-JDTKFCUY.js"
