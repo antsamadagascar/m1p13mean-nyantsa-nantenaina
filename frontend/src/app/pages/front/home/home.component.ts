@@ -18,6 +18,7 @@ interface StatusResponse {
 export class HomeComponent implements OnInit {
   loading = true;
   connectionStatus: StatusResponse | null = null;
+  private apiStatusUrl = `${environment.apiUrl}/api/status`; 
 
   constructor(private http: HttpClient) {}
 
@@ -27,15 +28,14 @@ export class HomeComponent implements OnInit {
 
   checkStatus() {
     this.loading = true;
-    
-    this.http.get<StatusResponse>(environment.apiUrl).subscribe({
+    this.http.get<StatusResponse>(this.apiStatusUrl).subscribe({  
       next: (data) => {
         this.connectionStatus = {
           connected: data.connected,
           database: data.database
         };
         this.loading = false;
-        console.log(' Statut:', this.connectionStatus);
+        console.log('Statut:', this.connectionStatus);
       },
       error: (error) => {
         this.connectionStatus = { 
