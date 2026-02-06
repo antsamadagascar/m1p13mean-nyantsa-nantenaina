@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../services/auth.service'; 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -27,8 +27,7 @@ export class ConnexionComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private alertService: AlertService,
-    private route: ActivatedRoute // activation route de protection
+    private alertService: AlertService
   ) {}
 
   onSubmit() {
