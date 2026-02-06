@@ -36,6 +36,7 @@
             <path d="m21 21-4.35-4.35"></path>
           </svg>
         </button>
+        
         <a routerLink="/cart" class="icon-btn cart-btn">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="9" cy="21" r="1"></circle>
@@ -44,19 +45,58 @@
           </svg>
           <span class="cart-count">3</span>
         </a>
-        <a routerLink="/login" class="btn-login">
+        
+        <!-- Si NON connecté -->
+        <a *ngIf="!currentUser" routerLink="/connexion" class="btn-login">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
             <circle cx="12" cy="7" r="4"></circle>
           </svg>
           <span>Se connecter</span>
         </a>
+        
+        <!-- Si connecté (ACHETEUR uniquement ici) -->
+        <div *ngIf="currentUser" class="user-menu-container">
+          <button class="user-menu-btn" (click)="toggleUserMenu()">
+            <div class="user-avatar">{{ getUserInitials() }}</div>
+            <span class="user-name-desktop">{{ currentUser.prenom }}</span>
+          </button>
+          
+          <div class="user-dropdown" [class.active]="userMenuOpen">
+            <div class="user-info">
+              <strong>{{ currentUser.prenom }} {{ currentUser.nom }}</strong>
+              <small>{{ currentUser.email }}</small>
+              <span class="user-role">{{ currentUser.role }}</span>
+            </div>
+            
+            <div class="dropdown-divider"></div>
+            
+            <a routerLink="/orders" class="dropdown-item" (click)="userMenuOpen = false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              </svg>
+              <span>Mes commandes</span>
+            </a>
+            
+            <div class="dropdown-divider"></div>
+            
+            <button class="dropdown-item logout" (click)="logout()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Déconnexion</span>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Mobile Menu -->
     <div class="mobile-menu" [class.active]="mobileMenuOpen">
       <ul class="mobile-nav-list">
+        <!-- Navigation principale -->
         <li *ngFor="let item of navItems">
           <a [routerLink]="item.path" 
              routerLinkActive="active" 
@@ -65,7 +105,10 @@
             {{ item.label }}
           </a>
         </li>
+        
         <li class="mobile-divider"></li>
+        
+        <!-- Recherche -->
         <li class="mobile-search">
           <button class="mobile-menu-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -75,6 +118,8 @@
             <span>Rechercher</span>
           </button>
         </li>
+        
+        <!-- Panier -->
         <li>
           <a routerLink="/cart" (click)="closeMobileMenu()" class="mobile-menu-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -82,10 +127,14 @@
               <circle cx="20" cy="21" r="1"></circle>
               <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
             </svg>
-            <span>Panier (3)</span>
+            <span>Panier (0)</span>
           </a>
         </li>
-        <li class="mobile-login">
+        
+        <li class="mobile-divider"></li>
+        
+        <!-- Si NON connecté -->
+        <li *ngIf="!currentUser" class="mobile-login">
           <a routerLink="/login" (click)="closeMobileMenu()" class="mobile-login-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -94,6 +143,56 @@
             <span>Se connecter</span>
           </a>
         </li>
+        
+        <!-- Si CONNECTÉ -->
+        <ng-container *ngIf="currentUser">
+          <!-- Infos utilisateur -->
+          <li class="mobile-user-info">
+            <div class="mobile-user-avatar">{{ getUserInitials() }}</div>
+            <div class="mobile-user-details">
+              <strong>{{ currentUser.prenom }} {{ currentUser.nom }}</strong>
+              <small>{{ currentUser.email }}</small>
+              <span class="user-role-badge">{{ currentUser.role }}</span>
+            </div>
+          </li>
+          
+          <li class="mobile-divider"></li>
+          
+          <!-- Mon profil -->
+          <li>
+            <a routerLink="/profile" (click)="closeMobileMenu()" class="mobile-menu-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <span>Mon profil</span>
+            </a>
+          </li>
+          
+          <!-- Mes commandes -->
+          <li>
+            <a routerLink="/orders" (click)="closeMobileMenu()" class="mobile-menu-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+              </svg>
+              <span>Mes commandes</span>
+            </a>
+          </li>
+          
+          <li class="mobile-divider"></li>
+          
+          <!-- Déconnexion -->
+          <li>
+            <button (click)="logout()" class="mobile-logout-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+              <span>Déconnexion</span>
+            </button>
+          </li>
+        </ng-container>
       </ul>
     </div>
   </nav>

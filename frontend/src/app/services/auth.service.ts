@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 import { User, AuthResponse, ConnexionData } from '../models/user.model';
 
 @Injectable({
@@ -12,14 +13,15 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private router: Router
+  ) {
     const user = this.getUserFromStorage();
     if (user) {
       this.currentUserSubject.next(user);
     }
   }
-
-
 
   connexion(data: ConnexionData): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/connexion`, data)
@@ -32,10 +34,11 @@ export class AuthService {
       );
   }
 
-  deconnexion(): void {
+  logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     this.currentUserSubject.next(null);
+    this.router.navigate(['/connexion']);
   }
 
   private saveAuthData(user: User, token: string): void {
@@ -53,6 +56,10 @@ export class AuthService {
     return userStr ? JSON.parse(userStr) : null;
   }
 
+  getCurrentUser(): User | null {
+    return this.currentUserSubject.value;
+  }
+
   isAuthenticated(): boolean {
     return !!this.getToken();
   }
@@ -65,5 +72,17 @@ export class AuthService {
   hasRole(roles: string[]): boolean {
     const userRole = this.getUserRole();
     return userRole ? roles.includes(userRole) : false;
+  }
+
+  isAdmin(): boolean {
+    return this.hasRole(['ADMIN']);
+  }
+
+  isBoutique(): boolean {
+    return this.hasRole(['BOUTIQUE']);
+  }
+
+  isAcheteur(): boolean {
+    return this.hasRole(['ACHETEUR']);
   }
 }
