@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
+
 
 interface MenuItem {
   path: string;
@@ -34,7 +36,7 @@ export class AdminLayoutComponent {
     config: true
   };
   
-  constructor() {
+  constructor(public authService: AuthService) {
     if (window.innerWidth <= 768) {
       this.sections = {
         main: false,
@@ -44,16 +46,18 @@ export class AdminLayoutComponent {
     }
   }
 
+
+
   mainMenuItems: MenuItem[] = [
     { path: '/admin', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
     { path: '/admin/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
   ];
 
   managementMenuItems: MenuItem[] = [
+       { path: '/admin/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
     { path: '/admin/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
     { path: '/admin/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
-    { path: '/admin/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
-    { path: '/admin/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false }
+    { path: '/admin/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false }
   ];
 
   configMenuItems: MenuItem[] = [
@@ -91,25 +95,19 @@ export class AdminLayoutComponent {
     document.body.style.overflow = '';
   }
   
-  viewProfile() {
-    this.userMenuOpen = false;
-    console.log('Navigating to profile...');
-  }
-  
-  viewSettings() {
-    this.userMenuOpen = false;
-    console.log('Navigating to settings...');
-  }
-  
+
   toggleSection(section: keyof SectionState) {
     this.sections[section] = !this.sections[section];
   }
   
+
   logout() {
     this.userMenuOpen = false;
-    console.log('Logging out...');
+    this.authService.logout();  
+    this.closeMobileMenu();
   }
-  
+
+
   addMenuItem(section: 'main' | 'management' | 'config', item: MenuItem) {
     switch(section) {
       case 'main':

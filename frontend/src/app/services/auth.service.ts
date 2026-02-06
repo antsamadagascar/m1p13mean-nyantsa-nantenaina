@@ -85,4 +85,19 @@ export class AuthService {
   isAcheteur(): boolean {
     return this.hasRole(['ACHETEUR']);
   }
+
+  getUserInitials(): string {
+    const user = this.getCurrentUser();
+    if (!user) return '';
+
+    const prenom = user.prenom ? user.prenom[0] : '';
+    const nom = user.nom ? user.nom[0] : '';
+    return (prenom + nom).toUpperCase();
+  }
+
+getUserFullName(): string {
+  const user = this.getCurrentUser();
+  if (!user) return '';
+  return `${user.prenom} ${user.nom}`;
+}
 }

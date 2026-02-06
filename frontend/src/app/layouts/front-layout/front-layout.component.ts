@@ -42,10 +42,10 @@ export class FrontLayoutComponent implements OnInit {
   }
 
   logout() {
-  this.userMenuOpen = false;
-  this.authService.logout();  
-  this.closeMobileMenu();
-}
+    this.userMenuOpen = false;
+    this.authService.logout();  
+    this.closeMobileMenu();
+  }
 
   getUserInitials(): string {
     if (!this.currentUser) return '';
