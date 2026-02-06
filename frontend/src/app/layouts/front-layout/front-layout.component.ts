@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 
@@ -10,6 +10,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './front-layout.component.html',
   styleUrls: ['./front-layout.component.css']
 })
+
 export class FrontLayoutComponent implements OnInit {
   mobileMenuOpen = false;
   userMenuOpen = false;  
@@ -21,13 +22,25 @@ export class FrontLayoutComponent implements OnInit {
     { path: '/produits', label: 'Produits', exact: false },
   ];
 
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService , private router: Router) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+    this.checkUserAccess();
   }
+
+  private checkUserAccess() {
+    const userRole = this.authService.getUserRole();
+
+    //  Si ADMIN ou BOUTIQUE, on redirige immédiatement
+    if (userRole === 'ADMIN' || userRole === 'BOUTIQUE') {
+      console.log(`${userRole} redirigé de / vers /backoffice`);
+      this.router.navigate(['/backoffice'], { replaceUrl: true });
+    }
+  }
+
 
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
