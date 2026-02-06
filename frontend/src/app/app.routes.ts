@@ -16,36 +16,39 @@ export const routes: Routes = [
   {
     path: 'backoffice',
     component: AdminLayoutComponent,
-    canActivate: [authGuard, roleGuard],  // PROTECTION 
-    data: { roles: ['ADMIN', 'BOUTIQUE'] }, //  Les 2 rôles peuvent accéder
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'BOUTIQUE'] },
     children: [
       { 
         path: '', 
         loadComponent: () => import('./pages/admin/dashboard/dashboard.component')
           .then(m => m.DashboardComponent)
       },
- 
+
     ]
   },
 
-  // ========== ROUTES FRONT (publiques + protégées ACHETEUR) ==========
+  // ========== ROUTES FRONT (espace ACHETEUR) ==========
   {
     path: '',
     component: FrontLayoutComponent,
     children: [
-      // Routes publiques
+      //  PAGE D'ACCUEIL - Accessible à tous MAIS redirige si ADMIN/BOUTIQUE
       { 
         path: '', 
         loadComponent: () => import('./pages/front/home/home.component')
-          .then(m => m.HomeComponent)
+          .then(m => m.HomeComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ACHETEUR', 'GUEST'] } //  ACHETEUR ou non connecté
       },
-    
+      
+  
     ]
   },
 
   // ========== REDIRECTION 404 ==========
   { 
     path: '**', 
-    redirectTo: '' 
+    redirectTo: 'connexion'
   }
 ];

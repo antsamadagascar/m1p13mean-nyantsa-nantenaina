@@ -1,8 +1,8 @@
-import { Component } from '@angular/core';
+// src/app/layouts/admin-layout/admin-layout.component.ts
+import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
-
 
 interface MenuItem {
   path: string;
@@ -24,8 +24,7 @@ interface SectionState {
   templateUrl: './admin-layout.component.html',
   styleUrl: './admin-layout.component.css'
 })
-export class AdminLayoutComponent {
-  
+export class AdminLayoutComponent implements OnInit {
   sidebarOpen = true;
   mobileMenuOpen = false;
   userMenuOpen = false;
@@ -35,7 +34,11 @@ export class AdminLayoutComponent {
     management: true,
     config: true
   };
-  
+
+  mainMenuItems: MenuItem[] = [];
+  managementMenuItems: MenuItem[] = [];
+  configMenuItems: MenuItem[] = [];
+
   constructor(public authService: AuthService) {
     if (window.innerWidth <= 768) {
       this.sections = {
@@ -46,23 +49,49 @@ export class AdminLayoutComponent {
     }
   }
 
+  ngOnInit() {
+    this.loadMenuByRole();
+  }
 
-  mainMenuItems: MenuItem[] = [
-    { path: '/admin', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
-    { path: '/admin/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
-  ];
+  loadMenuByRole() {
+    const userRole = this.authService.getUserRole();
 
-  managementMenuItems: MenuItem[] = [
-    { path: '/admin/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
-    { path: '/admin/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
-    { path: '/admin/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
-    { path: '/admin/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false }
-  ];
+    if (userRole === 'ADMIN') {
+      //  MENU  pour ADMIN
+      this.mainMenuItems = [
+        { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
+        { path: '/backoffice/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
+      ];
 
-  configMenuItems: MenuItem[] = [
-    { path: '/admin/reports', label: 'Rapports', icon: 'fa-solid fa-file-lines', exact: false },
-    { path: '/admin/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
-  ];
+      this.managementMenuItems = [
+        { path: '/backoffice/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
+        { path: '/backoffice/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
+        { path: '/backoffice/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
+        { path: '/backoffice/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false }
+      ];
+
+      this.configMenuItems = [
+        { path: '/backoffice/reports', label: 'Rapports', icon: 'fa-solid fa-file-lines', exact: false },
+        { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
+      ];
+
+    } else if (userRole === 'BOUTIQUE') {
+      //  MENU LIMITÉ pour BOUTIQUE (test fotsiny)
+      this.mainMenuItems = [
+        { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true }
+      ];
+
+      this.managementMenuItems = [
+        { path: '/backoffice/products', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
+        { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
+        { path: '/backoffice/boutiques', label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false }
+      ];
+
+      this.configMenuItems = [
+        { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
+      ];
+    }
+  }
 
   get allMenuItems(): MenuItem[] {
     return [
@@ -71,11 +100,11 @@ export class AdminLayoutComponent {
       ...this.configMenuItems
     ];
   }
-  
+
   toggleSidebar() {
     this.sidebarOpen = !this.sidebarOpen;
   }
-  
+
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
     if (this.mobileMenuOpen) {
@@ -84,46 +113,23 @@ export class AdminLayoutComponent {
       document.body.style.overflow = '';
     }
   }
-  
+
   toggleUserMenu() {
     this.userMenuOpen = !this.userMenuOpen;
   }
-  
+
   closeMobileMenu() {
     this.mobileMenuOpen = false;
     document.body.style.overflow = '';
   }
-  
 
   toggleSection(section: keyof SectionState) {
     this.sections[section] = !this.sections[section];
   }
-  
 
   logout() {
     this.userMenuOpen = false;
-    this.authService.logout();  
+    this.authService.logout();
     this.closeMobileMenu();
-  }
-
-
-  addMenuItem(section: 'main' | 'management' | 'config', item: MenuItem) {
-    switch(section) {
-      case 'main':
-        this.mainMenuItems.push(item);
-        break;
-      case 'management':
-        this.managementMenuItems.push(item);
-        break;
-      case 'config':
-        this.configMenuItems.push(item);
-        break;
-    }
-  }
-  
-  removeMenuItem(path: string) {
-    this.mainMenuItems = this.mainMenuItems.filter(item => item.path !== path);
-    this.managementMenuItems = this.managementMenuItems.filter(item => item.path !== path);
-    this.configMenuItems = this.configMenuItems.filter(item => item.path !== path);
   }
 }
