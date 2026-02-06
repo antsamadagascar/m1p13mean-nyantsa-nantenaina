@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../services/auth.service'; 
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,6 @@ import { CommonModule } from '@angular/common';
   templateUrl: './connexion.component.html',    
   styleUrls: ['./connexion.component.css'] 
 })
-
 export class ConnexionComponent {
   credentials = {
     email: '',
@@ -23,7 +22,8 @@ export class ConnexionComponent {
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute // activation route de protection
   ) {}
 
   onSubmit() {
@@ -32,33 +32,37 @@ export class ConnexionComponent {
 
     this.authService.connexion(this.credentials).subscribe({
       next: (response) => {
-        console.log('Connexion réussie', response);
+        console.log(' Connexion réussie', response);
+
+        // Vérifie s'il y a une URL de retour
+        const returnUrl = this.route.snapshot.queryParams['returnUrl'];
         
-        // Redirection automatique selon le rôle
-        switch(response.user.role) {
-          case 'ADMIN':
-            this.router.navigate(['/backoffice']);
-            break;
-          case 'BOUTIQUE':
-            this.router.navigate(['/backoffice']);
-            break;
-          case 'ACHETEUR':
-            this.router.navigate(['/']);
-            break;
-          default:
-            this.router.navigate(['/']);
+        if (returnUrl)
+        {   this.router.navigateByUrl(returnUrl);} else {
+          // Redirection par défaut selon le rôle
+          switch(response.user.role) {
+            case 'ADMIN':
+            case 'BOUTIQUE':
+              this.router.navigate(['/backoffice']);
+              break;
+            case 'ACHETEUR':
+              this.router.navigate(['/']);
+              break;
+            default:
+              this.router.navigate(['/']);
+          }
         }
         
         this.loading = false;
       },
       error: (error) => {
-        this.errorMessage = error.error.message || 'Email ou mot de passe incorrect';
+        this.errorMessage = error.error?.message || 'Email ou mot de passe incorrect';
         this.loading = false;
       }
     });
   }
 
-  // Fonction pour remplir automatiquement les champs (démo test fitsarana )
+  // Fonction pour remplir automatiquement les champs (démo)
   fillDemo(role: 'admin' | 'boutique' | 'client') {
     switch(role) {
       case 'admin':

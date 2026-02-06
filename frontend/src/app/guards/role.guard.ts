@@ -13,8 +13,8 @@ export const roleGuard = (route: ActivatedRouteSnapshot) => {
   }
 
   const userRole = authService.getUserRole();
-  if (userRole === 'ADMIN') router.navigate(['/admin']);
-  else if (userRole === 'BOUTIQUE') router.navigate(['/boutique']);
+  if (userRole === 'ADMIN') router.navigate(['/backoffice']);
+  else if (userRole === 'BOUTIQUE') router.navigate(['/backoffice']);
   else router.navigate(['/']);
   
   return false;
