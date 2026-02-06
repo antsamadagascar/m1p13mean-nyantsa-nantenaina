@@ -19,6 +19,8 @@ export class ConnexionComponent {
   
   errorMessage = '';
   loading = false;
+  showPassword = false;
+
 
   constructor(
     private authService: AuthService,
@@ -29,6 +31,7 @@ export class ConnexionComponent {
   onSubmit() {
     this.loading = true;
     this.errorMessage = '';
+    
 
     this.authService.connexion(this.credentials).subscribe({
       next: (response) => {
