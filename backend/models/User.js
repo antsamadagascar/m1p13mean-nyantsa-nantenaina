@@ -44,10 +44,6 @@ const userSchema = new mongoose.Schema({
 
 });
 
-// Méthode pour comparer les mots de passe
-userSchema.methods.comparerMotDePasse = async function(motDePasseCandidat) {
-  return await bcrypt.compare(motDePasseCandidat, this.motDePasse);
-};
 
 // Méthode pour comparer les mots de passe
 userSchema.methods.comparerMotDePasse = async function(motDePasseCandidat) {
