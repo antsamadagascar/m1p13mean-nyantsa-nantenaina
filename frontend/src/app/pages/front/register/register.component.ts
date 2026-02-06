@@ -14,6 +14,7 @@ export class RegisterComponent {
     nom: '',
     prenom: '',
     email: '',
+    telephone:'',
     motDePasse: '',
     confirmation: ''
   };
@@ -32,6 +33,7 @@ export class RegisterComponent {
       nom: this.user.nom,
       prenom: this.user.prenom,
       email: this.user.email,
+      telephone: this.user.telephone,
       motDePasse: this.user.motDePasse
     };
 
