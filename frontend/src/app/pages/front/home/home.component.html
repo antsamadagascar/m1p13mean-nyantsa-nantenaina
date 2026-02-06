@@ -7,12 +7,21 @@
       <!-- Main Title -->
       <div class="hero-content">
         <h1 class="hero-title">
-          Bienvenue sur <span class="brand">Akoor City</span>
+          Bienvenue  sur 
+          <span class="brand">Akoor City</span>
+         <span *ngIf="currentUser">, {{ currentUser.prenom }} !</span>
         </h1>
+
         <p class="hero-subtitle">
-          Découvrez des centaines de boutiques et produits en ligne
+          <ng-container *ngIf="currentUser; else guestText">
+            Découvrez vos boutiques et produits préférés en ligne
+          </ng-container>
+          <ng-template #guestText>
+            Découvrez des centaines de boutiques et produits en ligne
+          </ng-template>
         </p>
       </div>
+
       
       <!-- Status Cards -->
       <div class="status-cards" *ngIf="!loading">
@@ -68,10 +77,6 @@
           <i class="fas fa-store"></i>
           Découvrir les boutiques
         </a>
-        <a href="#about" class="btn-secondary">
-          <i class="fas fa-info-circle"></i>
-          En savoir plus
-        </a>
       </div>
       
     </div>
@@ -105,32 +110,8 @@
           <div class="category-icon">
             <i class="fas fa-couch"></i>
           </div>
-          <h3>Maison & Jardin</h3>
-          <p>Meubles, décoration, jardinage</p>
-        </a>
-        
-        <a href="/category/beaute" class="category-card">
-          <div class="category-icon">
-            <i class="fas fa-spa"></i>
-          </div>
-          <h3>Beauté & Santé</h3>
-          <p>Cosmétiques, soins, bien-être</p>
-        </a>
-        
-        <a href="/category/sports" class="category-card">
-          <div class="category-icon">
-            <i class="fas fa-futbol"></i>
-          </div>
-          <h3>Sports & Loisirs</h3>
-          <p>Équipements sportifs, jeux</p>
-        </a>
-        
-        <a href="/category/livres" class="category-card">
-          <div class="category-icon">
-            <i class="fas fa-book"></i>
-          </div>
-          <h3>Livres & Médias</h3>
-          <p>Livres, musique, films</p>
+          <h3>Maison & décoration</h3>
+          <p>Meubles, décoration</p>
         </a>
         
       </div>

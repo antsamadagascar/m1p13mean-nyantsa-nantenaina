@@ -19,7 +19,6 @@ export class FrontLayoutComponent implements OnInit {
     { path: '/', label: 'Accueil', exact: true },
     { path: '/boutiques', label: 'Boutiques', exact: false },
     { path: '/produits', label: 'Produits', exact: false },
-    { path: '/contact', label: 'Contact', exact: false }
   ];
 
   constructor(public authService: AuthService) {}
