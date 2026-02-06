@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const bcrypt = require('bcrypt');
+
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -41,5 +43,22 @@ const userSchema = new mongoose.Schema({
   }
 
 });
+
+// Méthode pour comparer les mots de passe
+userSchema.methods.comparerMotDePasse = async function(motDePasseCandidat) {
+  return await bcrypt.compare(motDePasseCandidat, this.motDePasse);
+};
+
+// Méthode pour comparer les mots de passe
+userSchema.methods.comparerMotDePasse = async function(motDePasseCandidat) {
+  return await bcrypt.compare(motDePasseCandidat, this.motDePasse);
+};
+
+// methode pour ne pas envoyer le mot de passe dans les réponses JSON
+userSchema.methods.toJSON = function() {
+  const user = this.toObject();
+  delete user.motDePasse;
+  return user;
+};
 
 module.exports = mongoose.model("User", userSchema);

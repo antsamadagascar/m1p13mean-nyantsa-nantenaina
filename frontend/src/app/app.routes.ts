@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { FrontLayoutComponent } from './layouts/front-layout/front-layout.component';
+import { ConnexionComponent } from './components/auth/connexion/connexion.component';
 
 export const routes: Routes = [
   // Route Admin
@@ -28,6 +29,9 @@ export const routes: Routes = [
       }
     ]
   },
+
+  { path: '', redirectTo: '/connexion', pathMatch: 'full' },
+  { path: 'connexion', component: ConnexionComponent },
 
   // Redirection 404
   { path: '**', redirectTo: '' }
