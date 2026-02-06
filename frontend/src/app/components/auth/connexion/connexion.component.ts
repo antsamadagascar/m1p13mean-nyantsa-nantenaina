@@ -37,10 +37,10 @@ export class ConnexionComponent {
         // Redirection automatique selon le rôle
         switch(response.user.role) {
           case 'ADMIN':
-            this.router.navigate(['/admin']);
+            this.router.navigate(['/backoffice']);
             break;
           case 'BOUTIQUE':
-            this.router.navigate(['/boutique']);
+            this.router.navigate(['/backoffice']);
             break;
           case 'ACHETEUR':
             this.router.navigate(['/']);
