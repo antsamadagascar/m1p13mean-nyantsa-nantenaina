@@ -1,0 +1,10 @@
+<h2>Inscription</h2>
+
+<form (ngSubmit)="onRegister()" #registerForm="ngForm">
+  <input type="text" placeholder="Nom" name="nom" [(ngModel)]="user.nom" required>
+  <input type="text" placeholder="Prénom" name="prenom" [(ngModel)]="user.prenom" required>
+  <input type="email" placeholder="Email" name="email" [(ngModel)]="user.email" required>
+  <input type="password" placeholder="Mot de passe" name="motDePasse" [(ngModel)]="user.motDePasse" required minlength="6">
+  <input type="password" placeholder="Confirmation" name="confirmation" [(ngModel)]="user.confirmation" required minlength="6">
+  <button type="submit">S’inscrire</button>
+</form>
