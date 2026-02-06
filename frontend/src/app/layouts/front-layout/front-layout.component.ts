@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { AlertService } from '../../services/alert.service';
+
 
 @Component({
   selector: 'app-front-layout',
@@ -22,7 +24,8 @@ export class FrontLayoutComponent implements OnInit {
     { path: '/produits', label: 'Produits', exact: false },
   ];
 
-  constructor(public authService: AuthService , private router: Router) {}
+  constructor(public authService: AuthService , private router: Router,
+  private alertService: AlertService) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -56,9 +59,14 @@ export class FrontLayoutComponent implements OnInit {
 
   logout() {
     this.userMenuOpen = false;
-    this.authService.logout();  
+    this.authService.logout();
+
+    this.alertService.success('Vous êtes déconnecté ');
+    this.router.navigate(['/connexion']);
+
     this.closeMobileMenu();
   }
+
 
   getUserInitials(): string {
     if (!this.currentUser) return '';

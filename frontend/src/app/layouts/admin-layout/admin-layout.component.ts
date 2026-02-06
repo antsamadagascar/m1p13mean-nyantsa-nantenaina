@@ -1,8 +1,8 @@
-// src/app/layouts/admin-layout/admin-layout.component.ts
 import { Component, OnInit } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { AlertService } from '../../services/alert.service';
 
 interface MenuItem {
   path: string;
@@ -39,7 +39,7 @@ export class AdminLayoutComponent implements OnInit {
   managementMenuItems: MenuItem[] = [];
   configMenuItems: MenuItem[] = [];
 
-  constructor(public authService: AuthService) {
+  constructor(public authService: AuthService,private alertService: AlertService) {
     if (window.innerWidth <= 768) {
       this.sections = {
         main: false,
@@ -130,6 +130,7 @@ export class AdminLayoutComponent implements OnInit {
   logout() {
     this.userMenuOpen = false;
     this.authService.logout();
+    this.alertService.success('Vous êtes déconnecté ');
     this.closeMobileMenu();
   }
 }
