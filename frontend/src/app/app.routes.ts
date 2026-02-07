@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { FrontLayoutComponent } from './layouts/front-layout/front-layout.component';
 import { RegisterComponent } from './pages/front/register/register.component';
+import { VerifyEmailComponent } from './pages/front/verify-email/verify-email.component';
 export const routes: Routes = [
   // Route Admin
   {
@@ -31,7 +32,7 @@ export const routes: Routes = [
 
   // Route register
   { path: 'register', component: RegisterComponent },
-
+  { path: 'verify-email', component: VerifyEmailComponent },
   // Redirection 404
   { path: '**', redirectTo: '' }
 ];
