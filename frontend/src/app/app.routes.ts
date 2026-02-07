@@ -1,4 +1,3 @@
-// src/app/app.routes.ts
 import { Routes } from '@angular/router';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import { FrontLayoutComponent } from './layouts/front-layout/front-layout.component';
@@ -11,21 +10,28 @@ export const routes: Routes = [
     path: 'connexion', 
     component: ConnexionComponent 
   },
-
   {
     path: 'backoffice',
     component: AdminLayoutComponent,
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['ADMIN', 'BOUTIQUE'] },
+    canActivate: [authGuard],
     children: [
       { 
         path: '', 
         loadComponent: () => import('./pages/admin/dashboard/dashboard.component')
-          .then(m => m.DashboardComponent)
-      }
+          .then(m => m.DashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'BOUTIQUE'] }
+      },
+      // Route de test - Accessible uniquement par ADMIN
+      { 
+        path: 'boutiques', 
+        loadComponent: () => import('./pages/admin/boutiques/boutiques.component')
+          .then(m => m.BoutiquesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] } //  Seulement ADMIN
+      },
     ]
   },
-
   {
     path: '',
     component: FrontLayoutComponent,
@@ -37,7 +43,6 @@ export const routes: Routes = [
       }
     ]
   },
-
   { 
     path: '**', 
     redirectTo: 'connexion'
