@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common'; // ✅ Nécessaire pour ngIf, ngClass, ngFor
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, CommonModule], // ✅ Ajout de CommonModule
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -14,18 +15,24 @@ export class RegisterComponent {
     nom: '',
     prenom: '',
     email: '',
-    telephone:'',
+    telephone: '',
     motDePasse: '',
     confirmation: ''
   };
 
   message = '';
+  messageType: 'success' | 'error' | '' = ''; // pour gérer le style de notification
 
   constructor(private http: HttpClient) {}
 
   onRegister() {
+    this.message = '';
+    this.messageType = '';
+
+    // Vérification des mots de passe
     if (this.user.motDePasse !== this.user.confirmation) {
       this.message = 'Les mots de passe ne correspondent pas';
+      this.messageType = 'error';
       return;
     }
 
@@ -37,10 +44,17 @@ export class RegisterComponent {
       motDePasse: this.user.motDePasse
     };
 
-    this.http.post('http://localhost:5000/api/register', payload)
+    // Appel API
+    this.http.post<any>('http://localhost:5000/api/register', payload)
       .subscribe({
-        next: () => this.message = 'Inscription réussie',
-        error: () => this.message = 'Erreur lors de l’inscription'
+        next: (res) => {
+          this.message = res.message || 'Inscription réussie';
+          this.messageType = 'success';
+        },
+        error: (err) => {
+          this.message = err.error?.message || 'Erreur lors de l’inscription';
+          this.messageType = 'error';
+        }
       });
   }
 }

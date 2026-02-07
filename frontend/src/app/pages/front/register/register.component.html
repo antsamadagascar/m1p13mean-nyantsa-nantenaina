@@ -6,7 +6,14 @@
       <h1 class="brand-name">CITY MALL</h1>
       <p class="subtitle">Rejoignez notre centre commercial</p>
     </div>
-
+      <!-- Notification -->
+        <div *ngIf="message" class="notification"
+          [ngClass]="{
+            'success': messageType === 'success',
+            'error': messageType === 'error'
+          }">
+        {{ message }}
+        </div>
     <!-- Form -->
     <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
       <h2 class="form-title">Créer un compte</h2>
