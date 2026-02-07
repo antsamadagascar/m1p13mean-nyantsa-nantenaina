@@ -43,3 +43,7 @@ Thumbs.db
 
 tuto/
 /frontend/.angular/cache/
+node_modules/
+.env
+*.log
+.DS_Store
