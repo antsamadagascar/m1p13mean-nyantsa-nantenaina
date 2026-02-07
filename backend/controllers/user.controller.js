@@ -2,11 +2,11 @@ const userService = require('../services/user.service');
 
 const register = async (req, res) => {
   try {
-    // await userService.registerUser(req.body);
+    await userService.registerUser(req.body);
 
-    // res.status(201).json({
-    //   message: 'Inscription réussie'
-    // });
+    res.status(201).json({
+      message: 'Inscription réussie'
+    });
     console.log(req.body);
 
   } catch (error) {

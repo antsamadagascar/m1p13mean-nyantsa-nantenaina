@@ -90,10 +90,6 @@ const sendVerificationEmail = async (user, verificationToken) => {
               </a>
             </div>
             
-            <p>Ou copiez ce lien dans votre navigateur :</p>
-            <p style="word-break: break-all; background: #fff; padding: 10px; border-radius: 4px;">
-              ${verificationLink}
-            </p>
             
             <p><strong>Informations de votre compte :</strong></p>
             <ul>
