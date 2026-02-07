@@ -1,4 +1,4 @@
-const express = require('express');  // ← DÉCOMMENTEZ CETTE LIGNE !
+const express = require('express');  
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
@@ -18,7 +18,6 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// const User = require('./models/User');
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✓ MongoDB connecté"))
@@ -35,15 +34,15 @@ app.get('/api/status', (req, res) => {
 });
 
 
-const authRoutes = require('./routes/user.routes');
+const userRoutes = require('./routes/user.routes');
+const authRoutes = require('./routes/authRoutes');
 
-app.use('/api', authRoutes);
+app.use('/api', userRoutes);
+app.use('/api/auth', authRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 
-// IMPORTATION DES ROUTES (ajoutez ces lignes !)
-const authRoutes = require('./routes/authRoutes');
-app.use('/api/auth', authRoutes);
+
 
 // Démarrage du serveur
 app.listen(PORT, () => console.log(`✓ Serveur sur port ${PORT}`));
