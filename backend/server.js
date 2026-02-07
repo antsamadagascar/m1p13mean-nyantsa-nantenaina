@@ -10,6 +10,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// const User = require('./models/User');
 // Connexion MongoDB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log(" MongoDB connecté"))
@@ -24,6 +25,10 @@ app.get('/api/status', (req, res) => {
     database: `${dbName} (${dbStatus})`
   });
 });
+
+const authRoutes = require('./routes/user.routes');
+
+app.use('/api', authRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 

@@ -1,0 +1,338 @@
+/* Container Principal */
+.register-container {
+  /* min-height: 100vh; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;  /* ← Réduit */
+  background: linear-gradient(135deg, #f5f1eb 0%, #e8dfd4 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Éléments décoratifs */
+.decoration {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.decoration-1 {
+  width: 300px;  /* ← Réduit */
+  height: 300px;
+  background: #d4c4b0;
+  top: -150px;
+  right: -80px;
+}
+
+.decoration-2 {
+  width: 220px;  /* ← Réduit */
+  height: 220px;
+  background: #c9b89a;
+  bottom: -110px;
+  left: -70px;
+}
+
+.decoration-3 {
+  width: 150px;  /* ← Réduit */
+  height: 150px;
+  background: #bfae96;
+  top: 50%;
+  right: 8%;
+}
+
+/* Card - VERSION ULTRA COMPACTE */
+.register-card {
+  background: #ffffff;
+  border-radius: 18px;  /* ← Réduit */
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  padding: 25px 25px;  /* ← Réduit fortement */
+  max-width: 420px;  /* ← Réduit */
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);  /* ← Réduit */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Logo Section - VERSION COMPACTE */
+.logo-section {
+  text-align: center;
+  margin-bottom: 20px;  /* ← Réduit fortement */
+}
+
+.logo-icon {
+  font-size: 2.4rem;  /* ← Réduit */
+  margin-bottom: 8px;  /* ← Réduit */
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }  /* ← Réduit */
+}
+
+.brand-name {
+  font-size: 1.4rem;  /* ← Réduit */
+  font-weight: 700;
+  color: #3d3027;
+  margin: 0 0 4px 0;  /* ← Réduit */
+  letter-spacing: -0.5px;
+}
+
+.subtitle {
+  color: #8c7a6b;
+  font-size: 0.8rem;  /* ← Réduit */
+  margin: 0;
+}
+
+/* Form */
+.register-form {
+  width: 100%;
+}
+
+.form-title {
+  font-size: 1.2rem;  /* ← Réduit */
+  color: #3d3027;
+  margin-bottom: 18px;  /* ← Réduit */
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;  /* ← Réduit */
+}
+
+.form-group {
+  margin-bottom: 14px;  /* ← Réduit fortement */
+}
+
+label {
+  display: block;
+  margin-bottom: 5px;  /* ← Réduit */
+  color: #5a4a3a;
+  font-weight: 500;
+  font-size: 0.8rem;  /* ← Réduit */
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;  /* ← Réduit */
+  font-size: 1rem;  /* ← Réduit */
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px 10px 38px;  /* ← Réduit */
+  border: 2px solid #e8dfd4;
+  border-radius: 8px;  /* ← Réduit */
+  font-size: 0.9rem;  /* ← Réduit */
+  color: #3d3027;
+  background: #fafaf8;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+input::placeholder {
+  color: #b3a593;
+  font-size: 0.85rem;  /* ← Réduit */
+}
+
+input:focus {
+  outline: none;
+  border-color: #c9b89a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(201, 184, 154, 0.1);
+}
+
+input:focus + .input-icon {
+  opacity: 1;
+}
+
+input.ng-invalid.ng-touched {
+  border-color: #d97070;
+}
+
+.error-message {
+  display: block;
+  color: #d97070;
+  font-size: 0.75rem;  /* ← Réduit */
+  margin-top: 4px;  /* ← Réduit */
+  padding-left: 3px;
+}
+
+/* Submit Button - VERSION COMPACTE */
+.submit-btn {
+  width: 100%;
+  padding: 11px;  /* ← Réduit */
+  background: linear-gradient(135deg, #c9b89a 0%, #bfae96 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;  /* ← Réduit */
+  font-size: 0.95rem;  /* ← Réduit */
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  margin-top: 18px;  /* ← Réduit */
+  box-shadow: 0 3px 10px rgba(201, 184, 154, 0.3);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(201, 184, 154, 0.4);
+  background: linear-gradient(135deg, #bfae96 0%, #b5a389 100%);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 1.1rem;  /* ← Réduit */
+  transition: transform 0.3s ease;
+}
+
+.submit-btn:hover:not(:disabled) .btn-icon {
+  transform: translateX(4px);
+}
+
+/* Form Footer - VERSION COMPACTE */
+.form-footer {
+  text-align: center;
+  margin-top: 16px;  /* ← Réduit */
+  padding-top: 16px;  /* ← Réduit */
+  border-top: 1px solid #e8dfd4;
+}
+
+.form-footer p {
+  color: #8c7a6b;
+  font-size: 0.85rem;  /* ← Réduit */
+  margin: 0;
+}
+
+.login-link {
+  color: #c9b89a;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.login-link:hover {
+  color: #b5a389;
+  text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .register-card {
+    padding: 22px 18px;  /* ← Réduit */
+    border-radius: 16px;
+    max-width: 100%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .brand-name {
+    font-size: 1.3rem;
+  }
+
+  .logo-icon {
+    font-size: 2.2rem;
+  }
+
+  .form-title {
+    font-size: 1.1rem;
+  }
+
+  input {
+    padding: 9px 10px 9px 36px;
+  }
+
+  .submit-btn {
+    padding: 10px;
+  }
+
+  .decoration-1,
+  .decoration-2,
+  .decoration-3 {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 10px;
+  }
+
+  .register-card {
+    padding: 20px 16px;  /* ← Réduit */
+  }
+
+  .logo-section {
+    margin-bottom: 16px;  /* ← Réduit */
+  }
+
+  .form-group {
+    margin-bottom: 12px;  /* ← Réduit */
+  }
+
+  .form-title {
+    font-size: 1.05rem;
+    margin-bottom: 14px;
+  }
+}
+
+/* Animation au chargement */
+.form-group {
+  animation: fadeIn 0.4s ease-out backwards;  /* ← Plus rapide */
+}
+
+.form-group:nth-child(1) { animation-delay: 0.05s; }
+.form-group:nth-child(2) { animation-delay: 0.1s; }
+.form-group:nth-child(3) { animation-delay: 0.15s; }
+.form-group:nth-child(4) { animation-delay: 0.2s; }
+.form-group:nth-child(5) { animation-delay: 0.25s; }
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);  /* ← Réduit */
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
