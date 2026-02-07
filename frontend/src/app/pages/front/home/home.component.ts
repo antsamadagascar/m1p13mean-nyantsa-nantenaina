@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../services/auth.service'; // 👈 ajouter le service
 
 interface StatusResponse {
   connected: boolean;
@@ -18,12 +19,17 @@ interface StatusResponse {
 export class HomeComponent implements OnInit {
   loading = true;
   connectionStatus: StatusResponse | null = null;
+  currentUser: any = null; 
   private apiStatusUrl = `${environment.apiUrl}/api/status`; 
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authService: AuthService) {}
 
   ngOnInit() {
     this.checkStatus();
+
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
   }
 
   checkStatus() {
@@ -43,7 +49,7 @@ export class HomeComponent implements OnInit {
           database: 'Déconnectée' 
         };
         this.loading = false;
-        console.error(' Erreur:', error);
+        console.error('Erreur:', error);
       }
     });
   }
@@ -55,4 +61,5 @@ export class HomeComponent implements OnInit {
   get isProduction(): boolean {
     return false;
   }
+
 }
