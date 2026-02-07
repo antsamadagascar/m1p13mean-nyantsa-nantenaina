@@ -54,10 +54,10 @@ export class AdminLayoutComponent implements OnInit {
   }
 
   loadMenuByRole() {
-    const userRole = this.authService.getUserRole();
 
-    if (userRole === 'ADMIN') {
-      //  MENU  pour ADMIN
+    // Menu pour ADMIN
+    if (this.authService.isAdmin()) {
+
       this.mainMenuItems = [
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
         { path: '/backoffice/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
@@ -75,8 +75,12 @@ export class AdminLayoutComponent implements OnInit {
         { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
       ];
 
-    } else if (userRole === 'BOUTIQUE') {
-      //  MENU LIMITÉ pour BOUTIQUE (test fotsiny)
+      return;
+    }
+
+    //  BOUTIQUE
+    if (this.authService.isBoutique()) {
+
       this.mainMenuItems = [
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true }
       ];
@@ -90,8 +94,11 @@ export class AdminLayoutComponent implements OnInit {
       this.configMenuItems = [
         { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
       ];
+
+      return;
     }
   }
+
 
   get allMenuItems(): MenuItem[] {
     return [
