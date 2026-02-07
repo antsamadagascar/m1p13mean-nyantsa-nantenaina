@@ -2,8 +2,9 @@
      class="fixed top-6 right-6 z-[9999] pointer-events-none w-[340px] max-w-[90vw]
             animate-toast-in">
 
-  <div class="flex items-start gap-3 p-4 rounded-xl shadow-2xl
-              backdrop-blur-md border text-sm text-gray-800 bg-white"
+  <div class="pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-2xl
+            backdrop-blur-md border text-sm text-gray-800 bg-white"
+
 
        [ngClass]="{
          'border-green-200': message.type === 'success',
