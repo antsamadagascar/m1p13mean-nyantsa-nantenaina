@@ -1,11 +1,47 @@
 <div *ngIf="message"
-     class="fixed top-5 right-5 z-50 px-5 py-3 rounded-lg shadow-lg text-white"
-     [ngClass]="{
-       'bg-green-500': message.type === 'success',
-       'bg-red-500': message.type === 'error',
-       'bg-blue-500': message.type === 'info'
-     }">
+     class="fixed top-6 right-6 z-[9999] pointer-events-none w-[340px] max-w-[90vw]
+            animate-toast-in">
 
-  {{ message.text }}
+  <div class="flex items-start gap-3 p-4 rounded-xl shadow-2xl
+              backdrop-blur-md border text-sm text-gray-800 bg-white"
 
+       [ngClass]="{
+         'border-green-200': message.type === 'success',
+         'border-red-200': message.type === 'error',
+         'border-blue-200': message.type === 'info'
+       }">
+
+    <!-- ICON -->
+    <div class="mt-0.5">
+      <!-- success -->
+      <svg *ngIf="message.type === 'success'" class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+      </svg>
+
+      <!-- error -->
+      <svg *ngIf="message.type === 'error'" class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+
+      <!-- info -->
+      <svg *ngIf="message.type === 'info'" class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01"/>
+      </svg>
+    </div>
+
+    <!-- TEXT -->
+    <div class="flex-1 font-medium">
+      {{ message.text }}
+    </div>
+
+    <!-- CLOSE -->
+    <button (click)="close()"
+            class="text-gray-400 hover:text-gray-700 transition">
+      ✕
+    </button>
+
+  </div>
 </div>

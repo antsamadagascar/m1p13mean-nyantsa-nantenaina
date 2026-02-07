@@ -21,7 +21,7 @@ export class AlertService {
     this.alertSubject.next({ type, text });
 
     // Supprime le message automatiquement après 3s
-    setTimeout(() => this.clear(), 3000);
+    setTimeout(() => this.clear(), 10000);
   }
 
   clear() { this.alertSubject.next(null); }
