@@ -60,12 +60,11 @@ export class AdminLayoutComponent implements OnInit {
 
       this.mainMenuItems = [
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
-        { path: '/backoffice/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
       ];
 
       this.managementMenuItems = [
-        { path: '/backoffice/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
         { path: '/backoffice/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
+        { path: '/backoffice/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
         { path: '/backoffice/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false }
       ];
