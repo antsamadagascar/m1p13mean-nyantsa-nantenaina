@@ -92,7 +92,60 @@
             </div>
           </div>
         </div>
+         <!-- Localisation -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-location-dot text-blue-600 mr-2"></i>
+            Localisation
+          </h2>
+          <div class="space-y-2">
+            <div>
+              <p class="text-sm text-gray-600">Zone</p>
+              <p class="font-medium text-gray-800">{{ boutique.localisation.zone }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Étage</p>
+              <p class="text-gray-800">{{ boutique.localisation.etage }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Numéro</p>
+              <p class="text-gray-800">{{ boutique.localisation.numero }}</p>
+            </div>
+            <div *ngIf="boutique.localisation.surface">
+              <p class="text-sm text-gray-600">Surface</p>
+              <p class="text-gray-800">{{ boutique.localisation.surface }} m²</p>
+            </div>
+            
+            <!--  COORDONNÉES GPS -->
+            <div *ngIf="boutique.localisation.latitude && boutique.localisation.longitude" class="pt-2">
+              <p class="text-sm text-gray-600">Coordonnées GPS</p>
+              <p class="text-xs text-gray-500 font-mono">
+                {{ boutique.localisation.latitude }}, {{ boutique.localisation.longitude }}
+              </p>
+            </div>
+          </div>
+        </div>
 
+        <!--  SECTION CARTE-->
+        <div class="bg-white rounded-lg shadow p-6" *ngIf="boutique.localisation.latitude && boutique.localisation.longitude">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-map-marked-alt text-blue-600 mr-2"></i>
+            Carte
+          </h2>
+          
+          <!-- Conteneur de la carte -->
+          <div id="map" class="w-full h-64 rounded-lg border border-gray-300"></div>
+          
+          <!-- Lien Google Maps -->
+          <a 
+            [href]="'https://www.google.com/maps?q=' + boutique.localisation.latitude + ',' + boutique.localisation.longitude"
+            target="_blank"
+            class="mt-3 inline-flex items-center text-sm text-blue-600 hover:underline"
+          >
+            <i class="fa-solid fa-external-link-alt mr-2"></i>
+            Ouvrir dans Google Maps
+          </a>
+        </div>
         <!-- Horaires -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
@@ -162,7 +215,6 @@
             </div>
           </div>
         </div>
-
         <!-- Contact -->
         <div class="bg-white rounded-lg shadow p-6">
           <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">

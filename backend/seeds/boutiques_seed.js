@@ -61,12 +61,15 @@ const seedBoutiques = async () => {
           email: 'jean.rakoto@fashion.mg',
           telephone: '+261 34 12 345 67'
         },
+        //test
         localisation: {
-          zone: 'Zone A',
-          etage: 'Rez-de-chaussée',
-          numero: 'A-RC-01',
-          surface: 45
-        },
+        zone: 'Zone A',
+        etage: 'Rez-de-chaussée',
+        numero: 'A-RC-01',
+        surface: 45,
+        latitude: -18.9138,   
+        longitude: 47.5361    
+      },
         categorie: categories[0]._id,
         sous_categories: [sousCategories[0]._id, sousCategories[1]._id],
         contact: {

@@ -8,23 +8,31 @@ export interface Boutique {
   description: string;
   logo: string;
   banniere: string;
+
   gerant: {
     nom: string;
     prenom: string;
     email: string;
     telephone: string;
   };
+
   localisation: {
     zone: string;
     etage: string;
     numero: string;
+    emplacement_complet?: string;
+    latitude?: number;
+    longitude?: number;
     surface?: number;
   };
+
   categorie: {
     _id: string;
     nom: string;
   };
+
   sous_categories?: any[];
+
   contact: {
     telephone: string;
     email: string;
@@ -32,7 +40,9 @@ export interface Boutique {
     facebook?: string;
     instagram?: string;
   };
+
   horaires: any;
+
   statut: {
     actif: boolean;
     valide_par_admin: boolean;
@@ -40,9 +50,11 @@ export interface Boutique {
     suspendu: boolean;
     motif_suspension?: string;
   };
+
   estOuverte?: boolean;
   date_creation?: Date;
 }
+
 
 @Injectable({
   providedIn: 'root'
