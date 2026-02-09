@@ -44,7 +44,7 @@ export class VerifyEmailComponent implements OnInit {
 
           // Rediriger vers login après 3 secondes
           setTimeout(() => {
-            this.router.navigate(['/login']);
+            this.router.navigate(['/connexion']);
           }, 3000);
         },
         error: (error) => {
