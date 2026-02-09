@@ -10,21 +10,24 @@ const usersTest = [
     motDePasse: "admin123",
     nom: "Rakoto",
     prenom: "Jean",
-    role: "ADMIN"
+    role: "ADMIN",
+    emailVerifie: "true"
   },
   {
     email: "boutique@fashion.mg",
     motDePasse: "boutique123",
     nom: "Rabe",
     prenom: "Marie",
-    role: "BOUTIQUE"
+    role: "BOUTIQUE",
+    emailVerifie: "true"
   },
   {
     email: "client@mail.mg",
     motDePasse: "client123",
     nom: "Randria",
     prenom: "Pierre",
-    role: "ACHETEUR"
+    role: "ACHETEUR",
+    emailVerifie: "true"
   }
 ];
 
