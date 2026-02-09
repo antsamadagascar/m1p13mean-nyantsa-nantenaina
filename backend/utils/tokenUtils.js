@@ -18,7 +18,19 @@ const verifyToken = (token) => {
   }
 };
 
+
+//  Token de réinitialisation (expire en 1h)
+const generatePasswordResetToken = (userId) => {
+  return jwt.sign(
+    { userId, type: 'password_reset' },
+    process.env.JWT_SECRET,
+    { expiresIn: '1h' }
+  );
+};
+
+
 module.exports = {
   generateVerificationToken,
-  verifyToken
+  verifyToken,
+  generatePasswordResetToken
 };

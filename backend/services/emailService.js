@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Vérifier la connexion
+// Vérification connexion
 transporter.verify((error, success) => {
   if (error) {
     console.error('❌ Erreur de configuration email:', error);
@@ -20,7 +20,7 @@ transporter.verify((error, success) => {
   }
 });
 
-// Envoyer l'email de confirmation
+// Envoye de l'email de confirmation
 const sendVerificationEmail = async (user, verificationToken) => {
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
@@ -123,7 +123,7 @@ const sendVerificationEmail = async (user, verificationToken) => {
   }
 };
 
-// Envoyer l'email de bienvenue après vérification
+// Envoye de l'email de bienvenue après vérification
 const sendWelcomeEmail = async (user) => {
   const loginLink = `${process.env.FRONTEND_URL}/login`;
 
@@ -181,7 +181,118 @@ const sendWelcomeEmail = async (user) => {
   }
 };
 
+
+// Envoye de l'email de réinitialisation de mot de passe
+const sendPasswordResetEmail = async (user, resetToken) => {
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+  const mailOptions = {
+    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
+    to: user.email,
+    subject: '🔑 Réinitialisation de votre mot de passe - City Mall',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+          }
+          .header {
+            background-color: #EF4444;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+          }
+          .content {
+            padding: 30px;
+            background-color: #f9f9f9;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 30px;
+            margin: 20px 0;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+          }
+          .warning {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 12px;
+            margin: 20px 0;
+          }
+          .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #666;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔑 Réinitialisation de mot de passe</h1>
+          </div>
+          <div class="content">
+            <h2>Bonjour ${user.prenom},</h2>
+            <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte City Mall.</p>
+            
+            <p>Pour créer un nouveau mot de passe, cliquez sur le bouton ci-dessous :</p>
+            
+            <div style="text-align: center;">
+              <a href="${resetLink}" class="button">
+                Réinitialiser mon mot de passe
+              </a>
+            </div>
+            
+            <div class="warning">
+              <strong>⚠️ Important :</strong>
+              <ul>
+                <li>Ce lien expire dans <strong>1 heure</strong></li>
+                <li>Si vous n'avez pas demandé cette réinitialisation, ignorez cet email</li>
+                <li>Votre mot de passe actuel reste valide jusqu'à ce que vous en créiez un nouveau</li>
+              </ul>
+            </div>
+            
+            <p>Si le bouton ne fonctionne pas, copiez et collez ce lien dans votre navigateur :</p>
+            <p style="word-break: break-all; color: #4F46E5;">${resetLink}</p>
+          </div>
+          <div class="footer">
+            <p>&copy; 2026 City Mall - Tous droits réservés</p>
+            <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Email de réinitialisation envoyé à ${user.email}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur envoi email de réinitialisation:', error);
+    throw new Error('Erreur lors de l\'envoi de l\'email');
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendPasswordResetEmail  
 };

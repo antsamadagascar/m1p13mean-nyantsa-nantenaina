@@ -12,6 +12,26 @@ export const routes: Routes = [
     path: 'connexion', 
     component: ConnexionComponent 
   },
+  { 
+    path: 'register', 
+    component: RegisterComponent 
+  },
+  { 
+    path: 'verify-email', 
+    component: VerifyEmailComponent 
+  },
+
+  { 
+    path: 'forgot-password', 
+    loadComponent: () => import('./pages/front/forgot-password/forgot-password.component')
+      .then(m => m.ForgotPasswordComponent)
+  },
+  { 
+    path: 'reset-password', 
+    loadComponent: () => import('./pages/front/reset-password/reset-password.component')
+      .then(m => m.ResetPasswordComponent)
+  },
+  
   {
     path: 'backoffice',
     component: AdminLayoutComponent,
@@ -24,13 +44,12 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'BOUTIQUE'] }
       },
-      // Route de test - Accessible uniquement par ADMIN
       { 
         path: 'boutiques', 
         loadComponent: () => import('./pages/admin/boutiques/boutiques.component')
           .then(m => m.BoutiquesComponent),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] } //  Seulement ADMIN
+        data: { roles: ['ADMIN'] }
       },
     ]
   },
@@ -45,9 +64,7 @@ export const routes: Routes = [
       }
     ]
   },
-  // Route register
-  { path: 'register', component: RegisterComponent },
-  { path: 'verify-email', component: VerifyEmailComponent },
+  
   // Redirection 404
   { path: '**', redirectTo: 'connexion' }
 ];
