@@ -7,37 +7,46 @@ exports.connexion = async (req, res) => {
     const { email, motDePasse } = req.body;
 
     // Vérifie que les champs sont remplis
-    if (!email || !motDePasse) 
-    
-    {  return res.status(400).json({ message: "Veuillez renseigner votre email et mot de passe" }); }
+    if (!email || !motDePasse) {
+      return res.status(400).json({ message: "Veuillez renseigner votre email et mot de passe" });
+    }
 
-    //  Vérifie le format de l'email
+    // Vérifie le format de l'email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) 
-    { return res.status(400).json({ message: "Email invalide" }); }
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ message: "Email invalide" });
+    }
 
     // Cherche l'utilisateur
     const user = await User.findOne({ email });
-    if (!user) 
-    
-    {  return res.status(401).json({ message: "Email ou mot de passe incorrect" }); }
+    if (!user) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
+
+    //  VÉRIFICATION EMAIL 
+    if (!user.emailVerifie)  //erreur teto
+    {
+      return res.status(403).json({ 
+        message: "Veuillez vérifier votre email avant de vous connecter. Consultez votre boîte de réception.",
+        code: "EMAIL_NOT_VERIFIED"
+      });
+    }
 
     // Vérifie si le compte est actif
     if (!user.actif) 
-    {   return res.status(403).json({ message: "Votre compte a été désactivé" });  }
+    {  return res.status(403).json({ message: "Votre compte a été désactivé" }); }
 
     // Vérifie le mot de passe
     const motDePasseValide = await user.comparerMotDePasse(motDePasse);
-    if (!motDePasseValide)
-    
-    {  return res.status(401).json({ message: "Email ou mot de passe incorrect" }); }
+    if (!motDePasseValide) {
+      return res.status(401).json({ message: "Email ou mot de passe incorrect" });
+    }
 
     // Mis à jour la dernière connexion
-    await User.findByIdAndUpdate(user._id, { 
-      derniereConnexion: new Date() 
-    });
+    await User.findByIdAndUpdate(user._id, 
+    { derniereConnexion: new Date() });
 
-    // Génére un token
+    // Génère un token
     const token = generateToken(user._id, user.role);
 
     res.json({
