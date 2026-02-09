@@ -1,112 +1,164 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../../../services/auth.service';
+import { FormsModule } from '@angular/forms';
+import { BoutiqueService, Boutique } from '../../../services/boutique.service';
+import { AlertService } from '../../../services/alert.service';
 
 @Component({
   selector: 'app-boutiques',
   standalone: true,
-  imports: [CommonModule],
-  template: `
-    <div class="p-6">
-      <!-- Header -->
-      <div class="mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-2">
-          <i class="fa-solid fa-store mr-2 text-blue-600"></i>
-          Gestion des Boutiques
-        </h1>
-        <p class="text-gray-600">
-          Gérez toutes les boutiques de la plateforme
-        </p>
-      </div>
-
-      <!-- Alert de test -->
-      <div class="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded">
-        <div class="flex items-center">
-          <i class="fa-solid fa-circle-check text-green-600 text-xl mr-3"></i>
-          <div>
-            <p class="font-medium text-green-800">
-              Accès autorisé - Vous êtes connecté en tant qu'ADMIN
-            </p>
-            <p class="text-sm text-green-700 mt-1">
-              Connecté en tant que : <strong>{{ authService.getUserFullName() }}</strong>
-              ({{ authService.getUserRole() }})
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card de test -->
-      <div class="bg-white rounded-lg shadow p-6">
-        <h2 class="text-lg font-semibold text-gray-800 mb-4">
-          Liste des boutiques
-        </h2>
-        
-        <div class="space-y-3">
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-store text-blue-600 text-xl"></i>
-              </div>
-              <div>
-                <h3 class="font-medium text-gray-800">Boutique Test 1</h3>
-                <p class="text-sm text-gray-500">ID: BOUT001</p>
-              </div>
-            </div>
-            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-              Active
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-store text-purple-600 text-xl"></i>
-              </div>
-              <div>
-                <h3 class="font-medium text-gray-800">Boutique Test 2</h3>
-                <p class="text-sm text-gray-500">ID: BOUT002</p>
-              </div>
-            </div>
-            <span class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-              Active
-            </span>
-          </div>
-
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-            <div class="flex items-center gap-3">
-              <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <i class="fa-solid fa-store text-orange-600 text-xl"></i>
-              </div>
-              <div>
-                <h3 class="font-medium text-gray-800">Boutique Test 3</h3>
-                <p class="text-sm text-gray-500">ID: BOUT003</p>
-              </div>
-            </div>
-            <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium">
-              Désactivée
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Info test -->
-      <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p class="text-sm text-blue-800">
-          <i class="fa-solid fa-info-circle mr-2"></i>
-          <strong>Test de sécurité :</strong> Cette page est protégée par le roleGuard. 
-          Seuls les utilisateurs avec le rôle ADMIN peuvent y accéder.
-        </p>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, FormsModule],
+  templateUrl: './boutiques.component.html',
+  styleUrls: ['./boutiques.component.css']
 })
 export class BoutiquesComponent implements OnInit {
-  
-  constructor(public authService: AuthService) {}
+  boutiques: Boutique[] = [];
+  boutiquesFiltered: Boutique[] = [];
+  loading = false;
+
+  // Filtres
+  filters = {
+    statut: '',
+    zone: '',
+    search: ''
+  };
+
+  // Statistiques
+  stats = {
+    total: 0,
+    actives: 0,
+    en_attente: 0,
+    suspendues: 0
+  };
+
+  constructor(
+    private boutiqueService: BoutiqueService,
+    private alertService: AlertService
+  ) {}
 
   ngOnInit() {
-    console.log(' Page Boutiques chargée');
-    console.log(' Utilisateur:', this.authService.getUserFullName());
-    console.log(' Rôle:', this.authService.getUserRole());
+    this.loadBoutiques();
+  }
+
+  loadBoutiques() {
+    this.loading = true;
+    this.boutiqueService.getBoutiques().subscribe({
+      next: (data) => {
+        this.boutiques = data;
+        this.boutiquesFiltered = data;
+        this.calculateStats();
+        this.loading = false;
+      },
+      error: (error) => {
+        this.alertService.error('Erreur lors du chargement des boutiques');
+        this.loading = false;
+      }
+    });
+  }
+
+  calculateStats() {
+    this.stats.total = this.boutiques.length;
+    this.stats.actives = this.boutiques.filter(b => 
+      b.statut.actif && b.statut.valide_par_admin
+    ).length;
+    this.stats.en_attente = this.boutiques.filter(b => 
+      b.statut.en_attente_validation
+    ).length;
+    this.stats.suspendues = this.boutiques.filter(b => 
+      b.statut.suspendu
+    ).length;
+  }
+
+  applyFilters() {
+    this.boutiquesFiltered = this.boutiques.filter(boutique => {
+      // Filtre par statut
+      if (this.filters.statut) {
+        if (this.filters.statut === 'actif' && 
+            (!boutique.statut.actif || !boutique.statut.valide_par_admin)) {
+          return false;
+        }
+        if (this.filters.statut === 'en_attente' && 
+            !boutique.statut.en_attente_validation) {
+          return false;
+        }
+        if (this.filters.statut === 'suspendu' && 
+            !boutique.statut.suspendu) {
+          return false;
+        }
+      }
+
+      // Filtre par zone
+      if (this.filters.zone && boutique.localisation.zone !== this.filters.zone) {
+        return false;
+      }
+
+      // Filtre par recherche
+      if (this.filters.search) {
+        const search = this.filters.search.toLowerCase();
+        return boutique.nom.toLowerCase().includes(search) ||
+               boutique.gerant.nom.toLowerCase().includes(search) ||
+               boutique.gerant.prenom.toLowerCase().includes(search);
+      }
+
+      return true;
+    });
+  }
+
+  resetFilters() {
+    this.filters = {
+      statut: '',
+      zone: '',
+      search: ''
+    };
+    this.applyFilters();
+  }
+
+  getStatutBadgeClass(boutique: Boutique): string {
+    if (boutique.statut.suspendu) {
+      return 'bg-red-100 text-red-700';
+    }
+    if (boutique.statut.en_attente_validation) {
+      return 'bg-yellow-100 text-yellow-700';
+    }
+    if (boutique.statut.actif && boutique.statut.valide_par_admin) {
+      return 'bg-green-100 text-green-700';
+    }
+    return 'bg-gray-100 text-gray-700';
+  }
+
+  getStatutText(boutique: Boutique): string {
+    if (boutique.statut.suspendu) return 'Suspendue';
+    if (boutique.statut.en_attente_validation) return 'En attente';
+    if (boutique.statut.actif && boutique.statut.valide_par_admin) return 'Active';
+    return 'Inactive';
+  }
+
+  validerBoutique(id: string) {
+    if (confirm('Voulez-vous valider cette boutique ?')) {
+      this.boutiqueService.validerBoutique(id).subscribe({
+        next: () => {
+          this.alertService.success('Boutique validée avec succès');
+          this.loadBoutiques();
+        },
+        error: () => {
+          this.alertService.error('Erreur lors de la validation');
+        }
+      });
+    }
+  }
+
+  suspendreBoutique(id: string) {
+    const motif = prompt('Motif de suspension :');
+    if (motif) {
+      this.boutiqueService.suspendreBoutique(id, motif).subscribe({
+        next: () => {
+          this.alertService.success('Boutique suspendue');
+          this.loadBoutiques();
+        },
+        error: () => {
+          this.alertService.error('Erreur lors de la suspension');
+        }
+      });
+    }
   }
 }
