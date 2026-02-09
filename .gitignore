@@ -42,5 +42,8 @@ testem.log
 Thumbs.db
 
 tuto/
-# Angular
-frontend/.angular/
+/frontend/.angular/cache/
+node_modules/
+.env
+*.log
+.DS_Store

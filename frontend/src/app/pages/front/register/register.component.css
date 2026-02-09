@@ -1,0 +1,409 @@
+/* Container Principal - SANS SCROLL */
+.register-container {
+  min-height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: linear-gradient(to bottom right, rgb(248, 250, 252), rgb(219, 234, 254), rgb(224, 231, 255));
+  position: relative;
+  overflow: hidden;
+}
+
+/* Card - ULTRA COMPACT SANS SCROLL */
+.register-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 1rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 1.25rem;
+  max-width: 26rem;
+  max-height: 98vh;
+  width: 100%;
+  border: 1px solid rgb(243, 244, 246);
+  position: relative;
+  z-index: 1;
+  overflow-y: auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar personnalisée (très discrète) */
+.register-card::-webkit-scrollbar {
+  width: 4px;
+}
+
+.register-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.register-card::-webkit-scrollbar-thumb {
+  background: rgba(209, 213, 219, 0.5);
+  border-radius: 2px;
+}
+
+.register-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.7);
+}
+
+/* Logo Section - AVEC IMAGE */
+.logo-section {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.logo-image {
+  margin: 0 auto 0.75rem;
+  height: 4rem;
+  width: auto;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.subtitle {
+  color: rgb(107, 114, 128);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+/* Notification - COMPACT */
+.notification {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+}
+
+.notification.success {
+  background-color: rgb(240, 253, 244);
+  border: 1px solid rgb(187, 247, 208);
+  color: rgb(22, 101, 52);
+}
+
+.notification.error {
+  background-color: rgb(254, 242, 242);
+  border: 1px solid rgb(254, 202, 202);
+  color: rgb(185, 28, 28);
+}
+
+/* Form */
+.register-form {
+  width: 100%;
+}
+
+.form-title {
+  font-size: 1.125rem;
+  color: rgb(17, 24, 39);
+  margin-bottom: 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.form-group {
+  margin-bottom: 0.75rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: rgb(55, 65, 81);
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 0.625rem;
+  font-size: 0.875rem;
+  pointer-events: none;
+  color: rgb(156, 163, 175);
+}
+
+input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2rem;
+  border: 1px solid rgb(209, 213, 219);
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: rgb(17, 24, 39);
+  background: white;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  outline: none;
+}
+
+input::placeholder {
+  color: rgb(156, 163, 175);
+  font-size: 0.8rem;
+}
+
+input:focus {
+  border-color: rgb(59, 130, 246);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input.ng-invalid.ng-touched {
+  border-color: rgb(239, 68, 68);
+}
+
+.error-message {
+  display: block;
+  color: rgb(220, 38, 38);
+  font-size: 0.65rem;
+  margin-top: 0.15rem;
+  padding-left: 0.25rem;
+}
+
+/* Submit Button - COMPACT */
+.submit-btn {
+  width: 100%;
+  padding: 0.625rem;
+  background: linear-gradient(to right, rgb(37, 99, 235), rgb(79, 70, 229));
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: linear-gradient(to right, rgb(29, 78, 216), rgb(67, 56, 202));
+  transform: translateY(-2px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 1rem;
+  transition: transform 0.3s ease;
+}
+
+.submit-btn:hover:not(:disabled) .btn-icon {
+  transform: translateX(3px);
+}
+
+/* Form Footer - COMPACT */
+.form-footer {
+  text-align: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgb(229, 231, 235);
+}
+
+.form-footer p {
+  color: rgb(107, 114, 128);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.login-link {
+  color: rgb(37, 99, 235);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.login-link:hover {
+  text-decoration: underline;
+}
+
+/* Hover sur les icônes */
+.input-icon {
+  transition: transform 0.2s;
+}
+
+input:focus + .input-icon {
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .register-card {
+    padding: 1rem;
+    max-width: 95%;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .logo-image {
+    height: 3.5rem;
+  }
+
+  .form-title {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 8px;
+  }
+
+  .register-card {
+    padding: 0.875rem;
+  }
+
+  .logo-image {
+    height: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.625rem;
+  }
+
+  input {
+    padding: 0.5rem 0.625rem 0.5rem 1.875rem;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .logo-image {
+    height: 3rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 0.7rem;
+  }
+
+  .logo-section {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-title {
+    font-size: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.625rem;
+  }
+
+  .submit-btn {
+    margin-top: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  .form-footer {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+  }
+}
+
+@media (max-height: 600px) {
+  .register-card {
+    max-height: 99vh;
+    padding: 0.75rem;
+  }
+
+  .logo-image {
+    height: 2.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .subtitle {
+    font-size: 0.65rem;
+  }
+
+  .logo-section {
+    margin-bottom: 0.5rem;
+  }
+
+  .form-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.5rem;
+  }
+
+  label {
+    font-size: 0.7rem;
+    margin-bottom: 0.2rem;
+  }
+
+  input {
+    padding: 0.4rem 0.5rem 0.4rem 1.75rem;
+    font-size: 0.75rem;
+  }
+
+  .submit-btn {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .form-footer {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+}
+
+/* Animation au chargement - RAPIDE */
+.form-group {
+  animation: fadeInUp 0.2s ease-out backwards;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.02s; }
+.form-group:nth-child(2) { animation-delay: 0.04s; }
+.form-group:nth-child(3) { animation-delay: 0.06s; }
+.form-group:nth-child(4) { animation-delay: 0.08s; }
+.form-group:nth-child(5) { animation-delay: 0.1s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

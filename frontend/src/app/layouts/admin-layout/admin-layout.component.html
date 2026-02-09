@@ -4,8 +4,11 @@
   <aside class="sidebar" [class.collapsed]="!sidebarOpen">
     
     <div class="sidebar-header">
-      <h2 *ngIf="sidebarOpen">Akoor City</h2>
-      <span *ngIf="!sidebarOpen" class="logo-mini">AC</span>
+      <img 
+          src="logos/logo-lacity-mall.png" 
+          alt="Logo"
+          class="mx-auto h-20 w-auto mb-6 drop-shadow-sm"
+        />
     </div>
     
     <nav class="sidebar-nav">
@@ -191,19 +194,19 @@
       </div>
       <div class="header-right">
         <div class="user-menu" (click)="toggleUserMenu()">
-          <span class="user-name">Nantenaina KELY</span>
-          <div class="user-avatar">AN</div>
+          <span class="user-name">{{ authService.getUserFullName() }}</span>
+          <div class="user-avatar">{{ authService.getUserInitials() }}</div>
         </div>
-        
+                
         <!-- User Dropdown Menu -->
         <div class="user-dropdown" [class.active]="userMenuOpen">
-          <div class="dropdown-item" (click)="viewProfile()">
+          <div class="dropdown-item">
             <i class="fas fa-user"></i>
-            <span>Mon profil</span>
+            <span> {{ (authService.currentUser$ | async)?.role }}</span>
           </div>
-          <div class="dropdown-item" (click)="viewSettings()">
-            <i class="fas fa-cog"></i>
-            <span>Paramètres</span>
+           <div class="dropdown-item">
+            <i class="fas fa-envelope"></i>
+            <span> {{ (authService.currentUser$ | async)?.email }}</span>
           </div>
           <div class="dropdown-divider"></div>
           <div class="dropdown-item logout" (click)="logout()">
