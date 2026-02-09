@@ -25,9 +25,9 @@ const sendVerificationEmail = async (user, verificationToken) => {
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
-    from: `"M1P13 MEAN" <${process.env.EMAIL_FROM}>`,
+    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
     to: user.email,
-    subject: '✅ Confirmez votre inscription - M1P13 MEAN',
+    subject: '✅ Confirmez votre inscription - City Mall',
     html: `
       <!DOCTYPE html>
       <html>
@@ -77,7 +77,7 @@ const sendVerificationEmail = async (user, verificationToken) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Bienvenue sur M1P13 MEAN !</h1>
+            <h1>Bienvenue sur City Mall !</h1>
           </div>
           <div class="content">
             <h2>Bonjour ${user.prenom} ${user.nom},</h2>
@@ -104,7 +104,7 @@ const sendVerificationEmail = async (user, verificationToken) => {
             <p>Si vous n'avez pas créé ce compte, vous pouvez ignorer cet email.</p>
           </div>
           <div class="footer">
-            <p>&copy; 2026 M1P13 MEAN - Tous droits réservés</p>
+            <p>&copy; 2026 City Mall - Tous droits réservés</p>
             <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre.</p>
           </div>
         </div>
@@ -128,9 +128,9 @@ const sendWelcomeEmail = async (user) => {
   const loginLink = `${process.env.FRONTEND_URL}/login`;
 
   const mailOptions = {
-    from: `"M1P13 MEAN" <${process.env.EMAIL_FROM}>`,
+    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
     to: user.email,
-    subject: '🎉 Bienvenue sur M1P13 MEAN !',
+    subject: '🎉 Bienvenue sur City Mall !',
     html: `
       <!DOCTYPE html>
       <html>
@@ -222,7 +222,6 @@ const sendPasswordResetEmail = async (user, resetToken) => {
             display: inline-block;
             padding: 12px 30px;
             margin: 20px 0;
-            background-color: #4F46E5;
             color: white;
             text-decoration: none;
             border-radius: 5px;
