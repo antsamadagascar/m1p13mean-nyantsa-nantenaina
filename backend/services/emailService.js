@@ -25,9 +25,9 @@ const sendVerificationEmail = async (user, verificationToken) => {
   const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
-    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
     to: user.email,
-    subject: '✅ Confirmez votre inscription - City Mall',
+    subject: '✅ Confirmez votre inscription - M1P13 MEAN',
     html: `
       <!DOCTYPE html>
       <html>
@@ -128,9 +128,9 @@ const sendWelcomeEmail = async (user) => {
   const loginLink = `${process.env.FRONTEND_URL}/login`;
 
   const mailOptions = {
-    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
     to: user.email,
-    subject: '🎉 Bienvenue sur City Mall !',
+    subject: '🎉 Bienvenue sur CITY MALL !',
     html: `
       <!DOCTYPE html>
       <html>
@@ -187,7 +187,7 @@ const sendPasswordResetEmail = async (user, resetToken) => {
   const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   const mailOptions = {
-    from: `"City Mall" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
     to: user.email,
     subject: '🔑 Réinitialisation de votre mot de passe - City Mall',
     html: `
@@ -222,6 +222,7 @@ const sendPasswordResetEmail = async (user, resetToken) => {
             display: inline-block;
             padding: 12px 30px;
             margin: 20px 0;
+            background-color: #7773c2;
             color: white;
             text-decoration: none;
             border-radius: 5px;
