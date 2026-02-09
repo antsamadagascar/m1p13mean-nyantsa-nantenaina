@@ -3,7 +3,7 @@ import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.compon
 import { FrontLayoutComponent } from './layouts/front-layout/front-layout.component';
 import { RegisterComponent } from './pages/front/register/register.component';
 import { VerifyEmailComponent } from './pages/front/verify-email/verify-email.component';
-import { ConnexionComponent } from './components/auth/connexion/connexion.component';
+import { ConnexionComponent } from './pages/front/auth/connexion.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 
