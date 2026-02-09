@@ -4,6 +4,8 @@ import { FrontLayoutComponent } from './layouts/front-layout/front-layout.compon
 import { RegisterComponent } from './pages/front/register/register.component';
 import { VerifyEmailComponent } from './pages/front/verify-email/verify-email.component';
 import { ConnexionComponent } from './pages/front/auth/connexion.component';
+import { BoutiqueDetailComponent } from './pages/admin/boutiques/boutique-detail.component';
+
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 
@@ -51,6 +53,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+       { 
+        path: 'boutiques/:id', 
+        component: BoutiqueDetailComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+
     ]
   },
   {

@@ -1,0 +1,206 @@
+<div class="p-6">
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600"></i>
+    <p class="text-gray-600 mt-4">Chargement...</p>
+  </div>
+
+  <!-- Contenu -->
+  <div *ngIf="!loading && boutique">
+    <!-- Header -->
+    <div class="mb-6 flex items-center justify-between">
+      <div>
+        <a routerLink="/backoffice/boutiques" class="text-blue-600 hover:underline mb-2 inline-block">
+          <i class="fa-solid fa-arrow-left mr-2"></i> Retour à la liste
+        </a>
+        <h1 class="text-2xl font-bold text-gray-800">{{ boutique.nom }}</h1>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="flex gap-2">
+        <button
+          *ngIf="boutique.statut.en_attente_validation"
+          (click)="valider()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+        >
+          <i class="fa-solid fa-check mr-2"></i> Valider
+        </button>
+        <button
+          *ngIf="boutique.statut.suspendu"
+          (click)="reactiver()"
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+        >
+          <i class="fa-solid fa-rotate-right mr-2"></i> Réactiver
+        </button>
+        <button
+          *ngIf="!boutique.statut.suspendu"
+          (click)="suspendre()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        >
+          <i class="fa-solid fa-ban mr-2"></i> Suspendre
+        </button>
+      </div>
+    </div>
+
+    <!-- Bannière -->
+    <div class="mb-6">
+      <img
+        [src]="boutique.banniere"
+        [alt]="boutique.nom"
+        class="w-full h-48 object-cover rounded-lg shadow"
+      />
+    </div>
+
+    <!-- Grid principale -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- Colonne gauche - Infos principales -->
+      <div class="lg:col-span-2 space-y-6">
+        
+        <!-- Informations générales -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-info-circle text-blue-600 mr-2"></i>
+            Informations générales
+          </h2>
+          <div class="space-y-3">
+            <div class="flex items-start">
+              <img [src]="boutique.logo" [alt]="boutique.nom" class="w-16 h-16 rounded-lg object-cover mr-4" />
+              <div>
+                <p class="text-sm text-gray-600">Description</p>
+                <p class="text-gray-800">{{ boutique.description }}</p>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div>
+                <p class="text-sm text-gray-600">Catégorie</p>
+                <p class="font-medium text-gray-800">{{ boutique.categorie.nom }}</p>
+              </div>
+              <div>
+                <p class="text-sm text-gray-600">Statut actuel</p>
+                <span 
+                  class="px-3 py-1 rounded-full text-sm font-medium inline-block"
+                  [ngClass]="{
+                    'bg-green-100 text-green-700': boutique.statut.actif && boutique.statut.valide_par_admin,
+                    'bg-yellow-100 text-yellow-700': boutique.statut.en_attente_validation,
+                    'bg-red-100 text-red-700': boutique.statut.suspendu
+                  }"
+                >
+                  {{ boutique.statut.suspendu ? 'Suspendue' : (boutique.statut.en_attente_validation ? 'En attente' : 'Active') }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Horaires -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-clock text-blue-600 mr-2"></i>
+            Horaires d'ouverture
+          </h2>
+          <div class="space-y-2">
+            <div *ngFor="let jour of getJours()" class="flex justify-between items-center py-2 border-b">
+              <span class="font-medium capitalize text-gray-700">{{ jour }}</span>
+              <span *ngIf="boutique.horaires[jour].ouvert" class="text-gray-600">
+                {{ boutique.horaires[jour].debut }} - {{ boutique.horaires[jour].fin }}
+              </span>
+              <span *ngIf="!boutique.horaires[jour].ouvert" class="text-red-600">Fermé</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Colonne droite - Infos secondaires -->
+      <div class="space-y-6">
+        
+        <!-- Gérant -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-user text-blue-600 mr-2"></i>
+            Gérant
+          </h2>
+          <div class="space-y-2">
+            <div>
+              <p class="text-sm text-gray-600">Nom complet</p>
+              <p class="font-medium text-gray-800">{{ boutique.gerant.prenom }} {{ boutique.gerant.nom }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Email</p>
+              <p class="text-gray-800">{{ boutique.gerant.email }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Téléphone</p>
+              <p class="text-gray-800">{{ boutique.gerant.telephone }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Localisation -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-location-dot text-blue-600 mr-2"></i>
+            Localisation
+          </h2>
+          <div class="space-y-2">
+            <div>
+              <p class="text-sm text-gray-600">Zone</p>
+              <p class="font-medium text-gray-800">{{ boutique.localisation.zone }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Étage</p>
+              <p class="text-gray-800">{{ boutique.localisation.etage }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Numéro</p>
+              <p class="text-gray-800">{{ boutique.localisation.numero }}</p>
+            </div>
+            <div *ngIf="boutique.localisation.surface">
+              <p class="text-sm text-gray-600">Surface</p>
+              <p class="text-gray-800">{{ boutique.localisation.surface }} m²</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div class="bg-white rounded-lg shadow p-6">
+          <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fa-solid fa-address-book text-blue-600 mr-2"></i>
+            Contact
+          </h2>
+          <div class="space-y-3">
+            <div>
+              <p class="text-sm text-gray-600">Téléphone</p>
+              <p class="text-gray-800">{{ boutique.contact.telephone }}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Email</p>
+              <p class="text-gray-800">{{ boutique.contact.email }}</p>
+            </div>
+            <div *ngIf="boutique.contact.site_web">
+              <p class="text-sm text-gray-600">Site web</p>
+              <a [href]="boutique.contact.site_web" target="_blank" class="text-blue-600 hover:underline">
+                {{ boutique.contact.site_web }}
+              </a>
+            </div>
+            <div *ngIf="boutique.contact.facebook || boutique.contact.instagram" class="pt-2">
+              <p class="text-sm text-gray-600 mb-2">Réseaux sociaux</p>
+              <div class="flex gap-2">
+                <a *ngIf="boutique.contact.facebook" [href]="'https://facebook.com/' + boutique.contact.facebook" target="_blank" 
+                   class="text-blue-600 hover:text-blue-800">
+                  <i class="fa-brands fa-facebook text-xl"></i>
+                </a>
+                <a *ngIf="boutique.contact.instagram" [href]="'https://instagram.com/' + boutique.contact.instagram" target="_blank"
+                   class="text-pink-600 hover:text-pink-800">
+                  <i class="fa-brands fa-instagram text-xl"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

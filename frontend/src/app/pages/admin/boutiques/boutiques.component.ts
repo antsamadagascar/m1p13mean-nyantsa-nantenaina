@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoutiqueService, Boutique } from '../../../services/boutique.service';
 import { AlertService } from '../../../services/alert.service';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-boutiques',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink], 
   templateUrl: './boutiques.component.html',
   styleUrls: ['./boutiques.component.css']
 })

@@ -211,8 +211,12 @@
                 >
                   <i class="fa-solid fa-ban"></i>
                 </button>
-                <button class="text-blue-600 hover:text-blue-900" title="Détails">
-                  <i class="fa-solid fa-eye"></i>
+                <button 
+                [routerLink]="['/backoffice/boutiques', boutique._id]"
+                class="text-blue-600 hover:text-blue-900" 
+                title="Détails"
+                >
+                <i class="fa-solid fa-eye"></i>
                 </button>
               </div>
             </td>

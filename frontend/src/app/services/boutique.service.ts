@@ -89,4 +89,7 @@ export class BoutiqueService {
   // Activation/Désactivation  boutique (admin)
   toggleActif(id: string): Observable<any> 
   {   return this.http.patch(`${this.apiUrl}/${id}/toggle-actif`, {});   }
+
+  reactiverBoutique(id: string): Observable<any>
+  { return this.http.patch(`${this.apiUrl}/${id}/reactiver`, {}); }
 }
