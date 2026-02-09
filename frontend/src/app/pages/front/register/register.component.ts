@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { CommonModule } from '@angular/common'; // ✅ Nécessaire pour ngIf, ngClass, ngFor
-import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common'; 
+import { Router, RouterModule } from '@angular/router';
+import { AlertService } from '../../../services/alert.service';
+
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [FormsModule, CommonModule,RouterModule], // ✅ Ajout de CommonModule
+  imports: [FormsModule, CommonModule, RouterModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.css']
 })
@@ -20,19 +22,16 @@ export class RegisterComponent {
     confirmation: ''
   };
 
-  message = '';
-  messageType: 'success' | 'error' | '' = ''; // pour gérer le style de notification
-
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private alertService: AlertService, 
+    private router: Router 
+  ) {}
 
   onRegister() {
-    this.message = '';
-    this.messageType = '';
-
     // Vérification des mots de passe
     if (this.user.motDePasse !== this.user.confirmation) {
-      this.message = 'Les mots de passe ne correspondent pas';
-      this.messageType = 'error';
+      this.alertService.error('Les mots de passe ne correspondent pas'); 
       return;
     }
 
@@ -48,12 +47,19 @@ export class RegisterComponent {
     this.http.post<any>('http://localhost:5000/api/register', payload)
       .subscribe({
         next: (res) => {
-          this.message = res.message || 'Inscription réussie';
-          this.messageType = 'success';
+          this.alertService.success(
+            'Inscription réussie ! Veuillez vérifier votre email pour activer votre compte.'
+          ); 
+          
+          // Optionnel : Redirection après 3 secondes
+          setTimeout(() => {
+            this.router.navigate(['/connexion']);
+          }, 3000);
         },
         error: (err) => {
-          this.message = err.error?.message || 'Erreur lors de l’inscription';
-          this.messageType = 'error';
+          this.alertService.error(
+            err.error?.message || 'Erreur lors de l\'inscription'
+          ); 
         }
       });
   }

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
+import { AlertService } from '../../../services/alert.service';
 
 @Component({
   selector: 'app-verify-email',
@@ -18,20 +19,20 @@ export class VerifyEmailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private http: HttpClient,
+    private alertService: AlertService 
   ) {}
 
   ngOnInit(): void {
-    // Récupérer le token depuis l'URL
     const token = this.route.snapshot.queryParamMap.get('token');
-
+    
     if (!token) {
       this.isLoading = false;
       this.errorMessage = 'Token de vérification manquant';
+      this.alertService.error('Token de vérification manquant');
       return;
     }
 
-    // Vérifier le token auprès du backend
     this.verifyEmail(token);
   }
 
@@ -41,8 +42,11 @@ export class VerifyEmailComponent implements OnInit {
         next: (response: any) => {
           this.isLoading = false;
           this.isSuccess = true;
-
-          // Rediriger vers login après 3 secondes
+          
+          this.alertService.success(
+            'Email vérifié avec succès ! Vous pouvez maintenant vous connecter.'
+          ); 
+          
           setTimeout(() => {
             this.router.navigate(['/connexion']);
           }, 3000);
@@ -50,6 +54,8 @@ export class VerifyEmailComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           this.errorMessage = error.error?.error || 'Token invalide ou expiré';
+          
+          this.alertService.error(this.errorMessage); 
         }
       });
   }
