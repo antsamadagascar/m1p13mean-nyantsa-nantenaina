@@ -8,6 +8,15 @@ const registerUser = async ({ nom, prenom, email, motDePasse, telephone }) => {
     throw new Error('Champs requis manquants');
   }
 
+  // VALIDATION DU TÉLÉPHONE
+  if (telephone) {
+    const phoneRegex = /^(0[23478][0-9]{8}|(\+261|261)[23478][0-9]{8})$/;
+    const cleanPhone = telephone.replace(/\s/g, '');
+    
+    if (!phoneRegex.test(cleanPhone)) 
+    {   throw new Error('INVALID_PHONE');  }
+  }
+
   const exists = await User.findOne({ email });
   if (exists) {
     throw new Error('EMAIL_EXISTS');
@@ -20,24 +29,22 @@ const registerUser = async ({ nom, prenom, email, motDePasse, telephone }) => {
     prenom,
     email,
     motDePasse: hashedPassword,
-    telephone: telephone || null,
+    telephone: telephone ? telephone.replace(/\s/g, '') : null, 
     role: 'ACHETEUR',
     dateInscription: new Date(),
     derniereConnexion: null,
-    emailVerifie: false  // ← Pas encore vérifié
+    actif: true,
+    emailVerifie: false
   });
 
   await user.save();
 
-  // Générer le token de vérification
   const verificationToken = generateVerificationToken(user._id);
 
-  // Envoyer l'email
   try {
     await sendVerificationEmail(user, verificationToken);
   } catch (error) {
     console.error('Erreur envoi email:', error);
-    // On continue même si l'email échoue
   }
 
   return user;
