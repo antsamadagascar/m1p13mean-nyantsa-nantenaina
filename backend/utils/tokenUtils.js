@@ -1,5 +1,14 @@
 const jwt = require('jsonwebtoken');
 
+// token session
+const generateTokenSession = (userId, role) => {
+  return jwt.sign(
+    { id: userId, role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
 // Générer un token de vérification
 const generateVerificationToken = (userId) => {
   return jwt.sign(
@@ -30,6 +39,7 @@ const generatePasswordResetToken = (userId) => {
 
 
 module.exports = {
+  generateTokenSession,
   generateVerificationToken,
   verifyToken,
   generatePasswordResetToken

@@ -1,5 +1,6 @@
 const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
+const { generateTokenSession } = require('../utils/tokenUtils');
+
 
 // CONNEXION
 exports.connexion = async (req, res) => {
@@ -47,7 +48,7 @@ exports.connexion = async (req, res) => {
     { derniereConnexion: new Date() });
 
     // Génère un token
-    const token = generateToken(user._id, user.role);
+    const token = generateTokenSession(user._id, user.role);
 
     res.json({
       success: true,
