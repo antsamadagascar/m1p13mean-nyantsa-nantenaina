@@ -12,12 +12,15 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
+
 export class HomeComponent implements OnInit {
 
   boutiques: Boutique[] = [];
   boutiquesFiltered: Boutique[] = [];
   boutiquesPaginated: Boutique[] = [];
   loading = false;
+  heures: string[] = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+
 
   // USER CONNECTÉ
   currentUser: any = null;
@@ -25,7 +28,6 @@ export class HomeComponent implements OnInit {
   // Filtres
   filters = {
     categorie: '',
-    zone: '',
     search: '',
     ouvertes: false,
     heure_ouverture: '',
@@ -78,9 +80,6 @@ export class HomeComponent implements OnInit {
         return false;
       }
 
-      if (this.filters.zone && boutique.localisation.zone !== this.filters.zone) {
-        return false;
-      }
 
       if (this.filters.search) {
         const search = this.filters.search.toLowerCase();
@@ -127,7 +126,6 @@ export class HomeComponent implements OnInit {
   resetFilters() {
     this.filters = {
       categorie: '',
-      zone: '',
       search: '',
       ouvertes: false,
       heure_ouverture: '',

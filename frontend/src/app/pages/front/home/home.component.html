@@ -43,20 +43,6 @@
             {{ cat.nom }}
           </option>
         </select>
-
-        <!-- Zone -->
-        <select
-          [(ngModel)]="filters.zone"
-          (ngModelChange)="applyFilters()"
-          class="filter-select"
-        >
-          <option value="">Toutes les zones</option>
-          <option value="Zone A">Zone A</option>
-          <option value="Zone B">Zone B</option>
-          <option value="Zone C">Zone C</option>
-          <option value="Zone D">Zone D</option>
-        </select>
-
         <input
           type="text"
           [(ngModel)]="filters.lieu"
@@ -66,21 +52,13 @@
         />
 
 
-        <select
-          [(ngModel)]="filters.heure_ouverture"
-          (ngModelChange)="applyFilters()"
-          class="filter-select"
-        >
-          <option value="">Heure d'ouverture</option>
-          <option value="08">Ouvert à 8h</option>
-          <option value="09">Ouvert à 9h</option>
-          <option value="10">Ouvert à 10h</option>
-          <option value="11">Ouvert à 11h</option>
-          <option value="12">Ouvert à 12h</option>
-          <option value="14">Ouvert à 14h</option>
-          <option value="18">Ouvert à 18h</option>
-          <option value="20">Ouvert à 20h</option>
-        </select>
+      <select [(ngModel)]="filters.heure_ouverture" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="">Heure d'ouverture</option>
+        <option *ngFor="let h of heures" [value]="h">
+          {{ h | number:'2.0' }}h
+        </option>
+      </select>
+
 
         <!-- Ouvertes maintenant -->
         <label class="checkbox-filter">
