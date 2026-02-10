@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const userService = require('../services/user.service');
 const { verifyToken, generatePasswordResetToken } = require('../utils/tokenUtils');
-const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/emailService');
+const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/email.service');
 const bcrypt = require('bcryptjs');
 
 const register = async (req, res) => {

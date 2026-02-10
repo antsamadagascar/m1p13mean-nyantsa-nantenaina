@@ -1,6 +1,6 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
-const { sendVerificationEmail } = require('./emailService');
+const { sendVerificationEmail } = require('./email.service');
 const { generateVerificationToken } = require('../utils/tokenUtils');
 
 const registerUser = async ({ nom, prenom, email, motDePasse, telephone }) => {
