@@ -64,7 +64,7 @@ export class BoutiqueService {
 
   constructor(private http: HttpClient) {}
 
-  // Récupération de toutes les boutiques avec filtres
+  // Récupération de toutes les boutiques avec filtres(admin)
   getBoutiques(filters?: {
     statut?: string;
     categorie?: string;
@@ -85,7 +85,7 @@ export class BoutiqueService {
     return this.http.get<Boutique[]>(this.apiUrl, { params });
   }
 
-  // Récupération d'une boutique par ID
+  // Récupération d'une boutique par ID(admin)
   getBoutiqueById(id: string): Observable<Boutique> {
     return this.http.get<Boutique>(`${this.apiUrl}/${id}`);
   }
@@ -105,6 +105,7 @@ export class BoutiqueService {
   reactiverBoutique(id: string): Observable<any>
   { return this.http.patch(`${this.apiUrl}/${id}/reactiver`, {}); }
 
+  //recuperation liste boutiques cote acheteurs (avec filtre,pagination)
   getBoutiquesPublic(filters?: {
     categorie?: string;
     zone?: string;
