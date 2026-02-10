@@ -4,6 +4,7 @@ import { AuthService } from '../../../services/auth.service';
 import { RouterModule } from '@angular/router';
 import { CategoryService } from '../../../services/category.service';
 import { FormsModule } from '@angular/forms';
+import { SousCategorieService } from '../../../services/sous-categorie.service';
 @Component({
   selector: 'app-boutiques',
   standalone: true,
@@ -140,6 +141,7 @@ import { FormsModule } from '@angular/forms';
 
       <select
         [(ngModel)]="selectedCategorie"
+        (change)="onCategorieChange()"
         class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
 
         <option value="">-- Sélectionner une catégorie --</option>
@@ -152,6 +154,29 @@ import { FormsModule } from '@angular/forms';
 
       </select>
     </div>
+    <!-- Sous-produit -->
+    <div class="mb-4">
+      <label class="block text-sm font-medium text-gray-700 mb-1">
+        Sous-produit
+      </label>
+
+      <select
+        [(ngModel)]="selectedSousCategorie"
+
+        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        [disabled]="!sousCategories.length">
+
+        <option value="">-- Sélectionner un sous-produit --</option>
+
+        <option
+          *ngFor="let sub of sousCategories"
+          [value]="sub._id">
+          {{ sub.nom }}
+        </option>
+
+      </select>
+    </div>
+
 
     <!-- Bouton -->
     <div class="flex justify-end mt-6">
@@ -170,17 +195,37 @@ export class BoutiquesComponent implements OnInit {
 
   isModalOpen = false;
   categories: any[] = [];
+  sousCategories: any[] = [];
   selectedCategorie: string = '';
+  selectedSousCategorie: string = '';
 
   constructor(
     public authService: AuthService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private sousCategorieService: SousCategorieService
   ) {}
 
   ngOnInit() {
     console.log(' Page Boutiques chargée');
     console.log(' Utilisateur:', this.authService.getUserFullName());
     console.log(' Rôle:', this.authService.getUserRole());
+  }
+
+  // Récupérer les sous-catégories à chaque sélection de catégorie
+  onCategorieChange() {
+    if (!this.selectedCategorie) {
+      this.sousCategories = [];
+      return;
+    }
+
+    // Appel API pour récupérer les sous-catégories selon la catégorie
+    this.sousCategorieService.getByCategorie(this.selectedCategorie).subscribe({
+      next: (res: any) => {
+        console.log('Sous-catégories chargées :', res);
+        this.sousCategories = res.data || []; // adapter selon la réponse de ton API
+      },
+      error: (err) => console.error(err)
+    });
   }
 
   loadCategories() {
@@ -200,5 +245,10 @@ export class BoutiquesComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
+    
+    this.categories = [];
+    this.sousCategories = [];
+    this.selectedCategorie = '';
+    this.selectedSousCategorie = '';
   }
 }

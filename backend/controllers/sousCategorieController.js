@@ -159,41 +159,37 @@ exports.obtenirSousCategories = async (req, res) => {
 // OBTENIR SOUS-CATÉGORIES PAR CATÉGORIE
 // ============================================
 exports.obtenirSousCategoriesParCategorie = async (req, res) => {
-  try {
-    const { categorieId } = req.params;
-
-    // Vérifier que la catégorie existe
-    const categorie = await Categorie.findById(categorieId);
-    if (!categorie) {
-      return res.status(404).json({
+    try {
+      const { categorieId } = req.params;
+  
+      // Vérifier que la catégorie existe
+      const categorie = await Categorie.findById(categorieId);
+      if (!categorie) {
+        return res.status(404).json({
+          success: false,
+          message: 'Catégorie non trouvée'
+        });
+      }
+  
+      // Récupérer uniquement les sous-catégories liées à cette catégorie
+      const sousCategories = await SousCategorie.find({ categorieId })
+        .sort({ nom: 1 })  // tri alphabétique
+        .select('_id nom description'); // ne renvoyer que les champs nécessaires
+  
+      res.json({
+        success: true,
+        data: sousCategories
+      });
+  
+    } catch (error) {
+      console.error('Erreur récupération sous-catégories:', error);
+      res.status(500).json({
         success: false,
-        message: 'Catégorie non trouvée'
+        message: 'Erreur lors de la récupération des sous-catégories',
+        error: error.message
       });
     }
-
-    // Récupérer les sous-catégories
-    const sousCategories = await SousCategorie.find({ categorieId })
-      .sort({ nom: 1 });
-
-    res.json({
-      success: true,
-      data: {
-        categorie: {
-          _id: categorie._id,
-          nom: categorie.nom
-        },
-        sousCategories
-      }
-    });
-
-  } catch (error) {
-    console.error('Erreur récupération sous-catégories:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erreur lors de la récupération des sous-catégories',
-      error: error.message
-    });
-  }
-};
+  };
+  
 
 

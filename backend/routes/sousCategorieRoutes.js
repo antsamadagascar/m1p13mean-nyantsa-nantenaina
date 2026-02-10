@@ -10,7 +10,6 @@ router.get('/', sousCategorieController.obtenirSousCategories);
 // router.get('/:id', sousCategorieController.obtenirSousCategorieParId);
 
 // // Obtenir sous-catégories par catégorie
-// router.get('/categorie/:categorieId', sousCategorieController.obtenirSousCategoriesParCategorie);
-
+router.get('/categorie/:categorieId', sousCategorieController.obtenirSousCategoriesParCategorie);
 
 module.exports = router;
