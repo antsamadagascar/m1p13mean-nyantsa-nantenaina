@@ -2,7 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { BoutiqueService, Boutique } from '../../../services/boutique.service';
+import { BoutiqueService } from '../../../services/boutique.service';
+import { Boutique } from '../../../models/boutique.model';
+
 import { AuthService } from '../../../services/auth.service'; 
 
 @Component({

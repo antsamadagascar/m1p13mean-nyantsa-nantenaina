@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { BoutiqueService, Boutique } from '../../../services/boutique.service';
+import { BoutiqueService } from '../../../services/boutique.service';
+import { Boutique } from '../../../models/boutique.model';
 import { AlertService } from '../../../services/alert.service';
 import { RouterLink } from '@angular/router';
 

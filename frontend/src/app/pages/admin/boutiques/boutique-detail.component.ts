@@ -1,7 +1,8 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { BoutiqueService, Boutique } from '../../../services/boutique.service';
+import { BoutiqueService } from '../../../services/boutique.service';
+import { Boutique } from '../../../models/boutique.model';
 import { AlertService } from '../../../services/alert.service';
 import * as L from 'leaflet';
 
