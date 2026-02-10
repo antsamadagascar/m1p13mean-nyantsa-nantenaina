@@ -39,7 +39,7 @@ require('./models/Categorie');
 require('./models/SousCategorie');
 
 const userRoutes = require('./routes/user.routes');
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/auth.routes');
 const boutiqueRoutes = require('./routes/boutique.routes');
 
 app.use('/api', boutiqueRoutes);
