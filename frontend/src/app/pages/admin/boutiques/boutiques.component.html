@@ -204,8 +204,10 @@
 
             <!-- Localisation -->
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm text-gray-900">{{ boutique.localisation.zone }}</div>
-              <div class="text-sm text-gray-500">{{ boutique.localisation.etage }} - {{ boutique.localisation.numero }}</div>
+              <div class="text-sm font-medium text-gray-900">
+                {{ boutique.localisation.emplacement_complet || 
+                  (boutique.localisation.zone + ' - ' + boutique.localisation.etage + ' - N°' + boutique.localisation.numero) }}
+              </div>
             </td>
 
             <!-- Catégorie -->

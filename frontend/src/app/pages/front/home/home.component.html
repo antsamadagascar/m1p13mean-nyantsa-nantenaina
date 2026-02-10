@@ -141,8 +141,10 @@
             </p>
             <p class="card-location">
               <i class="fa-solid fa-location-dot"></i>
-              {{ boutique.localisation.zone }} - {{ boutique.localisation.etage }}
+              {{ boutique.localisation.emplacement_complet || 
+                (boutique.localisation.zone + ' - ' + boutique.localisation.etage + ' - N°' + boutique.localisation.numero) }}
             </p>
+ 
             <p class="card-description">
               {{ boutique.description | slice:0:100 }}{{ boutique.description.length > 100 ? '...' : '' }}
             </p>

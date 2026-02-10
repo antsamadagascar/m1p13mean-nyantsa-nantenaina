@@ -99,6 +99,14 @@
             Localisation
           </h2>
           <div class="space-y-2">
+          <div *ngIf="boutique.localisation.emplacement_complet">
+            <p class="text-sm text-gray-600">Emplacement</p>
+            <p class="font-medium text-gray-800 text-lg">
+              <i class="fa-solid fa-map-pin text-blue-600 mr-2"></i>
+              {{ boutique.localisation.emplacement_complet }}
+            </p>
+          </div>
+          
             <div>
               <p class="text-sm text-gray-600">Zone</p>
               <p class="font-medium text-gray-800">{{ boutique.localisation.zone }}</p>
