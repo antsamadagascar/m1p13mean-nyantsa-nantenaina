@@ -180,11 +180,18 @@
                 />
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900">{{ boutique.nom }}</div>
-                  <div class="text-sm text-gray-500 flex items-center gap-2">
-                    <span [ngClass]="boutique.estOuverte ? 'text-green-600' : 'text-red-600'">
-                      {{ boutique.estOuverte ? '🟢 Ouvert' : '🔴 Fermé' }}
+                   <div class="text-sm text-gray-500 flex items-center gap-2">
+                    <span class="flex items-center gap-1 font-medium"
+                          [ngClass]="boutique.estOuverte ? 'text-green-600' : 'text-red-600'">
+
+                      <i class="fa-solid"
+                        [ngClass]="boutique.estOuverte ? 'fa-circle-check' : 'fa-circle-xmark'">
+                      </i>
+
+                      {{ boutique.estOuverte ? 'Ouvert' : 'Fermé' }}
                     </span>
                   </div>
+
                 </div>
               </div>
             </td>

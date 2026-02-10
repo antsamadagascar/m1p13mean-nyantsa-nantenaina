@@ -117,12 +117,20 @@
         <div *ngFor="let boutique of boutiquesPaginated" class="boutique-card">
           
           <!-- Image -->
-          <div class="card-image">
-            <img [src]="boutique.logo" [alt]="boutique.nom" />
-            <div class="card-badge" [class.open]="boutique.estOuverte" [class.closed]="!boutique.estOuverte">
-              {{ boutique.estOuverte ? '🟢 Ouvert' : '🔴 Fermé' }}
-            </div>
+        <div class="card-image">
+          <img [src]="boutique.logo" [alt]="boutique.nom" />
+
+          <div class="card-badge" [class.open]="boutique.estOuverte" [class.closed]="!boutique.estOuverte">
+            
+            <i 
+              class="fa-solid mr-1"
+              [ngClass]="boutique.estOuverte ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-red-600'">
+            </i>
+
+            {{ boutique.estOuverte ? 'Ouvert' : 'Fermé' }}
           </div>
+        </div>
+
 
           <!-- Contenu -->
           <div class="card-content">
