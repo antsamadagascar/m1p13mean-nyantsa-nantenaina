@@ -127,14 +127,29 @@
         </div>
 
         <!--  SECTION CARTE-->
-        <div class="bg-white rounded-lg shadow p-6" *ngIf="boutique.localisation.latitude && boutique.localisation.longitude">
+        <div 
+          class="bg-white rounded-lg shadow p-6" 
+          *ngIf="boutique && boutique.localisation.latitude && boutique.localisation.longitude"
+        >
           <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
             <i class="fa-solid fa-map-marked-alt text-blue-600 mr-2"></i>
             Carte
           </h2>
           
-          <!-- Conteneur de la carte -->
-          <div id="map" class="w-full h-64 rounded-lg border border-gray-300"></div>
+          <!-- Affiche SEULEMENT si showMap est true -->
+          <div *ngIf="showMap" class="map-wrapper">
+            <div 
+              #mapContainer
+              class="rounded-lg border border-gray-300"
+              style="width: 100%; height: 300px; background: #e5e7eb;"
+            ></div>
+          </div>
+
+          <!-- Message de chargement -->
+          <div *ngIf="!showMap" class="flex items-center justify-center h-64 bg-gray-100 rounded-lg">
+            <i class="fa-solid fa-spinner fa-spin text-2xl text-blue-600 mr-3"></i>
+            <span class="text-gray-600">Chargement de la carte...</span>
+          </div>
           
           <!-- Lien Google Maps -->
           <a 
