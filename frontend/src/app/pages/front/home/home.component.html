@@ -178,12 +178,21 @@
           <img [src]="boutique.logo" [alt]="boutique.nom" class="list-logo" />
           
           <div class="list-content">
-            <div class="list-header">
-              <h3>{{ boutique.nom }}</h3>
-              <span class="badge" [class.open]="boutique.estOuverte" [class.closed]="!boutique.estOuverte">
-                {{ boutique.estOuverte ? '🟢 Ouvert' : '🔴 Fermé' }}
-              </span>
-            </div>
+          <div class="list-header">
+            <h3>{{ boutique.nom }}</h3>
+
+            <span class="badge"
+                  [class.open]="boutique.estOuverte"
+                  [class.closed]="!boutique.estOuverte">
+
+              <i class="fa-solid"
+                [ngClass]="boutique.estOuverte ? 'fa-circle-check' : 'fa-circle-xmark'">
+              </i>
+
+              {{ boutique.estOuverte ? ' Ouvert' : ' Fermé' }}
+            </span>
+          </div>
+
             <p class="list-meta">
               <span><i class="fa-solid fa-tag"></i> {{ boutique.categorie.nom }}</span>
               <span><i class="fa-solid fa-location-dot"></i> {{ boutique.localisation.zone }} - {{ boutique.localisation.etage }}</span>
