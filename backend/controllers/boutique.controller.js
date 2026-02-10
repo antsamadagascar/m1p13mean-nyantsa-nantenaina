@@ -160,10 +160,55 @@ const reactiverBoutique = async (req, res) => {
   }
 };
 
+const getBoutiquesPublic = async (req, res) => {
+  try {
+    const { categorie, zone, search } = req.query;
+    
+    // Filtres de base : UNIQUEMENT boutiques actives et validées
+    let filters = {
+      'statut.actif': true,
+      'statut.valide_par_admin': true,
+      'statut.suspendu': false
+    };
+
+    if (categorie) filters.categorie = categorie;
+    if (zone) filters['localisation.zone'] = zone;
+    if (search) filters.nom = { $regex: search, $options: 'i' };
+
+    const boutiques = await Boutique.find(filters)
+      .populate('categorie')
+      .populate('sous_categories')
+      .sort({ 'date_creation': -1 });
+
+    const boutiquesAvecStatut = boutiques.map(boutique => {
+      const maintenant = new Date();
+      const jour = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][maintenant.getDay()];
+      const horaireJour = boutique.horaires[jour];
+      
+      let estOuverte = false;
+      if (horaireJour.ouvert) {
+        const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
+        const [hD, mD] = horaireJour.debut.split(':').map(Number);
+        const [hF, mF] = horaireJour.fin.split(':').map(Number);
+        const debut = hD * 60 + mD;
+        const fin = hF * 60 + mF;
+        estOuverte = heureActuelle >= debut && heureActuelle <= fin;
+      }
+
+      return { ...boutique.toObject(), estOuverte };
+    });
+
+    res.json(boutiquesAvecStatut);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getBoutiques,
   getBoutiqueById,     
   validerBoutique,     
   suspendreBoutique,   
-  reactiverBoutique    
+  reactiverBoutique ,
+  getBoutiquesPublic
 };

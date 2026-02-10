@@ -104,4 +104,24 @@ export class BoutiqueService {
 
   reactiverBoutique(id: string): Observable<any>
   { return this.http.patch(`${this.apiUrl}/${id}/reactiver`, {}); }
+
+  getBoutiquesPublic(filters?: {
+    categorie?: string;
+    zone?: string;
+    search?: string;
+  }): Observable<Boutique[]> {
+    let params = new HttpParams();
+
+    if (filters?.categorie) {
+      params = params.set('categorie', filters.categorie);
+    }
+    if (filters?.zone) {
+      params = params.set('zone', filters.zone);
+    }
+    if (filters?.search) {
+      params = params.set('search', filters.search);
+    }
+
+    return this.http.get<Boutique[]>(`${this.apiUrl}/public`, { params });
+  }
 }
