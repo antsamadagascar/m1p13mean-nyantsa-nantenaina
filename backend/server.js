@@ -36,9 +36,13 @@ app.get('/api/status', (req, res) => {
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/authRoutes');
+const categorieRoutes = require('./routes/categorieRoutes');
+const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 
 app.use('/api', userRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/categories', categorieRoutes);
+app.use('/api/sous-categories', sousCategorieRoutes);    
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 
