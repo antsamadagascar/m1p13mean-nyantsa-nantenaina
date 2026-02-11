@@ -30,7 +30,7 @@ export class AuthService {
     return this.http.post<AuthResponse>(`${this.apiUrl}/connexion`, data)
       .pipe(
         tap(response => {
-          if (response.success) 
+          if (response.success)
           {
             this.saveAuthData(response.user, response.token);
             // Redémarre la vérification après connexion
@@ -70,7 +70,7 @@ export class AuthService {
   isAuthenticated(): boolean {
     const token = this.getToken();
     if (!token) return false;
-    
+
     // Vérifie si le token n'est pas expiré
     return !this.isTokenExpired(token);
   }
@@ -117,9 +117,9 @@ export class AuthService {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const expirationTime = payload.exp * 1000; // Conversion  en millisecondes
       return Date.now() >= expirationTime;
-    } catch (error) 
-    {   console.error('Erreur lors du décodage du token:', error); 
-      return true; // Si erreur, on considére comme expiré 
+    } catch (error)
+    {   console.error('Erreur lors du décodage du token:', error);
+      return true; // Si erreur, on considére comme expiré
     }
   }
 
@@ -147,11 +147,22 @@ export class AuthService {
   // Vérifie le token et déconnecter si expiré
   private checkToken(): void {
     const token = this.getToken();
-    
+
     if (token && this.isTokenExpired(token)) {
       console.log('Token expiré - déconnexion automatique');
       alert('Votre session a expiré. Veuillez vous reconnecter.');
       this.logout();
     }
   }
+
+  registerGerant(data: {
+    boutiqueId: string;
+    nom: string;
+    prenom: string;
+    email: string;
+    password: string;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register-gerant`, data);
+  }
+
 }

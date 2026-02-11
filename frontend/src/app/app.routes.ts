@@ -6,6 +6,7 @@ import { VerifyEmailComponent } from './pages/front/verify-email/verify-email.co
 import { ConnexionComponent } from './pages/front/auth/connexion.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
+import { GerantRegistrationComponent } from './pages/front/gerant-registration/gerant-registration.component'
 // import { BoutiqueCreateComponent } from './pages/admin/boutiques/';
 export const routes: Routes = [
   {
@@ -25,6 +26,10 @@ export const routes: Routes = [
     path: 'forgot-password',
     loadComponent: () => import('./pages/front/forgot-password/forgot-password.component')
       .then(m => m.ForgotPasswordComponent)
+  },
+  {
+    path: 'gerant/boutique/:id',
+    component: GerantRegistrationComponent
   },
   {
     path: 'reset-password',

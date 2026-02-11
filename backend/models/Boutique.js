@@ -210,10 +210,6 @@ const boutiqueSchema = new mongoose.Schema({
       type: Boolean,
       default: false
     },
-    valide_par_admin: {
-      type: Boolean,
-      default: false
-    },
     en_attente_validation: {
       type: Boolean,
       default: true

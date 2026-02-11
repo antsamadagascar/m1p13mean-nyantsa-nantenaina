@@ -78,3 +78,35 @@ exports.createBoutique = async (req, res) => {
     });
   }
 };
+// @desc    Obtenir une boutique par ID
+// @route   GET /api/boutiques/:id
+// @access  Private
+exports.getBoutiqueById = async (req, res) => {
+    try {
+      const boutique = await Boutique
+        .findById(req.params.id)
+        .populate('categorie sous_categories gerant');
+  
+      if (!boutique) {
+        return res.status(404).json({
+          success: false,
+          message: 'Boutique non trouvée'
+        });
+      }
+  
+      res.status(200).json({
+        success: true,
+        data: boutique
+      });
+  
+    } catch (error) {
+      console.error('❌ Erreur récupération boutique:', error);
+  
+      res.status(500).json({
+        success: false,
+        message: 'Erreur serveur',
+        error: error.message
+      });
+    }
+  };
+  

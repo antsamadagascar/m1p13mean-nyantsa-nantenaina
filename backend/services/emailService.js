@@ -294,7 +294,6 @@ const sendPasswordResetEmail = async (user, resetToken) => {
 // Envoi de l'email de création de boutique au gérant
 const sendBoutiqueCreationEmail = async (boutique) => {
   const validationLink = `${process.env.FRONTEND_URL}/gerant/boutique/${boutique._id}`;
-  const profileLink = `${process.env.FRONTEND_URL}/gerant/profil`;
 
   const mailOptions = {
     from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,

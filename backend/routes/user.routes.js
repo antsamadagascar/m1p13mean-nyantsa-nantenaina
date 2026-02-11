@@ -9,4 +9,6 @@ router.get('/verify-email', userController.verifyEmail);
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
 
+router.post('/auth/register-gerant', userController.registerGerant);
+
 module.exports = router;

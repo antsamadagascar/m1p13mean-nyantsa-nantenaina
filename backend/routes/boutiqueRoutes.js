@@ -1,12 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const {
-  createBoutique
-} = require('../controllers/boutiqueController');
+const boutiqueController = require('../controllers/boutiqueController');
 
-// Middleware d'authentification (à adapter selon votre système)
-// const { protect, authorize } = require('../middleware/auth');
+// Création
+router.post('/', boutiqueController.createBoutique);
 
-router.post('/',createBoutique);
+// Récupération par ID
+router.get('/:id', boutiqueController.getBoutiqueById);
 
 module.exports = router;
