@@ -6,6 +6,7 @@ import { CategoryService } from '../../../services/category.service';
 import { FormsModule } from '@angular/forms';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { BoutiqueService } from '../../../services/boutique.service';
+import { AlertService } from '../../../services/alert.service';
 @Component({
   selector: 'app-boutiques',
   standalone: true,
@@ -450,7 +451,8 @@ export class BoutiquesComponent implements OnInit {
     public authService: AuthService,
     private categoryService: CategoryService,
     private sousCategorieService: SousCategorieService,
-    private boutiqueService: BoutiqueService
+    private boutiqueService: BoutiqueService,
+    private alertService: AlertService,
   ) {}
 
   ngOnInit() {
@@ -533,12 +535,16 @@ export class BoutiquesComponent implements OnInit {
     this.boutiqueService.createBoutique(data).subscribe({
       next: (response) => {
         console.log('✅ Succès:', response);
-        alert('Boutique créée avec succès!');
+        this.alertService.success(
+          'Boutique créée avec succès!'
+        );
         this.closeModal();
       },
       error: (error) => {
         console.error('❌ Erreur:', error);
-        alert('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
+        this.alertService.success(
+          'Erreur: ' + (error.error?.message || 'Erreur inconnue')
+        );
       }
     });
   }

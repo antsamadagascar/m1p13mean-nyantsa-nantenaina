@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../../services/auth.service';
 import { BoutiqueService } from '../../../services/boutique.service';
+import { AlertService } from '../../../services/alert.service';
 
 @Component({
   standalone: true,
@@ -33,7 +34,8 @@ export class GerantRegistrationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
-    private boutiqueService: BoutiqueService
+    private boutiqueService: BoutiqueService,
+    private alertService: AlertService
   ) {}
 
   ngOnInit() {
@@ -56,7 +58,9 @@ export class GerantRegistrationComponent implements OnInit {
         this.loadingBoutique = false;
       },
       error: () => {
-        alert('Boutique non trouvée');
+        this.alertService.success(
+         'Boutique non trouvée'
+        );
         this.router.navigate(['/']);
         this.loadingBoutique = false;
       }
@@ -65,17 +69,23 @@ export class GerantRegistrationComponent implements OnInit {
 
   onSubmit() {
     if (!this.motDePasse || !this.confirmation) {
-      alert('Veuillez remplir tous les champs');
+      this.alertService.success(
+        'Veuillez remplir tous les champs'
+       );
       return;
     }
 
     if (this.motDePasse !== this.confirmation) {
-      alert('Les mots de passe ne correspondent pas');
+      this.alertService.success(
+        'Les mots de passe ne correspondent pas'
+       );
       return;
     }
 
     if (!this.boutique || !this.boutique.gerant) {
-      alert('Informations du gérant introuvables');
+      this.alertService.success(
+        'Informations du gérant introuvables'
+       );
       return;
     }
 
@@ -92,13 +102,18 @@ export class GerantRegistrationComponent implements OnInit {
     this.authService.registerGerant(payload).subscribe({
       next: () => {
         this.loading = false;
-        alert('Compte gérant créé avec succès');
-        this.router.navigate(['/connexion']);
+        this.alertService.success(
+          'Compte gérant créé avec succès'
+         );
+        this.router.navigate(['/backoffice/boutiques']);
       },
       error: (err) => {
         this.loading = false;
         console.error(err);
-        alert(err.error?.message || 'Erreur lors de la création du compte');
+        this.alertService.success(
+          'Erreur lors de la création du compte'
+         );
+        // alert(err.error?.message || 'Erreur lors de la création du compte');
       }
     });
   }
