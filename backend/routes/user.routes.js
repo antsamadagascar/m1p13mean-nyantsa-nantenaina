@@ -14,7 +14,6 @@ router.get('/', userController.getAllUsers);
 router.get('/:id', userController.getUserById);
 router.patch('/:id/suspend', userController.suspendUser);
 router.patch('/:id/activate', userController.activateUser);
-router.patch('/:id/role', userController.changeUserRole);
 router.delete('/:id', userController.deleteUser);
 
 module.exports = router;

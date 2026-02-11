@@ -97,9 +97,6 @@ export class UserService {
     return this.http.delete<ActionResponse>(`${this.apiUrl}/${id}`);
   }
 
-  changeUserRole(id: string, role: string, boutiqueId?: string): Observable<ActionResponse> {
-    return this.http.patch<ActionResponse>(`${this.apiUrl}/${id}/role`, { role, boutiqueId });
-  }
 
   getUserStatusLabel(user: User): { label: string; class: string } {
     if (!user.actif) {

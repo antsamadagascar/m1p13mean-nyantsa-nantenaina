@@ -365,52 +365,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Changer le rôle d'un utilisateur
-const changeUserRole = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { role, boutiqueId } = req.body;
-    
-    if (!['ADMIN', 'BOUTIQUE', 'ACHETEUR'].includes(role)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Rôle invalide' 
-      });
-    }
-    
-    const user = await User.findById(id);
-    
-    if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Utilisateur non trouvé' 
-      });
-    }
-    
-    user.role = role;
-    
-    if (role === 'BOUTIQUE' && boutiqueId) {
-      user.boutiqueId = boutiqueId;
-    } else if (role !== 'BOUTIQUE') {
-      user.boutiqueId = null;
-    }
-    
-    await user.save();
-    
-    res.json({
-      success: true,
-      message: 'Rôle modifié avec succès',
-      data: user
-    });
-  } catch (error) {
-    console.error('Erreur changeUserRole:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors du changement de rôle' 
-    });
-  }
-};
-
 module.exports = {
   register,
   verifyEmail,
@@ -420,6 +374,5 @@ module.exports = {
   getUserById,
   suspendUser,
   activateUser,
-  deleteUser,
-  changeUserRole
+  deleteUser
 };
