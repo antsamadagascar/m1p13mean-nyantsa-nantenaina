@@ -5,26 +5,7 @@ import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
 import { AlertService } from '../../../services/alert.service';
 import { Subscription } from 'rxjs';
-
-interface User {
-  _id: string;
-  nom: string;
-  prenom: string;
-  email: string;
-  telephone?: string;
-  role: 'ADMIN' | 'BOUTIQUE' | 'ACHETEUR';
-  actif: boolean;
-  emailVerifie: boolean;
-  dateInscription: Date;
-  dateSuspension?: Date;
-  raisonSuspension?: string;
-  dateReactivation?: Date;
-  boutiqueId?: {
-    _id: string;
-    nom: string;
-    adresse?: string;
-  };
-}
+import { User } from '../../../models/user.model';
 
 @Component({
   selector: 'app-user-detail',

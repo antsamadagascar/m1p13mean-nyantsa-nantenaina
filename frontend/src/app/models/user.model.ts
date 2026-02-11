@@ -7,8 +7,16 @@ export interface User {
   telephone?: string;
   avatar?: string;
   actif?: boolean;
+  emailVerifie: boolean;
   dateInscription?: Date;
-  boutiqueId?: string;
+  dateSuspension?: Date;
+  raisonSuspension?: string;
+  dateReactivation?: Date;
+  boutiqueId?: {
+    _id: string;
+    nom: string;
+    adresse?: string;
+  };
 }
 
 export interface AuthResponse {
