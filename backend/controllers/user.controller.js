@@ -127,9 +127,294 @@ const resetPassword = async (req, res) => {
 };
 
 
+// Récupération de tous les utilisateurs avec filtres
+const getAllUsers = async (req, res) => {
+  try {
+    const { role, actif, search, page = 1, limit = 10 } = req.query;
+    
+    // Construction du filtre
+    let filter = {};
+    
+    if (role && role !== 'ALL') {
+      filter.role = role;
+    }
+    
+    if (actif !== undefined && actif !== 'ALL') {
+      filter.actif = actif === 'true';
+    }
+    
+    if (search) {
+      filter.$or = [
+        { nom: { $regex: search, $options: 'i' } },
+        { prenom: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { telephone: { $regex: search, $options: 'i' } }
+      ];
+    }
+    
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    const users = await User.find(filter)
+      .select('-motDePasse')
+      .populate('boutiqueId', 'nom adresse')
+      .sort({ dateInscription: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    
+    const total = await User.countDocuments(filter);
+    
+    // Statistiques globales
+    const stats = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalUsers: { $sum: 1 },
+          totalActifs: { $sum: { $cond: ['$actif', 1, 0] } },
+          totalSuspendus: { $sum: { $cond: ['$actif', 0, 1] } },
+          totalAcheteurs: { $sum: { $cond: [{ $eq: ['$role', 'ACHETEUR'] }, 1, 0] } },
+          totalBoutiques: { $sum: { $cond: [{ $eq: ['$role', 'BOUTIQUE'] }, 1, 0] } },
+          totalAdmins: { $sum: { $cond: [{ $eq: ['$role', 'ADMIN'] }, 1, 0] } }
+        }
+      }
+    ]);
+    
+    res.json({
+      success: true,
+      data: users,
+      pagination: {
+        total,
+        page: parseInt(page),
+        limit: parseInt(limit),
+        pages: Math.ceil(total / parseInt(limit))
+      },
+      stats: stats[0] || {}
+    });
+  } catch (error) {
+    console.error('Erreur getAllUsers:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la récupération des utilisateurs' 
+    });
+  }
+};
+
+// Récupération d' un utilisateur par ID
+const getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select('-motDePasse')
+      .populate('boutiqueId');
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Utilisateur non trouvé' 
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: user
+    });
+  } catch (error) {
+    console.error('Erreur getUserById:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la récupération de l\'utilisateur' 
+    });
+  }
+};
+
+// Suspendre un utilisateur
+const suspendUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { raison } = req.body;
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Utilisateur non trouvé' 
+      });
+    }
+    
+    // Empêche la suspension d'un admin par un autre admin
+    if (user.role === 'ADMIN' && req.user.role === 'ADMIN') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Vous ne pouvez pas suspendre un autre administrateur' 
+      });
+    }
+    
+    // Empêche l'auto-suspension
+    if (user._id.toString() === req.user.id) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Vous ne pouvez pas vous suspendre vous-même' 
+      });
+    }
+    
+    user.actif = false;
+    user.dateSuspension = new Date();
+    user.raisonSuspension = raison || 'Non spécifiée';
+    user.suspenduPar = req.user.id;
+    
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Utilisateur suspendu avec succès',
+      data: user
+    });
+  } catch (error) {
+    console.error('Erreur suspendUser:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la suspension de l\'utilisateur' 
+    });
+  }
+};
+
+// Activation d'un utilisateur
+const activateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Utilisateur non trouvé' 
+      });
+    }
+    
+    user.actif = true;
+    user.dateSuspension = null;
+    user.raisonSuspension = null;
+    user.suspenduPar = null;
+    user.dateReactivation = new Date();
+    user.reactivePar = req.user.id;
+    
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Utilisateur activé avec succès',
+      data: user
+    });
+  } catch (error) {
+    console.error('Erreur activateUser:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de l\'activation de l\'utilisateur' 
+    });
+  }
+};
+
+// Supprime un utilisateur
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Utilisateur non trouvé' 
+      });
+    }
+    
+    // Empêche la suppression d'un admin
+    if (user.role === 'ADMIN') {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Impossible de supprimer un administrateur' 
+      });
+    }
+    
+    // Empêche l'auto-suppression
+    if (user._id.toString() === req.user.id) {
+      return res.status(403).json({ 
+        success: false, 
+        message: 'Vous ne pouvez pas vous supprimer vous-même' 
+      });
+    }
+    
+    await User.findByIdAndDelete(id);
+    
+    res.json({
+      success: true,
+      message: 'Utilisateur supprimé avec succès'
+    });
+  } catch (error) {
+    console.error('Erreur deleteUser:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors de la suppression de l\'utilisateur' 
+    });
+  }
+};
+
+// Change le rôle d'un utilisateur
+const changeUserRole = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { role, boutiqueId } = req.body;
+    
+    if (!['ADMIN', 'BOUTIQUE', 'ACHETEUR'].includes(role)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Rôle invalide' 
+      });
+    }
+    
+    const user = await User.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'Utilisateur non trouvé' 
+      });
+    }
+    
+    user.role = role;
+    
+    if (role === 'BOUTIQUE' && boutiqueId) {
+      user.boutiqueId = boutiqueId;
+    } else if (role !== 'BOUTIQUE') {
+      user.boutiqueId = null;
+    }
+    
+    await user.save();
+    
+    res.json({
+      success: true,
+      message: 'Rôle modifié avec succès',
+      data: user
+    });
+  } catch (error) {
+    console.error('Erreur changeUserRole:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Erreur lors du changement de rôle' 
+    });
+  }
+};
+
 module.exports = {
   register,
   verifyEmail,
   forgotPassword, 
-  resetPassword   
+  resetPassword  ,
+  getAllUsers,
+  getUserById,
+  suspendUser,
+  activateUser,
+  deleteUser,
+  changeUserRole
 };
+

@@ -1,0 +1,334 @@
+<div class="users-container">
+  <!-- En-tête avec statistiques -->
+  <div class="page-header">
+    <h1><i class="fa-solid fa-users"></i> Gestion des Utilisateurs</h1>
+    
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="fa-solid fa-users"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalUsers }}</h3>
+          <p>Total utilisateurs</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="fa-solid fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalActifs }}</h3>
+          <p>Actifs</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon bg-danger">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalSuspendus }}</h3>
+          <p>Suspendus</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon bg-info">
+          <i class="fa-solid fa-store"></i>
+        </div>
+        <div class="stat-content">
+          <h3>{{ stats.totalBoutiques }}</h3>
+          <p>Boutiques</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="roleFilter">Rôle</label>
+        <select id="roleFilter" [(ngModel)]="filters.role" (change)="onFilterChange()" class="form-select">
+          <option value="ALL">Tous les rôles</option>
+          <option value="ACHETEUR">Acheteurs</option>
+          <option value="BOUTIQUE">Boutiques</option>
+          <option value="ADMIN">Administrateurs</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="statusFilter">Statut</label>
+        <select id="statusFilter" [(ngModel)]="filters.actif" (change)="onFilterChange()" class="form-select">
+          <option value="ALL">Tous les statuts</option>
+          <option value="true">Actifs</option>
+          <option value="false">Suspendus</option>
+        </select>
+      </div>
+      
+      <div class="filter-group search-group">
+        <label for="searchInput">Rechercher</label>
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-search"></i>
+          <input 
+            type="text" 
+            id="searchInput"
+            [(ngModel)]="filters.search" 
+            (input)="onSearchChange()"
+            placeholder="Nom, email, téléphone..."
+            class="form-input"
+          />
+          <button *ngIf="filters.search" (click)="clearSearch()" class="clear-btn" type="button">
+            <i class="fa-solid fa-times"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tableau des utilisateurs -->
+  <div class="table-container">
+    <div *ngIf="loading" class="loading-overlay">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <table class="users-table" *ngIf="!loading">
+      <thead>
+        <tr>
+          <th>Utilisateur</th>
+          <th>Email / Téléphone</th>
+          <th>Rôle</th>
+          <th>Statut</th>
+          <th>Inscription</th>
+          <th>Dernière connexion</th>
+          <th class="actions-column">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>
+            <div class="user-info">
+              <div class="user-avatar">
+                <img *ngIf="user.avatar" [src]="user.avatar" [alt]="user.nom">
+                <div *ngIf="!user.avatar" class="avatar-placeholder">
+                  {{ user.prenom.charAt(0) }}{{ user.nom.charAt(0) }}
+                </div>
+              </div>
+              <div class="user-name">
+                <strong>{{ user.prenom }} {{ user.nom }}</strong>
+                <span class="user-id">#{{ user._id.substring(0, 8) }}</span>
+              </div>
+            </div>
+          </td>
+          
+          <td>
+            <div class="contact-info">
+              <div><i class="fa-solid fa-envelope"></i> {{ user.email }}</div>
+              <div *ngIf="user.telephone"><i class="fa-solid fa-phone"></i> {{ user.telephone }}</div>
+            </div>
+          </td>
+          
+          <td>
+            <span class="badge badge-{{ getRoleColor(user.role) }}">
+              {{ getRoleLabel(user.role) }}
+            </span>
+            <div *ngIf="user.boutiqueId" class="boutique-link">
+              <small><i class="fa-solid fa-store"></i> {{ user.boutiqueId.nom }}</small>
+            </div>
+          </td>
+          
+          <td>
+            <span class="badge" [ngClass]="'badge-' + getStatusLabel(user).class">
+              {{ getStatusLabel(user).label }}
+            </span>
+            <div *ngIf="!user.actif && user.raisonSuspension" class="suspension-info">
+              <small class="text-muted">{{ user.raisonSuspension }}</small>
+            </div>
+          </td>
+          
+          <td>
+            <div class="date-info">
+              {{ user.dateInscription | date: 'dd/MM/yyyy' }}
+              <small>{{ user.dateInscription | date: 'HH:mm' }}</small>
+            </div>
+          </td>
+          
+          <td>
+            <div class="date-info" *ngIf="user.derniereConnexion">
+              {{ user.derniereConnexion | date: 'dd/MM/yyyy' }}
+              <small>{{ user.derniereConnexion | date: 'HH:mm' }}</small>
+            </div>
+            <span class="text-muted" *ngIf="!user.derniereConnexion">Jamais</span>
+          </td>
+          
+          <td class="actions-column">
+            <div class="action-buttons">
+              <button 
+                (click)="viewUserDetail(user)" 
+                class="btn btn-sm btn-info"
+                title="Voir les détails"
+              >
+                <i class="fa-solid fa-eye"></i>
+              </button>
+              
+              <button 
+                *ngIf="user.actif" 
+                (click)="openSuspendModal(user)" 
+                class="btn btn-sm btn-warning"
+                title="Suspendre"
+              >
+                <i class="fa-solid fa-ban"></i>
+              </button>
+              
+              <button 
+                *ngIf="!user.actif" 
+                (click)="activateUser(user)" 
+                class="btn btn-sm btn-success"
+                title="Activer"
+              >
+                <i class="fa-solid fa-check"></i>
+              </button>
+              
+              <button 
+                *ngIf="user.role !== 'ADMIN'"
+                (click)="openDeleteModal(user)" 
+                class="btn btn-sm btn-danger"
+                title="Supprimer"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        
+        <tr *ngIf="users.length === 0">
+          <td colspan="7" class="text-center">
+            <div class="empty-state">
+              <i class="fa-solid fa-users-slash"></i>
+              <p>Aucun utilisateur trouvé</p>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="totalPages > 1">
+    <div class="pagination-info">
+      Page {{ filters.page }} sur {{ totalPages }} ({{ totalUsers }} utilisateurs)
+    </div>
+    
+    <div class="pagination">
+      <button 
+        (click)="goToPage(filters.page! - 1)" 
+        [disabled]="filters.page === 1"
+        class="btn btn-sm"
+      >
+        <i class="fa-solid fa-chevron-left"></i> Précédent
+      </button>
+      
+      <button 
+        *ngFor="let page of paginationArray"
+        [class.active]="page === filters.page"
+        [disabled]="page === -1"
+        (click)="page !== -1 && goToPage(page)"
+        class="btn btn-sm"
+      >
+        {{ page === -1 ? '...' : page }}
+      </button>
+      
+      <button 
+        (click)="goToPage(filters.page! + 1)" 
+        [disabled]="filters.page === totalPages"
+        class="btn btn-sm"
+      >
+        Suivant <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de suspension -->
+<div class="modal-overlay" *ngIf="showSuspendModal" (click)="closeSuspendModal()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-ban"></i> Suspendre l'utilisateur</h2>
+      <button (click)="closeSuspendModal()" class="close-btn">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedUser">
+      <div class="user-suspend-info">
+        <p><strong>Utilisateur :</strong> {{ selectedUser.prenom }} {{ selectedUser.nom }}</p>
+        <p><strong>Email :</strong> {{ selectedUser.email }}</p>
+        <p><strong>Rôle :</strong> {{ getRoleLabel(selectedUser.role) }}</p>
+      </div>
+      
+      <div class="form-group">
+        <label for="suspensionRaison">Raison de la suspension *</label>
+        <textarea 
+          id="suspensionRaison"
+          [(ngModel)]="suspensionRaison" 
+          class="form-textarea"
+          rows="4"
+          placeholder="Expliquez la raison de cette suspension..."
+          required
+        ></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="closeSuspendModal()" class="btn btn-secondary">
+        Annuler
+      </button>
+      <button 
+        (click)="confirmSuspend()" 
+        class="btn btn-danger"
+        [disabled]="!suspensionRaison.trim()"
+      >
+        <i class="fa-solid fa-ban"></i> Suspendre
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de suppression -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-dialog" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2><i class="fa-solid fa-trash"></i> Supprimer l'utilisateur</h2>
+      <button (click)="closeDeleteModal()" class="close-btn">
+        <i class="fa-solid fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="userToDelete">
+      <div class="alert alert-danger">
+        <i class="fa-solid fa-exclamation-triangle"></i>
+        <strong>Attention !</strong> Cette action est irréversible.
+      </div>
+      
+      <p>Êtes-vous sûr de vouloir supprimer l'utilisateur suivant ?</p>
+      
+      <div class="user-delete-info">
+        <p><strong>Nom :</strong> {{ userToDelete.prenom }} {{ userToDelete.nom }}</p>
+        <p><strong>Email :</strong> {{ userToDelete.email }}</p>
+        <p><strong>Rôle :</strong> {{ getRoleLabel(userToDelete.role) }}</p>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button (click)="closeDeleteModal()" class="btn btn-secondary">
+        Annuler
+      </button>
+      <button (click)="confirmDelete()" class="btn btn-danger">
+        <i class="fa-solid fa-trash"></i> Supprimer définitivement
+      </button>
+    </div>
+  </div>
+</div>

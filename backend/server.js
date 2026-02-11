@@ -42,8 +42,8 @@ const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
 const boutiqueRoutes = require('./routes/boutique.routes');
 
-app.use('/api', boutiqueRoutes);
-app.use('/api', userRoutes);
+app.use('/api/boutiques', boutiqueRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
