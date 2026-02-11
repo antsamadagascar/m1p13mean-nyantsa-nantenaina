@@ -37,7 +37,7 @@ export class VerifyEmailComponent implements OnInit {
   }
 
   verifyEmail(token: string): void {
-    this.http.get(`http://localhost:5000/api/verify-email?token=${token}`)
+    this.http.get(`http://localhost:5000/api/users/verify-email?token=${token}`)
       .subscribe({
         next: (response: any) => {
           this.isLoading = false;

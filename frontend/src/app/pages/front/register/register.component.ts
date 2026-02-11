@@ -44,7 +44,7 @@ export class RegisterComponent {
     };
 
     // Appel API
-    this.http.post<any>('http://localhost:5000/api/register', payload)
+    this.http.post<any>('http://localhost:5000/api/users/register', payload)
       .subscribe({
         next: (res) => {
           this.alertService.success(

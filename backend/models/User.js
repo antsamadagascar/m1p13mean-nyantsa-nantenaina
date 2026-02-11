@@ -35,6 +35,22 @@ const userSchema = new mongoose.Schema({
   dateInscription: { type: Date, default: Date.now },
   derniereConnexion: { type: Date, default: null },
 
+  // Champs de suspension
+  dateSuspension: { type: Date, default: null },
+  raisonSuspension: { type: String, default: null },
+  suspenduPar: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User",
+    default: null 
+  },
+  dateReactivation: { type: Date, default: null },
+  reactivePar: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "User",
+    default: null 
+  },
+  
+
   //  pour le rôle BOUTIQUE uniquement
   boutiqueId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -56,5 +72,35 @@ userSchema.methods.toJSON = function() {
   delete user.motDePasse;
   return user;
 };
+
+// Méthode pour obtenir le statut de l'utilisateur
+userSchema.methods.getStatus = function() {
+  if (!this.actif) {
+    return {
+      status: 'SUSPENDU',
+      label: 'Suspendu',
+      class: 'danger',
+      details: {
+        raison: this.raisonSuspension,
+        date: this.dateSuspension
+      }
+    };
+  }
+  
+  if (!this.emailVerifie) {
+    return {
+      status: 'EN_ATTENTE',
+      label: 'Email non vérifié',
+      class: 'warning'
+    };
+  }
+  
+  return {
+    status: 'ACTIF',
+    label: 'Actif',
+    class: 'success'
+  };
+};
+
 
 module.exports = mongoose.model("User", userSchema);

@@ -60,7 +60,6 @@ export class AdminLayoutComponent implements OnInit {
 
       this.mainMenuItems = [
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
-        { path: '/backoffice/analytics', label: 'Analytiques', icon: 'fa-solid fa-chart-bar', exact: false }
       ];
 
       this.managementMenuItems = [

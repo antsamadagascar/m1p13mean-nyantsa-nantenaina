@@ -20,7 +20,6 @@ export class FrontLayoutComponent implements OnInit {
   
   navItems = [
     { path: '/', label: 'Accueil', exact: true },
-    { path: '/boutiques', label: 'Boutiques', exact: false },
     { path: '/produits', label: 'Produits', exact: false },
   ];
 

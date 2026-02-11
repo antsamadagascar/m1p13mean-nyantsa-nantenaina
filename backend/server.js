@@ -33,21 +33,28 @@ app.get('/api/status', (req, res) => {
   });
 });
 
+require('./models/User');
+require('./models/Boutique');
+require('./models/Categorie');
+require('./models/SousCategorie');
 
 const userRoutes = require('./routes/user.routes');
-const authRoutes = require('./routes/authRoutes');
+
+const authRoutes = require('./routes/auth.routes');
+
+const boutiqueRoutes = require('./routes/boutique.routes');
 const categorieRoutes = require('./routes/categorieRoutes');
 const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
-const boutiqueRoutes = require('./routes/boutiqueRoutes');
 
-app.use('/api', userRoutes);
+
+app.use('/api/boutiques', boutiqueRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
 app.use('/api/boutiques', boutiqueRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
-
 
 
 // Démarrage du serveur

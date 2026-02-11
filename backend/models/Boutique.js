@@ -67,9 +67,17 @@ const boutiqueSchema = new mongoose.Schema({
       }
     },
     telephone: {
-      type: String,
-      required: [true, 'Le téléphone du gérant est requis']
-    }
+        type: String,
+        required: [true, 'Le téléphone du gérant est requis'],
+        validate: {
+          validator: function(v) {
+             return /^\+261\s(32|33|34|38)\s\d{2}\s\d{3}\s\d{2}$/
+
+          },
+          message: 'Format invalide. Exemple: +261 34 12 34 56'
+        }
+      },
+
   },
   
   // ============================================
@@ -226,6 +234,14 @@ const boutiqueSchema = new mongoose.Schema({
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' },
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
+});
+
+// Génére automatiquement le slug avant la sauvegarde
+boutiqueSchema.pre('save', function(next) {
+  if (!this.slug && this.nom) {
+    this.slug = slugify(this.nom, { lower: true, strict: true });
+  }
+  next();
 });
 
 

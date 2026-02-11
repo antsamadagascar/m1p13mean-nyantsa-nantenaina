@@ -14,6 +14,15 @@ const usersTest = [
     emailVerifie: "true"
   },
   {
+    email: "antsamadagascar@gmail.com",
+    motDePasse: "123456",
+    nom: "Ratovonandrasana",
+    prenom: "Aina Ny Antsa",
+    role: "ADMIN",
+    emailVerifie: "true"
+  },
+  
+  {
     email: "boutique@fashion.mg",
     motDePasse: "boutique123",
     nom: "Rabe",

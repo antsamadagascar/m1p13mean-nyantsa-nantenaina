@@ -4,10 +4,11 @@ import { FrontLayoutComponent } from './layouts/front-layout/front-layout.compon
 import { RegisterComponent } from './pages/front/register/register.component';
 import { VerifyEmailComponent } from './pages/front/verify-email/verify-email.component';
 import { ConnexionComponent } from './pages/front/auth/connexion.component';
+import { BoutiqueDetailComponent } from './pages/admin/boutiques/boutique-detail.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
 import { GerantRegistrationComponent } from './pages/front/gerant-registration/gerant-registration.component'
-// import { BoutiqueCreateComponent } from './pages/admin/boutiques/';
+
 export const routes: Routes = [
   {
     path: 'connexion',
@@ -22,8 +23,10 @@ export const routes: Routes = [
     component: VerifyEmailComponent
   },
 
+
   {
     path: 'forgot-password',
+
     loadComponent: () => import('./pages/front/forgot-password/forgot-password.component')
       .then(m => m.ForgotPasswordComponent)
   },
@@ -56,6 +59,28 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      { 
+        path: 'boutiques/details/:id', 
+        component: BoutiqueDetailComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      // Gestion des utilisateurs
+      { 
+        path: 'users', 
+        loadComponent: () => import('./pages/admin/users/users.component')
+          .then(m => m.UsersComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'users/:id', 
+        loadComponent: () => import('./pages/admin/users/user-detail.component')
+          .then(m => m.UserDetailComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      }
+        
     ]
   },
   {
