@@ -8,24 +8,31 @@
       <h1>Détails de l'utilisateur</h1>
     </div>
     
-    <div class="header-actions" *ngIf="user">
+   <div class="header-actions" *ngIf="user">
+      <!-- Suspendre : uniquement si actif -->
       <button 
+        *ngIf="user.actif"
         class="btn-action btn-suspend" 
-  
         (click)="suspendUser()">
         <i class="fas fa-ban"></i> Suspendre
       </button>
+
+      <!-- Activer : uniquement si suspendu -->
       <button 
+        *ngIf="!user.actif"
         class="btn-action btn-activate" 
         (click)="activateUser()">
         <i class="fas fa-check-circle"></i> Activer
       </button>
+
+      <!-- Supprimer : toujours visible -->
       <button 
         class="btn-action btn-delete"
         (click)="deleteUser()">
         <i class="fas fa-trash"></i> Supprimer
       </button>
     </div>
+
   </div>
 
   <!-- Loading -->
