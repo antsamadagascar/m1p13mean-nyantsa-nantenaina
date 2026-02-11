@@ -30,7 +30,7 @@ export class ForgotPasswordComponent {
 
     this.loading = true;
 
-    this.http.post('http://localhost:5000/api/forgot-password', { email: this.email })
+    this.http.post('http://localhost:5000/api/users/forgot-password', { email: this.email })
       .subscribe({
         next: (response: any) => {
           this.alertService.success(

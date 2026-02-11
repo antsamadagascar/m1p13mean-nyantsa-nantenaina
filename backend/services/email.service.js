@@ -22,7 +22,7 @@ transporter.verify((error, success) => {
 
 // Envoye de l'email de confirmation
 const sendVerificationEmail = async (user, verificationToken) => {
-  const verificationLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+  const verificationLink = `${process.env.FRONTEND_URL}/users/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
     from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
@@ -184,7 +184,7 @@ const sendWelcomeEmail = async (user) => {
 
 // Envoye de l'email de réinitialisation de mot de passe
 const sendPasswordResetEmail = async (user, resetToken) => {
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetLink = `${process.env.FRONTEND_URL}/users/reset-password?token=${resetToken}`;
 
   const mailOptions = {
     from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
