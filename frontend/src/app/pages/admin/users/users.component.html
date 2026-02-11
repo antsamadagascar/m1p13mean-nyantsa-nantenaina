@@ -163,45 +163,48 @@
             </div>
             <span class="text-muted" *ngIf="!user.derniereConnexion">Jamais</span>
           </td>
-          
           <td class="actions-column">
-            <div class="action-buttons">
-              <button 
-                (click)="viewUserDetail(user)" 
-                class="btn btn-sm btn-info"
-                title="Voir les détails"
-              >
-                <i class="fa-solid fa-eye"></i>
-              </button>
-              
-             <button 
-                *ngIf="user.actif && user.role !== 'ADMIN'" 
-                (click)="openSuspendModal(user)" 
-                class="btn btn-sm btn-warning"
-                title="Suspendre"
-              >
-                <i class="fa-solid fa-ban"></i>
-              </button>
-                            
-              <button 
-                *ngIf="!user.actif" 
-                (click)="activateUser(user)" 
-                class="btn btn-sm btn-success"
-                title="Activer"
-              >
-                <i class="fa-solid fa-check"></i>
-              </button>
-              
-              <button 
-                *ngIf="user.role !== 'ADMIN'"
-                (click)="openDeleteModal(user)" 
-                class="btn btn-sm btn-danger"
-                title="Supprimer"
-              >
-                <i class="fa-solid fa-trash"></i>
-              </button>
-            </div>
-          </td>
+              <div class="action-buttons">
+                <!-- Voir les détails -->
+                <button 
+                  (click)="viewUserDetail(user)" 
+                  class="btn btn-sm btn-info"
+                  title="Voir les détails"
+                >
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                
+                <!-- Suspendre : uniquement si actif -->
+                <button 
+                  *ngIf="user.actif" 
+                  (click)="openSuspendModal(user)" 
+                  class="btn btn-sm btn-warning"
+                  title="Suspendre"
+                >
+                  <i class="fa-solid fa-ban"></i>
+                </button>
+                
+                <!-- Activer : uniquement si suspendu -->
+                <button 
+                  *ngIf="!user.actif" 
+                  (click)="activateUser(user)" 
+                  class="btn btn-sm btn-success"
+                  title="Activer"
+                >
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                
+                <!-- Supprimer -->
+                <button
+                  (click)="openDeleteModal(user)" 
+                  class="btn btn-sm btn-danger"
+                  title="Supprimer"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+
         </tr>
         
         <tr *ngIf="users.length === 0">
