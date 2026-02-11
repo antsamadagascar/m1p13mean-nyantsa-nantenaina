@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
+import { AlertService } from '../../../services/alert.service';
 import { Subscription } from 'rxjs';
 
 interface User {
@@ -45,7 +46,8 @@ export class UserDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
-    private authService: AuthService
+    private authService: AuthService,
+    private alertService: AlertService // <-- injection
   ) {}
 
   ngOnInit() {
@@ -63,9 +65,9 @@ export class UserDetailComponent implements OnInit, OnDestroy {
   getCurrentUserInfo() {
     const currentUser = this.authService.getCurrentUser();
     if (currentUser && currentUser._id) {
-  this.currentUserId = currentUser._id;
-  this.isCurrentUserAdmin = currentUser.role === 'ADMIN';
-}
+      this.currentUserId = currentUser._id;
+      this.isCurrentUserAdmin = currentUser.role === 'ADMIN';
+    }
   }
 
   loadUser() {
@@ -80,6 +82,7 @@ export class UserDetailComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Erreur chargement utilisateur:', err);
         this.error = 'Impossible de charger les détails de l\'utilisateur';
+        this.alertService.error(this.error); 
         this.loading = false;
       }
     });
@@ -94,40 +97,19 @@ export class UserDetailComponent implements OnInit, OnDestroy {
     return labels[role] || role;
   }
 
-  canSuspendUser(): boolean {
-    // Vérifie si l'utilisateur courant peut suspendre cet utilisateur
-    if (!this.user || !this.currentUserId) return true;
-    
-    // Si l'utilisateur courant n'est pas admin, il peut suspendre
-    if (!this.isCurrentUserAdmin) return true;
-    
-    // Si l'utilisateur courant est admin ET c'est lui-même, il ne peut pas se suspendre
-    if (this.currentUserId === this.user._id) {
-      return false;
-    }
-    
-    return true;
-  }
-
   suspendUser() {
-    // Vérification supplémentaire côté frontend
-    if (!this.canSuspendUser()) {
-      alert('Vous ne pouvez pas suspendre votre propre compte administrateur.');
-      return;
-    }
-
     const raison = prompt('Raison de la suspension:');
     if (!raison) return;
 
     if (confirm(`Êtes-vous sûr de vouloir suspendre ${this.user?.prenom} ${this.user?.nom}?`)) {
       this.userService.suspendUser(this.userId, raison).subscribe({
-        next: () => {
-          alert('Utilisateur suspendu avec succès');
+        next: (res: any) => {
+          this.alertService.success(res.message || 'Utilisateur suspendu avec succès');
           this.loadUser();
         },
         error: (err) => {
           console.error('Erreur suspension:', err);
-          alert('Erreur lors de la suspension: ' + (err.error?.message || 'Erreur inconnue'));
+          this.alertService.error(err.error?.message || 'Erreur lors de la suspension');
         }
       });
     }
@@ -136,13 +118,13 @@ export class UserDetailComponent implements OnInit, OnDestroy {
   activateUser() {
     if (confirm(`Êtes-vous sûr de vouloir activer ${this.user?.prenom} ${this.user?.nom}?`)) {
       this.userService.activateUser(this.userId).subscribe({
-        next: () => {
-          alert('Utilisateur activé avec succès');
+        next: (res: any) => {
+          this.alertService.success(res.message || 'Utilisateur activé avec succès');
           this.loadUser();
         },
         error: (err) => {
           console.error('Erreur activation:', err);
-          alert('Erreur lors de l\'activation: ' + (err.error?.message || 'Erreur inconnue'));
+          this.alertService.error(err.error?.message || 'Erreur lors de l\'activation');
         }
       });
     }
@@ -151,13 +133,13 @@ export class UserDetailComponent implements OnInit, OnDestroy {
   deleteUser() {
     if (confirm(`ATTENTION: Êtes-vous VRAIMENT sûr de vouloir supprimer définitivement ${this.user?.prenom} ${this.user?.nom}? Cette action est irréversible!`)) {
       this.userService.deleteUser(this.userId).subscribe({
-        next: () => {
-          alert('Utilisateur supprimé avec succès');
+        next: (res: any) => {
+          this.alertService.success(res.message || 'Utilisateur supprimé avec succès');
           this.router.navigate(['/backoffice/users']);
         },
         error: (err) => {
           console.error('Erreur suppression:', err);
-          alert('Erreur lors de la suppression: ' + (err.error?.message || 'Erreur inconnue'));
+          this.alertService.error(err.error?.message || 'Erreur lors de la suppression');
         }
       });
     }

@@ -174,15 +174,15 @@
                 <i class="fa-solid fa-eye"></i>
               </button>
               
-              <button 
-                *ngIf="user.actif" 
+             <button 
+                *ngIf="user.actif && user.role !== 'ADMIN'" 
                 (click)="openSuspendModal(user)" 
                 class="btn btn-sm btn-warning"
                 title="Suspendre"
               >
                 <i class="fa-solid fa-ban"></i>
               </button>
-              
+                            
               <button 
                 *ngIf="!user.actif" 
                 (click)="activateUser(user)" 

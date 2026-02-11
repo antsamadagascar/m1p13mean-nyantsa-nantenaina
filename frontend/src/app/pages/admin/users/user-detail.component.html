@@ -11,13 +11,12 @@
     <div class="header-actions" *ngIf="user">
       <button 
         class="btn-action btn-suspend" 
-        *ngIf="user.actif && canSuspendUser()"
+  
         (click)="suspendUser()">
         <i class="fas fa-ban"></i> Suspendre
       </button>
       <button 
         class="btn-action btn-activate" 
-        *ngIf="!user.actif"
         (click)="activateUser()">
         <i class="fas fa-check-circle"></i> Activer
       </button>
