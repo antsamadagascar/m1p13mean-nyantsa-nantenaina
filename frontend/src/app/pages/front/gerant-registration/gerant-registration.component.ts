@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { AuthService } from '../../../services/auth.service';
+import { UserService } from '../../../services/user.service';
 import { BoutiqueService } from '../../../services/boutique.service';
 import { AlertService } from '../../../services/alert.service';
 
@@ -34,6 +35,7 @@ export class GerantRegistrationComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private authService: AuthService,
+    private userService: UserService,
     private boutiqueService: BoutiqueService,
     private alertService: AlertService
   ) {}
@@ -99,7 +101,7 @@ export class GerantRegistrationComponent implements OnInit {
 
     this.loading = true;
 
-    this.authService.registerGerant(payload).subscribe({
+    this.userService.registerGerant(payload).subscribe({
       next: () => {
         this.loading = false;
         this.alertService.success(

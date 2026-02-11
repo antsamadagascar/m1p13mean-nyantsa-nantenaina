@@ -50,7 +50,7 @@ export class BoutiqueService {
 
   // createn' nante
   createBoutique(boutiqueData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}`, boutiqueData);
+    return this.http.post(`${this.apiUrl}/create`, boutiqueData);
   }
   
   getBoutiqueById(id: string): Observable<any> {

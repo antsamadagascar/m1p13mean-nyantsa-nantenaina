@@ -9,6 +9,7 @@ router.post('/register', userController.register);
 router.get('/verify-email', userController.verifyEmail);
 router.post('/forgot-password', userController.forgotPassword);
 router.post('/reset-password', userController.resetPassword);
+router.post('/register-gerant', userController.registerGerant);
 
 
 // Routes protégées : l'utilisateur doit être connecté
@@ -18,6 +19,5 @@ router.patch('/:id/suspend', authMiddleware, userController.suspendUser);
 router.patch('/:id/activate', authMiddleware, userController.activateUser);
 router.delete('/:id', authMiddleware, userController.deleteUser);
 
-router.post('/auth/register-gerant', userController.registerGerant);
 
 module.exports = router;

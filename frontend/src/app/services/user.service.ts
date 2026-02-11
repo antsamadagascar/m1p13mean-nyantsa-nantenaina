@@ -126,5 +126,14 @@ export class UserService {
     return colors[role] || 'secondary';
   }
 
+  registerGerant(data: {
+      boutiqueId: string;
+      nom: string;
+      prenom: string;
+      email: string;
+      password: string;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/register-gerant`, data);
+  }
   
 }
