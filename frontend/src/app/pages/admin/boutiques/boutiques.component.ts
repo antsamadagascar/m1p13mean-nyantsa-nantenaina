@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { CategoryService } from '../../../services/category.service';
 import { FormsModule } from '@angular/forms';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
+import { BoutiqueService } from '../../../services/boutique.service';
 @Component({
   selector: 'app-boutiques',
   standalone: true,
@@ -117,112 +118,357 @@ import { SousCategorieService } from '../../../services/sous-categorie.service';
 <!-- Overlay -->
 <div
   *ngIf="isModalOpen"
-  class="fixed inset-0 bg-black bg-opacity-80 z-[9999] flex items-center justify-center">
-
+  class="fixed inset-0 bg-black bg-opacity-80 z-[9999] flex items-center justify-center overflow-y-auto p-4">
   <!-- Modal -->
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-lg p-6 relative">
-
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl p-6 relative my-8 max-h-[90vh] overflow-y-auto">
     <!-- Close -->
     <button
       (click)="closeModal()"
-      class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+      class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 z-10">
       <i class="fa-solid fa-xmark text-xl"></i>
     </button>
 
-    <h2 class="text-xl font-semibold mb-6 text-gray-800">
+    <h2 class="text-2xl font-bold mb-6 text-gray-800 sticky top-0 bg-white pb-3 border-b">
       Créer une boutique
     </h2>
 
-    <!-- Catégorie -->
-    <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Catégorie principale
-      </label>
+    <form #boutiqueForm="ngForm" class="space-y-6">
 
-      <select
-        [(ngModel)]="selectedCategorie"
-        (change)="onCategorieChange()"
-        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+      <!-- ============================================ -->
+      <!-- INFORMATIONS DE BASE -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-store mr-2 text-blue-600"></i>
+          Informations de base
+        </h3>
 
-        <option value="">-- Sélectionner une catégorie --</option>
+        <!-- Nom -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Nom de la boutique <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="boutique.nom"
+            name="nom"
+            maxlength="255"
+            required
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            placeholder="Ex: Boutique Mode & Style">
+        </div>
 
-        <option
-          *ngFor="let cat of categories"
-          [value]="cat._id">
-          {{ cat.nom }}
-        </option>
+        <!-- Description -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Description <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-500">(min. 50 caractères)</span>
+          </label>
+          <textarea
+            [(ngModel)]="boutique.description"
+            name="description"
+            rows="4"
+            minlength="50"
+            maxlength="2000"
+            required
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+            placeholder="Décrivez votre boutique (minimum 50 caractères)..."></textarea>
+          <div class="text-xs text-gray-500 mt-1 text-right">
+            {{ boutique.description?.length || 0 }} / 2000 caractères
+          </div>
+        </div>
 
-      </select>
-    </div>
-    <!-- Sous-produit -->
-    <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-1">
-        Sous-produit
-      </label>
+      </div>
 
-      <select
-        [(ngModel)]="selectedSousCategorie"
+      <!-- ============================================ -->
+      <!-- GÉRANT -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-user-tie mr-2 text-blue-600"></i>
+          Informations du gérant
+        </h3>
 
-        class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        [disabled]="!sousCategories.length">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Nom <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="boutique.gerant.nom"
+              name="gerantNom"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Nom du gérant">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Prénom <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="boutique.gerant.prenom"
+              name="gerantPrenom"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Prénom du gérant">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="boutique.gerant.email"
+              name="gerantEmail"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="email@exemple.com">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Téléphone <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              [(ngModel)]="boutique.gerant.telephone"
+              name="gerantTelephone"
+              pattern="^\+261\s?[0-9]{2}\s?[0-9]{3}\s?[0-9]{2}\s?[0-9]{3}$"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="+261 XX XXX XX XXX">
+          </div>
+        </div>
+      </div>
 
-        <option value="">-- Sélectionner un sous-produit --</option>
+      <!-- ============================================ -->
+      <!-- LOCALISATION -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-location-dot mr-2 text-blue-600"></i>
+          Localisation
+        </h3>
 
-        <option
-          *ngFor="let sub of sousCategories"
-          [value]="sub._id">
-          {{ sub.nom }}
-        </option>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Zone <span class="text-red-500">*</span>
+            </label>
+            <select
+              [(ngModel)]="boutique.localisation.zone"
+              name="zone"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner --</option>
+              <option value="Zone A">Zone A</option>
+              <option value="Zone B">Zone B</option>
+              <option value="Zone C">Zone C</option>
+              <option value="Zone D">Zone D</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Étage <span class="text-red-500">*</span>
+            </label>
+            <select
+              [(ngModel)]="boutique.localisation.etage"
+              name="etage"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner --</option>
+              <option value="Rez-de-chaussée">Rez-de-chaussée</option>
+              <option value="1er étage">1er étage</option>
+              <option value="2ème étage">2ème étage</option>
+              <option value="3ème étage">3ème étage</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Numéro <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="boutique.localisation.numero"
+              name="numero"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: B-123">
+          </div>
+        </div>
 
-      </select>
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-ruler-combined mr-1"></i> Surface (m²)
+            </label>
+            <input
+              type="number"
+              [(ngModel)]="boutique.localisation.surface"
+              name="surface"
+              min="0"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: 50">
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- CATÉGORIE & SOUS-CATÉGORIES -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-tags mr-2 text-blue-600"></i>
+          Catégorie
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Catégorie principale <span class="text-red-500">*</span>
+            </label>
+            <select
+              [(ngModel)]="selectedCategorie"
+              (change)="onCategorieChange()"
+              name="categorie"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner une catégorie --</option>
+              <option *ngFor="let cat of categories" [value]="cat._id">
+                {{ cat.nom }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Sous-catégorie
+            </label>
+            <select
+              [(ngModel)]="selectedSousCategorie"
+              name="sousCategorie"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              [disabled]="!sousCategories.length">
+              <option value="">-- Sélectionner un sous-produit --</option>
+              <option *ngFor="let sub of sousCategories" [value]="sub._id">
+                {{ sub.nom }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============================================ -->
+      <!-- CONTACT -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-address-book mr-2 text-blue-600"></i>
+          Contact
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-phone mr-1"></i> Téléphone <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              [(ngModel)]="boutique.contact.telephone"
+              name="contactTelephone"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="+261 XX XXX XX XXX">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-envelope mr-1"></i> Email <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="boutique.contact.email"
+              name="contactEmail"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="contact@boutique.com">
+          </div>
+        </div>
+      </div>
 
 
-    <!-- Bouton -->
-    <div class="flex justify-end mt-6">
-      <button
-        class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium">
-        Continuer
-      </button>
-    </div>
-
+      <!-- Boutons -->
+      <div class="flex justify-end gap-3 sticky bottom-0 bg-white pt-4 border-t">
+        <button
+          type="button"
+          (click)="closeModal()"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2.5 rounded-lg font-medium transition-colors">
+          <i class="fa-solid fa-xmark mr-2"></i> Annuler
+        </button>
+        <button
+          type="button"
+          (click)="submitBoutique()"
+          [disabled]="!boutiqueForm.valid"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+          <i class="fa-solid fa-check mr-2"></i> Créer la boutique
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
   `
 })
 export class BoutiquesComponent implements OnInit {
-
   isModalOpen = false;
   categories: any[] = [];
   sousCategories: any[] = [];
   selectedCategorie: string = '';
   selectedSousCategorie: string = '';
 
+  boutique = {
+    nom: '',
+    description: '',
+    gerant: {
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: ''
+    },
+    localisation: {
+      zone: '',
+      etage: '',
+      numero: '',
+      surface: null
+    },
+    contact: {
+      telephone: '',
+      email: ''
+    }
+  };
+
   constructor(
     public authService: AuthService,
     private categoryService: CategoryService,
-    private sousCategorieService: SousCategorieService
+    private sousCategorieService: SousCategorieService,
+    private boutiqueService: BoutiqueService
   ) {}
 
   ngOnInit() {
-    console.log(' Page Boutiques chargée');
-    console.log(' Utilisateur:', this.authService.getUserFullName());
-    console.log(' Rôle:', this.authService.getUserRole());
+    console.log('📍 Page Boutiques chargée');
+    console.log('👤 Utilisateur:', this.authService.getUserFullName());
+    console.log('🔑 Rôle:', this.authService.getUserRole());
   }
 
-  // Récupérer les sous-catégories à chaque sélection de catégorie
+
   onCategorieChange() {
     if (!this.selectedCategorie) {
       this.sousCategories = [];
       return;
     }
-
-    // Appel API pour récupérer les sous-catégories selon la catégorie
     this.sousCategorieService.getByCategorie(this.selectedCategorie).subscribe({
       next: (res: any) => {
         console.log('Sous-catégories chargées :', res);
-        this.sousCategories = res.data || []; // adapter selon la réponse de ton API
+        this.sousCategories = res.data || [];
       },
       error: (err) => console.error(err)
     });
@@ -232,7 +478,7 @@ export class BoutiquesComponent implements OnInit {
     this.categoryService.getAllCategories().subscribe({
       next: (res: any) => {
         console.log('Catégories chargées :', res);
-        this.categories = res.data; // ← IMPORTANT : prendre le tableau à l'intérieur de data
+        this.categories = res.data;
       },
       error: (err) => console.error(err)
     });
@@ -245,10 +491,55 @@ export class BoutiquesComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
-    
+    this.resetForm();
+  }
+
+  resetForm() {
     this.categories = [];
     this.sousCategories = [];
     this.selectedCategorie = '';
     this.selectedSousCategorie = '';
+    this.boutique = {
+      nom: '',
+      description: '',
+      gerant: {
+        nom: '',
+        prenom: '',
+        email: '',
+        telephone: ''
+      },
+      localisation: {
+        zone: '',
+        etage: '',
+        numero: '',
+        surface: null
+      },
+      contact: {
+        telephone: '',
+        email: ''
+      }
+    };
+  }
+
+  submitBoutique() {
+    const data = {
+      ...this.boutique,
+      categorie: this.selectedCategorie,
+      sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
+    };
+
+    console.log('📤 Envoi:', data);
+
+    this.boutiqueService.createBoutique(data).subscribe({
+      next: (response) => {
+        console.log('✅ Succès:', response);
+        alert('Boutique créée avec succès!');
+        this.closeModal();
+      },
+      error: (error) => {
+        console.error('❌ Erreur:', error);
+        alert('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
+      }
+    });
   }
 }

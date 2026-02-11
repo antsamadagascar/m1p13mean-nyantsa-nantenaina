@@ -38,11 +38,13 @@ const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/authRoutes');
 const categorieRoutes = require('./routes/categorieRoutes');
 const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
+const boutiqueRoutes = require('./routes/boutiqueRoutes');
 
 app.use('/api', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
+app.use('/api/boutiques', boutiqueRoutes);
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 

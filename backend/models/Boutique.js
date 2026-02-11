@@ -68,13 +68,7 @@ const boutiqueSchema = new mongoose.Schema({
     },
     telephone: {
       type: String,
-      required: [true, 'Le téléphone du gérant est requis'],
-      validate: {
-        validator: function(v) {
-          return /^\+261\s?[0-9]{2}\s?[0-9]{3}\s?[0-9]{2}\s?[0-9]{3}$/.test(v);
-        },
-        message: 'Format de téléphone invalide (+261 XX XXX XX XXX)'
-      }
+      required: [true, 'Le téléphone du gérant est requis']
     }
   },
   

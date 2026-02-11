@@ -291,8 +291,229 @@ const sendPasswordResetEmail = async (user, resetToken) => {
   }
 };
 
+// Envoi de l'email de création de boutique au gérant
+const sendBoutiqueCreationEmail = async (boutique) => {
+  const validationLink = `${process.env.FRONTEND_URL}/gerant/boutique/${boutique._id}`;
+  const profileLink = `${process.env.FRONTEND_URL}/gerant/profil`;
+
+  const mailOptions = {
+    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
+    to: boutique.gerant.email,
+    subject: '🏪 Votre boutique a été créée - En attente de validation',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+          }
+          .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #ffffff;
+          }
+          .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 24px;
+          }
+          .content {
+            padding: 30px;
+            background-color: #f9fafb;
+          }
+          .info-box {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+          }
+          .info-row {
+            display: flex;
+            padding: 10px 0;
+            border-bottom: 1px solid #f3f4f6;
+          }
+          .info-row:last-child {
+            border-bottom: none;
+          }
+          .info-label {
+            font-weight: bold;
+            color: #4b5563;
+            min-width: 140px;
+          }
+          .info-value {
+            color: #1f2937;
+          }
+          .button {
+            display: inline-block;
+            padding: 14px 32px;
+            margin: 10px 5px;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+          }
+          .button:hover {
+            background-color: #2563eb;
+          }
+          .button-secondary {
+            background-color: #8b5cf6;
+          }
+          .button-secondary:hover {
+            background-color: #7c3aed;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            background-color: #fef3c7;
+            color: #92400e;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+          }
+          .alert {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+          }
+          .footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 20px;
+          }
+          .buttons-container {
+            text-align: center;
+            margin: 25px 0;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Votre boutique a été créée !</h1>
+          </div>
+          
+          <div class="content">
+            <h2>Bonjour ${boutique.gerant.prenom} ${boutique.gerant.nom},</h2>
+            
+            <p>Nous sommes ravis de vous informer que votre boutique <strong>"${boutique.nom}"</strong> a été créée avec succès sur City Mall !</p>
+            
+            <div class="alert">
+              <strong>📋 Statut actuel :</strong> 
+              <span class="status-badge">⏳ En attente de validation</span>
+              <p style="margin-top: 10px; margin-bottom: 0;">
+                Votre boutique est actuellement en cours de validation 
+              </p>
+            </div>
+
+            <div class="info-box">
+              <h3 style="margin-top: 0; color: #1f2937;">📦 Informations de la boutique</h3>
+              
+              <div class="info-row">
+                <span class="info-label">🏪 Nom :</span>
+                <span class="info-value">${boutique.nom}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📝 Description :</span>
+                <span class="info-value">${boutique.description}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📍 Emplacement :</span>
+                <span class="info-value">${boutique.localisation.emplacement_complet}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📐 Surface :</span>
+                <span class="info-value">${boutique.localisation.surface ? boutique.localisation.surface + ' m²' : 'Non renseignée'}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📞 Contact :</span>
+                <span class="info-value">${boutique.contact.telephone}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📧 Email :</span>
+                <span class="info-value">${boutique.contact.email}</span>
+              </div>
+            </div>
+
+            <div class="info-box">
+              <h3 style="margin-top: 0; color: #1f2937;">👤 Informations du gérant</h3>
+              
+              <div class="info-row">
+                <span class="info-label">👤 Nom complet :</span>
+                <span class="info-value">${boutique.gerant.prenom} ${boutique.gerant.nom}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📧 Email :</span>
+                <span class="info-value">${boutique.gerant.email}</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="info-label">📱 Téléphone :</span>
+                <span class="info-value">${boutique.gerant.telephone}</span>
+              </div>
+            </div>
+
+            <div class="buttons-container">
+              <a href="${validationLink}" class="button">
+                🏪 Validation
+              </a>
+            </div>
+          </div>
+          
+          <div class="footer">
+            <p><strong>City Mall</strong> - Votre centre commercial en ligne</p>
+            <p>&copy; 2026 City Mall - Tous droits réservés</p>
+            <p style="margin-top: 10px;">
+              Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+            </p>
+            <p style="margin-top: 5px;">
+              Pour toute question, contactez-nous à <a href="mailto:support@citymall.com" style="color: #3b82f6;">support@citymall.com</a>
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✅ Email de création de boutique envoyé à ${boutique.gerant.email}`);
+    return true;
+  } catch (error) {
+    console.error('❌ Erreur envoi email de création boutique:', error);
+    throw new Error('Erreur lors de l\'envoi de l\'email');
+  }
+};
+
 module.exports = {
   sendVerificationEmail,
   sendWelcomeEmail,
-  sendPasswordResetEmail  
+  sendPasswordResetEmail,
+  sendBoutiqueCreationEmail
 };
