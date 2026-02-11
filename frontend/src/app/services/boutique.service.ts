@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Boutique } from '../models/boutique.model';
@@ -9,6 +10,7 @@ import { Boutique } from '../models/boutique.model';
 })
 export class BoutiqueService {
   private apiUrl = 'http://localhost:5000/api/boutiques';
+
 
   constructor(private http: HttpClient) {}
 
@@ -29,9 +31,6 @@ export class BoutiqueService {
     return this.http.get<Boutique[]>(this.apiUrl, { params });
   }
 
-  getBoutiqueById(id: string): Observable<Boutique> {
-    return this.http.get<Boutique>(`${this.apiUrl}/${id}`);
-  }
 
   validerBoutique(id: string) {
     return this.http.patch(`${this.apiUrl}/${id}/valider`, {});
@@ -49,6 +48,21 @@ export class BoutiqueService {
     return this.http.patch(`${this.apiUrl}/${id}/reactiver`, {});
   }
 
+  // createn' nante
+  createBoutique(boutiqueData: any): Observable<any> {
+    return this.http.post(`${this.apiUrl}`, boutiqueData);
+  }
+  
+  getBoutiqueById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${id}`);
+  }
+
+  getBoutiqueDetailsById(id: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/details/${id}`);
+  }
+  
+  
+
   getBoutiquesPublic(filters?: {
     categorie?: string;
     zone?: string;
@@ -63,4 +77,5 @@ export class BoutiqueService {
 
     return this.http.get<Boutique[]>(`${this.apiUrl}/public`, { params });
   }
+
 }

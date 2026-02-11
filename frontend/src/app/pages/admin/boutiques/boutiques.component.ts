@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { BoutiqueService } from '../../../services/boutique.service';
 import { Boutique } from '../../../models/boutique.model';
 import { AlertService } from '../../../services/alert.service';
-import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../services/auth.service';
+import { CategoryService } from '../../../services/category.service';
+import { SousCategorieService } from '../../../services/sous-categorie.service';
 
 @Component({
   selector: 'app-boutiques',
@@ -17,6 +20,7 @@ export class BoutiquesComponent implements OnInit {
   boutiques: Boutique[] = [];
   boutiquesFiltered: Boutique[] = [];
   loading = false;
+  isModalOpen = false;
 
   // Filtres
   filters = {
@@ -33,12 +37,45 @@ export class BoutiquesComponent implements OnInit {
     suspendues: 0
   };
 
+  // Modal création boutique
+  categories: any[] = [];
+  sousCategories: any[] = [];
+  selectedCategorie: string = '';
+  selectedSousCategorie: string = '';
+
+  boutique = {
+    nom: '',
+    description: '',
+    gerant: {
+      nom: '',
+      prenom: '',
+      email: '',
+      telephone: ''
+    },
+    localisation: {
+      zone: '',
+      etage: '',
+      numero: '',
+      surface: null
+    },
+    contact: {
+      telephone: '',
+      email: ''
+    }
+  };
+
   constructor(
     private boutiqueService: BoutiqueService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    public authService: AuthService,
+    private categoryService: CategoryService,
+    private sousCategorieService: SousCategorieService
   ) {}
 
   ngOnInit() {
+    console.log('📍 Page Boutiques chargée');
+    console.log('👤 Utilisateur:', this.authService.getUserFullName());
+    console.log('🔑 Rôle:', this.authService.getUserRole());
     this.loadBoutiques();
   }
 
@@ -162,5 +199,90 @@ export class BoutiquesComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Méthodes pour le modal de création
+  openModal() {
+    this.isModalOpen = true;
+    this.loadCategories();
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+    this.resetForm();
+  }
+
+  loadCategories() {
+    this.categoryService.getAllCategories().subscribe({
+      next: (res: any) => {
+        console.log('Catégories chargées :', res);
+        this.categories = res.data;
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  onCategorieChange() {
+    if (!this.selectedCategorie) {
+      this.sousCategories = [];
+      return;
+    }
+    this.sousCategorieService.getByCategorie(this.selectedCategorie).subscribe({
+      next: (res: any) => {
+        console.log('Sous-catégories chargées :', res);
+        this.sousCategories = res.data || [];
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
+  resetForm() {
+    this.categories = [];
+    this.sousCategories = [];
+    this.selectedCategorie = '';
+    this.selectedSousCategorie = '';
+    this.boutique = {
+      nom: '',
+      description: '',
+      gerant: {
+        nom: '',
+        prenom: '',
+        email: '',
+        telephone: ''
+      },
+      localisation: {
+        zone: '',
+        etage: '',
+        numero: '',
+        surface: null
+      },
+      contact: {
+        telephone: '',
+        email: ''
+      }
+    };
+  }
+
+  submitBoutique() {
+    const data = {
+      ...this.boutique,
+      categorie: this.selectedCategorie,
+      sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
+    };
+
+    console.log('📤 Envoi:', data);
+
+    this.boutiqueService.createBoutique(data).subscribe({
+      next: (response) => {
+        console.log('✅ Succès:', response);
+        this.alertService.success('Boutique créée avec succès!');
+        this.closeModal();
+        this.loadBoutiques(); // Recharger la liste
+      },
+      error: (error) => {
+        console.error('❌ Erreur:', error);
+        this.alertService.error('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
+      }
+    });
   }
 }

@@ -3,7 +3,8 @@ const userService = require('../services/user.service');
 const { verifyToken, generatePasswordResetToken } = require('../utils/tokenUtils');
 const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/email.service');
 const bcrypt = require('bcryptjs');
-
+const Boutique = require('../models/Boutique');
+const { generateTokenSession } = require('../utils/tokenUtils');
 const register = async (req, res) => {
   try {
     await userService.registerUser(req.body);
@@ -325,14 +326,80 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const registerGerant = async (req, res) => {
+  try {
+    const { boutiqueId, nom, prenom, email, password } = req.body;
+
+    // Vérifie que tous les champs sont présents
+    if (!boutiqueId || !nom || !prenom || !email || !password) {
+      return res.status(400).json({ message: 'Données manquantes' });
+    }
+
+    // Vérifie si l'email existe déjà
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(409).json({ message: 'Email déjà utilisé' });
+    }
+
+    // Crée le gérant avec mot de passe hashé et email vérifié
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({
+      nom,
+      prenom,
+      email,
+      motDePasse: hashedPassword,
+      role: 'BOUTIQUE',        // ou 'GERANT'
+      emailVerifie: true,      // ✅ email déjà vérifié
+      boutiqueId: boutiqueId
+    });
+
+    // Associe le gérant à la boutique
+    const boutique = await Boutique.findById(boutiqueId);
+    if (!boutique) {
+      return res.status(404).json({ message: 'Boutique non trouvée' });
+    }
+    boutique.statut.actif = true;
+    boutique.statut.en_attente_validation = false;
+    await boutique.save();
+
+    // Envoie email de bienvenue (optionnel)
+    await sendWelcomeEmail(user);
+
+    // Génère un token pour connexion automatique
+    const token = generateTokenSession(user._id, user.role);
+
+    // Réponse avec token + infos utilisateur
+    res.status(201).json({
+      message: 'Gérant créé et connecté avec succès',
+      user: {
+        id: user._id,
+        email: user.email,
+        nom: user.nom,
+        prenom: user.prenom,
+        role: user.role,
+        boutiqueId: user.boutiqueId
+      },
+      token
+    });
+
+  } catch (error) {
+    console.error('Erreur registerGerant:', error);
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+
+  }
+};
+
 module.exports = {
   register,
   verifyEmail,
   forgotPassword, 
   resetPassword,
+
   getAllUsers,
   getUserById,
   suspendUser,
   activateUser,
-  deleteUser
+  deleteUser,
+  registerGerant
+
 };

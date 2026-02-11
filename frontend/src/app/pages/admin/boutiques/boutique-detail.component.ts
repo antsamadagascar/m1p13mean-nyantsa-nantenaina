@@ -68,7 +68,7 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     //  Detruit complètement avant de charger
     this.destroyMap();
     
-    this.boutiqueService.getBoutiqueById(this.boutiqueId).subscribe({
+    this.boutiqueService.getBoutiqueDetailsById(this.boutiqueId).subscribe({
       next: (data) => {
         this.boutique = data;
         this.loading = false;

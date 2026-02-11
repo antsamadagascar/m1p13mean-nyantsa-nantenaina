@@ -7,30 +7,39 @@ import { ConnexionComponent } from './pages/front/auth/connexion.component';
 import { BoutiqueDetailComponent } from './pages/admin/boutiques/boutique-detail.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
+import { GerantRegistrationComponent } from './pages/front/gerant-registration/gerant-registration.component'
 
 export const routes: Routes = [
-  { 
-    path: 'connexion', 
-    component: ConnexionComponent 
+  {
+    path: 'connexion',
+    component: ConnexionComponent
   },
-  { 
-    path: 'register', 
-    component: RegisterComponent 
+  {
+    path: 'register',
+    component: RegisterComponent
   },
-  { 
-    path: 'verify-email', 
-    component: VerifyEmailComponent 
+  {
+    path: 'verify-email',
+    component: VerifyEmailComponent
   },
-  { 
-    path: 'forgot-password', 
+
+
+  {
+    path: 'forgot-password',
+
     loadComponent: () => import('./pages/front/forgot-password/forgot-password.component')
       .then(m => m.ForgotPasswordComponent)
   },
-  { 
-    path: 'reset-password', 
+  {
+    path: 'gerant/boutique/:id',
+    component: GerantRegistrationComponent
+  },
+  {
+    path: 'reset-password',
     loadComponent: () => import('./pages/front/reset-password/reset-password.component')
       .then(m => m.ResetPasswordComponent)
   },
+
   {
     path: 'backoffice',
     component: AdminLayoutComponent,
@@ -43,15 +52,15 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'BOUTIQUE'] }
       },
-      { 
-        path: 'boutiques', 
+      {
+        path: 'boutiques',
         loadComponent: () => import('./pages/admin/boutiques/boutiques.component')
           .then(m => m.BoutiquesComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
       { 
-        path: 'boutiques/:id', 
+        path: 'boutiques/details/:id', 
         component: BoutiqueDetailComponent,
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
@@ -85,6 +94,7 @@ export const routes: Routes = [
       }
     ]
   },
+
   // Redirection 404
   { path: '**', redirectTo: 'connexion' }
 ];
