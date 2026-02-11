@@ -22,7 +22,6 @@ const register = async (req, res) => {
   }
 };
 
-
 const verifyEmail = async (req, res) => {
   try {
     const { token } = req.query;
@@ -72,10 +71,10 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    // Génére token de réinitialisation (expire en 1h)
+    // Génère token de réinitialisation (expire en 1h)
     const resetToken = generatePasswordResetToken(user._id);
     
-    // Envoye l'email
+    // Envoie l'email
     await sendPasswordResetEmail(user, resetToken);
     
     res.status(200).json({ 
@@ -125,7 +124,6 @@ const resetPassword = async (req, res) => {
     res.status(400).json({ error: 'Token invalide ou expiré' });
   }
 };
-
 
 // Récupération de tous les utilisateurs avec filtres
 const getAllUsers = async (req, res) => {
@@ -198,7 +196,7 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-// Récupération d' un utilisateur par ID
+// Récupération d'un utilisateur par ID
 const getUserById = async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
@@ -240,26 +238,30 @@ const suspendUser = async (req, res) => {
       });
     }
     
-    // Empêche la suspension d'un admin par un autre admin
-    if (user.role === 'ADMIN' && req.user.role === 'ADMIN') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Vous ne pouvez pas suspendre un autre administrateur' 
-      });
-    }
-    
-    // Empêche l'auto-suspension
-    if (user._id.toString() === req.user.id) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Vous ne pouvez pas vous suspendre vous-même' 
-      });
+    // FIX: Vérifie si req.user existe avant de l'utiliser
+    if (req.user) {
+      // Empêcher la suspension d'un admin par un autre admin
+      if (user.role === 'ADMIN' && req.user.role === 'ADMIN') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Vous ne pouvez pas suspendre un autre administrateur' 
+        });
+      }
+      
+      // Empêcher l'auto-suspension
+      if (user._id.toString() === req.user.id) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Vous ne pouvez pas vous suspendre vous-même' 
+        });
+      }
     }
     
     user.actif = false;
     user.dateSuspension = new Date();
     user.raisonSuspension = raison || 'Non spécifiée';
-    user.suspenduPar = req.user.id;
+    //  FIX: N'utilise que req.user.id que s'il existe
+    user.suspenduPar = req.user ? req.user.id : null;
     
     await user.save();
     
@@ -296,7 +298,8 @@ const activateUser = async (req, res) => {
     user.raisonSuspension = null;
     user.suspenduPar = null;
     user.dateReactivation = new Date();
-    user.reactivePar = req.user.id;
+    //  FIX: on N'utilise que req.user.id que s'il existe
+    user.reactivePar = req.user ? req.user.id : null;
     
     await user.save();
     
@@ -328,20 +331,23 @@ const deleteUser = async (req, res) => {
       });
     }
     
-    // Empêche la suppression d'un admin
-    if (user.role === 'ADMIN') {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Impossible de supprimer un administrateur' 
-      });
-    }
-    
-    // Empêche l'auto-suppression
-    if (user._id.toString() === req.user.id) {
-      return res.status(403).json({ 
-        success: false, 
-        message: 'Vous ne pouvez pas vous supprimer vous-même' 
-      });
+    //  FIX: Vérifie si req.user existe avant de l'utiliser
+    if (req.user) {
+      // Empêche la suppression d'un admin
+      if (user.role === 'ADMIN') {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Impossible de supprimer un administrateur' 
+        });
+      }
+      
+      // Empêcher l'auto-suppression
+      if (user._id.toString() === req.user.id) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Vous ne pouvez pas vous supprimer vous-même' 
+        });
+      }
     }
     
     await User.findByIdAndDelete(id);
@@ -359,7 +365,7 @@ const deleteUser = async (req, res) => {
   }
 };
 
-// Change le rôle d'un utilisateur
+// Changer le rôle d'un utilisateur
 const changeUserRole = async (req, res) => {
   try {
     const { id } = req.params;
@@ -409,7 +415,7 @@ module.exports = {
   register,
   verifyEmail,
   forgotPassword, 
-  resetPassword  ,
+  resetPassword,
   getAllUsers,
   getUserById,
   suspendUser,
@@ -417,4 +423,3 @@ module.exports = {
   deleteUser,
   changeUserRole
 };
-
