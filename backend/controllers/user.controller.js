@@ -228,54 +228,33 @@ const suspendUser = async (req, res) => {
   try {
     const { id } = req.params;
     const { raison } = req.body;
-    
+
     const user = await User.findById(id);
-    
     if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Utilisateur non trouvé' 
-      });
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
-    
-    // FIX: Vérifie si req.user existe avant de l'utiliser
-    if (req.user) {
-      // Empêcher la suspension d'un admin par un autre admin
-      if (user.role === 'ADMIN' && req.user.role === 'ADMIN') {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Vous ne pouvez pas suspendre un autre administrateur' 
-        });
-      }
-      
-      // Empêcher l'auto-suspension
-      if (user._id.toString() === req.user.id) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Vous ne pouvez pas vous suspendre vous-même' 
-        });
-      }
+
+    // Sécurité : empêche la suspension
+    if (user._id.toString() === req.user.id) {
+      return res.status(403).json({ success: false, message: 'Vous ne pouvez pas vous suspendre vous-même' });
     }
-    
+
+    if (user.role === 'ADMIN' && req.user.role === 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Vous ne pouvez pas suspendre un autre administrateur' });
+    }
+
     user.actif = false;
     user.dateSuspension = new Date();
     user.raisonSuspension = raison || 'Non spécifiée';
-    //  FIX: N'utilise que req.user.id que s'il existe
-    user.suspenduPar = req.user ? req.user.id : null;
-    
+    user.suspenduPar = req.user.id;
+
     await user.save();
-    
-    res.json({
-      success: true,
-      message: 'Utilisateur suspendu avec succès',
-      data: user
-    });
+
+    res.json({ success: true, message: 'Utilisateur suspendu avec succès', data: user });
+
   } catch (error) {
     console.error('Erreur suspendUser:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la suspension de l\'utilisateur' 
-    });
+    res.status(500).json({ success: false, message: 'Erreur lors de la suspension de l\'utilisateur' });
   }
 };
 
@@ -321,47 +300,28 @@ const activateUser = async (req, res) => {
 const deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
-    
+
     const user = await User.findById(id);
-    
     if (!user) {
-      return res.status(404).json({ 
-        success: false, 
-        message: 'Utilisateur non trouvé' 
-      });
+      return res.status(404).json({ success: false, message: 'Utilisateur non trouvé' });
     }
-    
-    //  FIX: Vérifie si req.user existe avant de l'utiliser
-    if (req.user) {
-      // Empêche la suppression d'un admin
-      if (user.role === 'ADMIN') {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Impossible de supprimer un administrateur' 
-        });
-      }
-      
-      // Empêcher l'auto-suppression
-      if (user._id.toString() === req.user.id) {
-        return res.status(403).json({ 
-          success: false, 
-          message: 'Vous ne pouvez pas vous supprimer vous-même' 
-        });
-      }
+
+    // Sécurité : empêche la suppression
+    if (user._id.toString() === req.user.id) {
+      return res.status(403).json({ success: false, message: 'Vous ne pouvez pas vous supprimer vous-même' });
     }
-    
+
+    if (user.role === 'ADMIN') {
+      return res.status(403).json({ success: false, message: 'Impossible de supprimer un administrateur' });
+    }
+
     await User.findByIdAndDelete(id);
-    
-    res.json({
-      success: true,
-      message: 'Utilisateur supprimé avec succès'
-    });
+
+    res.json({ success: true, message: 'Utilisateur supprimé avec succès' });
+
   } catch (error) {
     console.error('Erreur deleteUser:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Erreur lors de la suppression de l\'utilisateur' 
-    });
+    res.status(500).json({ success: false, message: 'Erreur lors de la suppression de l\'utilisateur' });
   }
 };
 
