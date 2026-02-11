@@ -1,0 +1,161 @@
+<div class="user-detail-container">
+  <!-- Header avec actions -->
+  <div class="detail-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i> Retour
+      </button>
+      <h1>Détails de l'utilisateur</h1>
+    </div>
+    
+    <div class="header-actions" *ngIf="user">
+      <button 
+        class="btn-action btn-suspend" 
+        *ngIf="user.actif && canSuspendUser()"
+        (click)="suspendUser()">
+        <i class="fas fa-ban"></i> Suspendre
+      </button>
+      <button 
+        class="btn-action btn-activate" 
+        *ngIf="!user.actif"
+        (click)="activateUser()">
+        <i class="fas fa-check-circle"></i> Activer
+      </button>
+      <button 
+        class="btn-action btn-delete"
+        (click)="deleteUser()">
+        <i class="fas fa-trash"></i> Supprimer
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="loading">
+    <i class="fas fa-spinner fa-spin"></i> Chargement...
+  </div>
+
+  <!-- Error -->
+  <div class="error-message" *ngIf="error">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+
+  <!-- User Details -->
+  <div class="user-details" *ngIf="user && !loading">
+    <!-- Status Badge -->
+    <div class="status-badge" [class.active]="user.actif" [class.suspended]="!user.actif">
+      <i class="fas" [class.fa-check-circle]="user.actif" [class.fa-ban]="!user.actif"></i>
+      {{ user.actif ? 'Actif' : 'Suspendu' }}
+    </div>
+
+    <!-- Informations personnelles -->
+    <section class="detail-section">
+      <h2><i class="fas fa-user"></i> Informations personnelles</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nom complet</label>
+          <p>{{ user.nom }} {{ user.prenom }}</p>
+        </div>
+        <div class="info-item">
+          <label>Email</label>
+          <p>
+            {{ user.email }}
+            <span class="badge" [class.verified]="user.emailVerifie" [class.unverified]="!user.emailVerifie">
+              <i class="fas" [class.fa-check]="user.emailVerifie" [class.fa-times]="!user.emailVerifie"></i>
+              {{ user.emailVerifie ? 'Vérifié' : 'Non vérifié' }}
+            </span>
+          </p>
+        </div>
+        <div class="info-item" *ngIf="user.telephone">
+          <label>Téléphone</label>
+          <p>{{ user.telephone }}</p>
+        </div>
+        <div class="info-item">
+          <label>Rôle</label>
+          <p>
+            <span class="role-badge" [class]="'role-' + user.role.toLowerCase()">
+              {{ getRoleLabel(user.role) }}
+            </span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Boutique associée (si rôle BOUTIQUE) -->
+    <section class="detail-section" *ngIf="user.role === 'BOUTIQUE' && user.boutiqueId">
+      <h2><i class="fas fa-store"></i> Boutique associée</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <label>Nom de la boutique</label>
+          <p>{{ user.boutiqueId.nom }}</p>
+        </div>
+        <div class="info-item" *ngIf="user.boutiqueId.adresse">
+          <label>Adresse</label>
+          <p>{{ user.boutiqueId.adresse }}</p>
+        </div>
+      </div>
+      <button 
+        class="btn-link" 
+        [routerLink]="['/backoffice/boutiques', user.boutiqueId._id]">
+        Voir la boutique <i class="fas fa-arrow-right"></i>
+      </button>
+    </section>
+
+    <!-- Historique du compte -->
+    <section class="detail-section">
+      <h2><i class="fas fa-history"></i> Historique du compte</h2>
+      <div class="timeline">
+        <div class="timeline-item">
+          <i class="fas fa-user-plus"></i>
+          <div>
+            <strong>Inscription</strong>
+            <p>{{ user.dateInscription | date:'dd/MM/yyyy à HH:mm' }}</p>
+          </div>
+        </div>
+        
+        <div class="timeline-item warning" *ngIf="user.dateSuspension">
+          <i class="fas fa-ban"></i>
+          <div>
+            <strong>Suspension</strong>
+            <p>{{ user.dateSuspension | date:'dd/MM/yyyy à HH:mm' }}</p>
+            <p class="reason" *ngIf="user.raisonSuspension">
+              Raison: {{ user.raisonSuspension }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="timeline-item success" *ngIf="user.dateReactivation">
+          <i class="fas fa-check-circle"></i>
+          <div>
+            <strong>Réactivation</strong>
+            <p>{{ user.dateReactivation | date:'dd/MM/yyyy à HH:mm' }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zone de danger -->
+    <section class="detail-section danger-zone">
+      <h2><i class="fas fa-exclamation-triangle"></i> Zone de danger</h2>
+      <p class="warning-text">
+        Les actions suivantes sont irréversibles. Soyez certain avant de procéder.
+      </p>
+      <div *ngIf="user.role !== 'ADMIN'">
+        <button 
+          class="btn-danger" 
+          (click)="deleteUser()">
+          <i class="fas fa-trash"></i> Supprimer définitivement cet utilisateur
+        </button>
+      </div>
+      <div *ngIf="user.role === 'ADMIN'">
+        <p class="info-text">
+          <i class="fas fa-shield-alt"></i> Les administrateurs ne peuvent pas être supprimés.
+        </p>
+      </div>
+      <div *ngIf="user._id === currentUserId">
+        <p class="info-text">
+          <i class="fas fa-info-circle"></i> Vous ne pouvez pas suspendre votre propre compte.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
