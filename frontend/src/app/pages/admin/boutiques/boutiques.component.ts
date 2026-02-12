@@ -21,6 +21,7 @@ export class BoutiquesComponent implements OnInit {
   boutiquesFiltered: Boutique[] = [];
   loading = false;
   isModalOpen = false;
+  isSubmitting = false; // 🆕 Pour le loader de soumission
 
   // Filtres
   filters = {
@@ -169,7 +170,7 @@ export class BoutiquesComponent implements OnInit {
     if (boutique.statut.suspendu) return 'Suspendue';
     if (boutique.statut.en_attente_validation) return 'En attente';
     if (boutique.statut.actif && boutique.statut.valide_par_admin) return 'Active';
-    return 'Inactive';
+    return 'Active';
   }
 
   validerBoutique(id: string) {
@@ -263,24 +264,106 @@ export class BoutiquesComponent implements OnInit {
     };
   }
 
+  //  Formatage automatique du téléphone avec +261 par défaut
+  formatPhoneNumber(event: any, field: 'gerant' | 'contact') {
+    let input = event.target.value;
+    
+    // Enlever tous les caractères non-numériques sauf le +
+    let cleaned = input.replace(/[^\d+]/g, '');
+    
+    // Si vide ou juste en train de taper, ajouter +261
+    if (cleaned === '' || cleaned === '+') {
+      if (field === 'gerant') {
+        this.boutique.gerant.telephone = '+261 ';
+      } else {
+        this.boutique.contact.telephone = '+261 ';
+      }
+      return;
+    }
+    
+    // Si ne commence pas par +261, l'ajouter
+    if (!cleaned.startsWith('+261')) {
+      // Si l'utilisateur tape directement les chiffres (ex: 32, 33, 34, 38)
+      if (cleaned.startsWith('3') || cleaned.startsWith('0')) {
+        cleaned = '+261' + cleaned.replace(/^0/, ''); // Enlever le 0 initial si présent
+      } else if (cleaned.startsWith('+')) {
+        cleaned = '+261' + cleaned.substring(1);
+      } else {
+        cleaned = '+261' + cleaned;
+      }
+    }
+    
+    // Extraire uniquement les chiffres après +261
+    const afterPrefix = cleaned.substring(4);
+    const digitsOnly = afterPrefix.replace(/\D/g, '');
+    
+    // Formater: +261 XX XX XXX XX
+    let formatted = '+261';
+    
+    if (digitsOnly.length > 0) {
+      formatted += ' ' + digitsOnly.substring(0, 2); // Opérateur (32, 33, 34, 38)
+    }
+    if (digitsOnly.length > 2) {
+      formatted += ' ' + digitsOnly.substring(2, 4); // 2 chiffres
+    }
+    if (digitsOnly.length > 4) {
+      formatted += ' ' + digitsOnly.substring(4, 7); // 3 chiffres
+    }
+    if (digitsOnly.length > 7) {
+      formatted += ' ' + digitsOnly.substring(7, 9); // 2 derniers chiffres
+    }
+    
+    // Limiter à 9 chiffres après +261
+    if (digitsOnly.length <= 9) {
+      if (field === 'gerant') {
+        this.boutique.gerant.telephone = formatted;
+      } else {
+        this.boutique.contact.telephone = formatted;
+      }
+    }
+    
+    // Positionner le curseur à la fin
+    setTimeout(() => {
+      event.target.setSelectionRange(formatted.length, formatted.length);
+    }, 0);
+  }
+  
+  //  Initialisation  des champ téléphone avec +261 au focus
+  onPhoneFocus(field: 'gerant' | 'contact') {
+    const currentValue = field === 'gerant' 
+      ? this.boutique.gerant.telephone 
+      : this.boutique.contact.telephone;
+      
+    if (!currentValue || currentValue.trim() === '') {
+      if (field === 'gerant') {
+        this.boutique.gerant.telephone = '+261 ';
+      } else {
+        this.boutique.contact.telephone = '+261 ';
+      }
+    }
+  }
+
   submitBoutique() {
+    //  Active le loader
+    this.isSubmitting = true;
+
     const data = {
       ...this.boutique,
       categorie: this.selectedCategorie,
       sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
     };
 
-    console.log('📤 Envoi:', data);
+    console.log(' Envoi:', data);
 
     this.boutiqueService.createBoutique(data).subscribe({
       next: (response) => {
-        console.log('✅ Succès:', response);
-        this.alertService.success('Boutique créée avec succès!');
+        this.isSubmitting = false; //  Désactive le loader
+        this.alertService.success("Boutique créée avec succès ! Un email de confirmation d’activation vous a été envoyé.");
         this.closeModal();
         this.loadBoutiques(); // Recharger la liste
       },
       error: (error) => {
-        console.error('❌ Erreur:', error);
+        this.isSubmitting = false; //  Désactive le loader même en cas d'erreur
         this.alertService.error('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
       }
     });

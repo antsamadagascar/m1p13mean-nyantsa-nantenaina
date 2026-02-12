@@ -371,13 +371,16 @@
               Téléphone <span class="text-red-500">*</span>
             </label>
             <input
-              type="tel"
+              type="text"
               [(ngModel)]="boutique.gerant.telephone"
               name="gerantTelephone"
-              pattern="^\+261\s(32|33|34|38)\s\d{2}\s\d{3}\s\d{2}$"
+              (input)="formatPhoneNumber($event, 'gerant')"
+              (focus)="onPhoneFocus('gerant')"
+              maxlength="17"
               required
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="+261 XX XXX XX XXX">
+              placeholder="+261 32 00 000 00">
+            <small class="text-xs text-gray-500">Format automatique: +261 32 00 000 00</small>
           </div>
         </div>
       </div>
@@ -513,12 +516,16 @@
               <i class="fa-solid fa-phone mr-1"></i> Téléphone <span class="text-red-500">*</span>
             </label>
             <input
-              type="tel"
+              type="text"
               [(ngModel)]="boutique.contact.telephone"
               name="contactTelephone"
+              (input)="formatPhoneNumber($event, 'contact')"
+              (focus)="onPhoneFocus('contact')"
+              maxlength="16"
               required
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="+261 XX XXX XX XXX">
+              placeholder="+261 32 00 000 00">
+            <small class="text-xs text-gray-500">Format automatique: +261 32 00 000 00</small>
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
@@ -540,15 +547,19 @@
         <button
           type="button"
           (click)="closeModal()"
-          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2.5 rounded-lg font-medium transition-colors">
+          [disabled]="isSubmitting"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2.5 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
           <i class="fa-solid fa-xmark mr-2"></i> Annuler
         </button>
         <button
           type="button"
           (click)="submitBoutique()"
-          [disabled]="!boutiqueForm.valid"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
-          <i class="fa-solid fa-check mr-2"></i> Créer la boutique
+          [disabled]="!boutiqueForm.valid || isSubmitting"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2">
+          <!-- 🆕 Loader animé -->
+          <i *ngIf="isSubmitting" class="fa-solid fa-circle-notch fa-spin"></i>
+          <i *ngIf="!isSubmitting" class="fa-solid fa-check"></i>
+          {{ isSubmitting ? 'Création en cours...' : 'Créer la boutique' }}
         </button>
       </div>
     </form>
