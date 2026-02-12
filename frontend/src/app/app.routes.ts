@@ -35,7 +35,7 @@ export const routes: Routes = [
     component: GerantRegistrationComponent
   },
   {
-    path: 'reset-password',
+    path: 'users/reset-password',
     loadComponent: () => import('./pages/front/reset-password/reset-password.component')
       .then(m => m.ResetPasswordComponent)
   },

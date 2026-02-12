@@ -110,13 +110,17 @@ export class GerantRegistrationComponent implements OnInit {
         this.router.navigate(['/backoffice/boutiques']);
       },
       error: (err) => {
-        this.loading = false;
-        console.error(err);
-        this.alertService.success(
-          'Erreur lors de la création du compte'
-         );
-        // alert(err.error?.message || 'Erreur lors de la création du compte');
-      }
+          this.loading = false;
+          console.error(err);
+
+          const message =
+            err?.error?.message ||
+            err?.error?.error ||
+            'Erreur lors de la création du compte';
+
+          this.alertService.error(message);
+        }
+
     });
   }
 

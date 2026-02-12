@@ -5,8 +5,13 @@ const { sendWelcomeEmail, sendPasswordResetEmail } = require('../services/email.
 const bcrypt = require('bcryptjs');
 const Boutique = require('../models/Boutique');
 const { generateTokenSession } = require('../utils/tokenUtils');
+const { validatePassword, validateEmail } = require('../utils/validators');
+
 const register = async (req, res) => {
   try {
+    //  Validation du mot de passe
+    validatePassword(req.body.motDePasse);
+    
     await userService.registerUser(req.body);
 
     res.status(201).json({
@@ -98,8 +103,11 @@ const resetPassword = async (req, res) => {
       return res.status(400).json({ error: 'Token manquant' });
     }
 
-    if (!motDePasse || motDePasse.length < 6) {
-      return res.status(400).json({ error: 'Mot de passe invalide (minimum 6 caractères)' });
+    //  Validation du mot de passe avec les règles centralisées
+    try {
+      validatePassword(motDePasse);
+    } catch (validationError) {
+      return res.status(400).json({ error: validationError.message });
     }
 
     // Vérifie le token
@@ -333,6 +341,13 @@ const registerGerant = async (req, res) => {
     // Vérifie que tous les champs sont présents
     if (!boutiqueId || !nom || !prenom || !email || !password) {
       return res.status(400).json({ message: 'Données manquantes' });
+    }
+
+    //  Validation du mot de passe
+    try {
+      validatePassword(password);
+    } catch (validationError) {
+      return res.status(400).json({ message: validationError.message });
     }
 
     // Vérifie si l'email existe déjà
