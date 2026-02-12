@@ -215,14 +215,6 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
               <div class="flex gap-2">
                 <button
-                  *ngIf="boutique.statut.en_attente_validation"
-                  (click)="validerBoutique(boutique._id)"
-                  class="text-green-600 hover:text-green-900"
-                  title="Valider"
-                >
-                  <i class="fa-solid fa-check"></i>
-                </button>
-                <button
                   *ngIf="!boutique.statut.suspendu"
                   (click)="suspendreBoutique(boutique._id)"
                   class="text-red-600 hover:text-red-900"
@@ -521,7 +513,7 @@
               name="contactTelephone"
               (input)="formatPhoneNumber($event, 'contact')"
               (focus)="onPhoneFocus('contact')"
-              maxlength="16"
+              maxlength="17"
               required
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
               placeholder="+261 32 00 000 00">

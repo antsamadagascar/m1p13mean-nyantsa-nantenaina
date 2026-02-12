@@ -123,7 +123,6 @@ const getBoutiques = async (req, res) => {
     if (statut) {
       if (statut === 'actif') {
         filters['statut.actif'] = true;
-        filters['statut.valide_par_admin'] = true;
       } else if (statut === 'en_attente') {
         filters['statut.en_attente_validation'] = true;
       } else if (statut === 'suspendu') {
@@ -196,29 +195,6 @@ const getBoutiqueDetailsById = async (req, res) => {
   }
 };
 
-// Validation d' une boutique
-const validerBoutique = async (req, res) => {
-  try {
-    const boutique = await Boutique.findByIdAndUpdate(
-      req.params.id,
-      {
-        'statut.actif': true,
-        'statut.valide_par_admin': true,
-        'statut.en_attente_validation': false,
-        'statut.date_validation': new Date()
-      },
-      { new: true }
-    );
-
-    if (!boutique) {
-      return res.status(404).json({ message: 'Boutique non trouvée' });
-    }
-
-    res.json({ message: 'Boutique validée avec succès', boutique });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
 
 //  Suspendre une boutique
 const suspendreBoutique = async (req, res) => {
@@ -281,7 +257,6 @@ const getBoutiquesPublic = async (req, res) => {
     // Filtres de base : UNIQUEMENT boutiques actives et validées
     let filters = {
       'statut.actif': true,
-      'statut.valide_par_admin': true,
       'statut.suspendu': false
     };
 
@@ -323,7 +298,6 @@ module.exports = {
   getBoutiqueById,
   getBoutiques,
   getBoutiqueDetailsById,     
-  validerBoutique,     
   suspendreBoutique,   
   reactiverBoutique ,
   getBoutiquesPublic

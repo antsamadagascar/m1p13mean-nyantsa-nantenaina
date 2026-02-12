@@ -19,13 +19,6 @@
       <!-- Actions rapides -->
       <div class="flex gap-2">
         <button
-          *ngIf="boutique.statut.en_attente_validation"
-          (click)="valider()"
-          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-        >
-          <i class="fa-solid fa-check mr-2"></i> Valider
-        </button>
-        <button
           *ngIf="boutique.statut.suspendu"
           (click)="reactiver()"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -81,7 +74,7 @@
                 <span 
                   class="px-3 py-1 rounded-full text-sm font-medium inline-block"
                   [ngClass]="{
-                    'bg-green-100 text-green-700': boutique.statut.actif && boutique.statut.valide_par_admin,
+                    'bg-green-100 text-green-700': boutique.statut.actif,
                     'bg-yellow-100 text-yellow-700': boutique.statut.en_attente_validation,
                     'bg-red-100 text-red-700': boutique.statut.suspendu
                   }"

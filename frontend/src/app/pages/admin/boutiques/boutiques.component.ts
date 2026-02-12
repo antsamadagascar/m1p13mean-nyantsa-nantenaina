@@ -99,7 +99,7 @@ export class BoutiquesComponent implements OnInit {
   calculateStats() {
     this.stats.total = this.boutiques.length;
     this.stats.actives = this.boutiques.filter(b => 
-      b.statut.actif && b.statut.valide_par_admin
+      b.statut.actif 
     ).length;
     this.stats.en_attente = this.boutiques.filter(b => 
       b.statut.en_attente_validation
@@ -114,7 +114,7 @@ export class BoutiquesComponent implements OnInit {
       // Filtre par statut
       if (this.filters.statut) {
         if (this.filters.statut === 'actif' && 
-            (!boutique.statut.actif || !boutique.statut.valide_par_admin)) {
+            (!boutique.statut.actif)) {
           return false;
         }
         if (this.filters.statut === 'en_attente' && 
@@ -160,7 +160,7 @@ export class BoutiquesComponent implements OnInit {
     if (boutique.statut.en_attente_validation) {
       return 'bg-yellow-100 text-yellow-700';
     }
-    if (boutique.statut.actif && boutique.statut.valide_par_admin) {
+    if (boutique.statut.actif) {
       return 'bg-green-100 text-green-700';
     }
     return 'bg-gray-100 text-gray-700';
@@ -169,22 +169,8 @@ export class BoutiquesComponent implements OnInit {
   getStatutText(boutique: Boutique): string {
     if (boutique.statut.suspendu) return 'Suspendue';
     if (boutique.statut.en_attente_validation) return 'En attente';
-    if (boutique.statut.actif && boutique.statut.valide_par_admin) return 'Active';
-    return 'Active';
-  }
-
-  validerBoutique(id: string) {
-    if (confirm('Voulez-vous valider cette boutique ?')) {
-      this.boutiqueService.validerBoutique(id).subscribe({
-        next: () => {
-          this.alertService.success('Boutique validée avec succès');
-          this.loadBoutiques();
-        },
-        error: () => {
-          this.alertService.error('Erreur lors de la validation');
-        }
-      });
-    }
+    if (boutique.statut.actif) return 'Active';
+    return 'Inactive';
   }
 
   suspendreBoutique(id: string) {

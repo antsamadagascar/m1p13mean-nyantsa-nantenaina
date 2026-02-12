@@ -52,7 +52,6 @@ export interface Contact {
 
 export interface Statut {
   actif: boolean;
-  valide_par_admin: boolean;
   en_attente_validation: boolean;
   suspendu: boolean;
   motif_suspension?: string;

@@ -31,11 +31,6 @@ export class BoutiqueService {
     return this.http.get<Boutique[]>(this.apiUrl, { params });
   }
 
-
-  validerBoutique(id: string) {
-    return this.http.patch(`${this.apiUrl}/${id}/valider`, {});
-  }
-
   suspendreBoutique(id: string, motif: string) {
     return this.http.patch(`${this.apiUrl}/${id}/suspendre`, { motif });
   }

@@ -181,20 +181,6 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  valider() {
-    if (!this.boutique) return;
-    if (confirm('Voulez-vous valider cette boutique ?')) {
-      this.boutiqueService.validerBoutique(this.boutique._id).subscribe({
-        next: () => {
-          this.alertService.success('Boutique validée avec succès');
-          this.loadBoutique();
-        },
-        error: () => {
-          this.alertService.error('Erreur lors de la validation');
-        }
-      });
-    }
-  }
 
   suspendre() {
     if (!this.boutique) return;

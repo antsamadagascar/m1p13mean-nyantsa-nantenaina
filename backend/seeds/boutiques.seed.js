@@ -117,7 +117,6 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: true,
-          valide_par_admin: true,
           en_attente_validation: false,
           suspendu: false,
           date_validation: new Date('2024-01-15')
@@ -159,7 +158,7 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: true,
-          valide_par_admin: true,
+        
           en_attente_validation: false,
           suspendu: false,
           date_validation: new Date('2024-02-20')
@@ -201,7 +200,7 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: true,
-          valide_par_admin: true,
+        
           en_attente_validation: false,
           suspendu: false,
           date_validation: new Date('2024-03-10')
@@ -243,7 +242,6 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: false,
-          valide_par_admin: false,
           en_attente_validation: true,
           suspendu: false
         }
@@ -284,7 +282,7 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: true,
-          valide_par_admin: true,
+        
           en_attente_validation: false,
           suspendu: false,
           date_validation: new Date('2024-02-15')
@@ -326,7 +324,7 @@ const seedBoutiques = async () => {
         },
         statut: {
           actif: true,
-          valide_par_admin: true,
+        
           en_attente_validation: false,
           suspendu: false,
           date_validation: new Date('2024-03-05')
@@ -350,7 +348,7 @@ const seedBoutiques = async () => {
     console.log(`   🏪 ${boutiques.length} boutiques`);
     
     console.log('\n📊 Statut des boutiques :');
-    const actives = boutiques.filter(b => b.statut.actif && b.statut.valide_par_admin).length;
+    const actives = boutiques.filter(b => b.statut.actif).length;
     const enAttente = boutiques.filter(b => b.statut.en_attente_validation).length;
     console.log(`   ✅ Actives : ${actives}`);
     console.log(`   ⏳ En attente : ${enAttente}`);
