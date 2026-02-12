@@ -1,20 +1,20 @@
 export interface Boutique {
   _id: string;
   nom: string;
+  slug?: string;
   description: string;
-  logo: string;
-  banniere: string;
+  logo?: string;
+  banniere?: string;
   gerant: Gerant;
   localisation: Localisation;
-  categorie: Categorie;
-  sous_categories?: SousCategorie[];
+  categorie: string | Categorie;  
+  sous_categories?: (string | SousCategorie)[];
   contact: Contact;
   horaires: any;
   statut: Statut;
   estOuverte?: boolean;
   date_creation?: Date;
 }
-
 export interface Gerant {
   nom: string;
   prenom: string;
@@ -22,8 +22,18 @@ export interface Gerant {
   telephone: string;
 }
 
+export interface Zone {
+  _id: string;
+  nom: string;
+  slug?: string;
+  description?: string;
+  code?: string;
+  actif?: boolean;
+  ordre?: number;
+}
+
 export interface Localisation {
-  zone: string;
+  zone: string | Zone;  
   etage: string;
   numero: string;
   emplacement_complet?: string;

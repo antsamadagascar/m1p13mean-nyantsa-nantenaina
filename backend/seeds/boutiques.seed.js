@@ -1,9 +1,14 @@
 const mongoose = require('mongoose');
+const Zone = require('../models/Zone');
 const Boutique = require('../models/Boutique');
 const Categorie = require('../models/Categorie');
 const SousCategorie = require('../models/SousCategorie');
 const path = require('path');
+const { zonesInitiales } = require('./initZones');
+
 require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+
+
 const seedBoutiques = async () => {
   try {
     console.log('🔹 MONGO_URI:', process.env.MONGO_URI);
@@ -19,6 +24,13 @@ const seedBoutiques = async () => {
     await Categorie.deleteMany({});
     await SousCategorie.deleteMany({});
     console.log('🗑️  Anciennes données supprimées');
+    const zones = await Zone.insertMany(zonesInitiales);
+
+    const zoneMap = {};
+    zones.forEach(zone => {
+      zoneMap[zone.nom] = zone._id;
+    });
+
 
     // Création des catégories simplifiées
     const categoriesData = [
@@ -93,7 +105,7 @@ const seedBoutiques = async () => {
           telephone: '+261 34 12 345 67'
         },
         localisation: {
-          zone: 'Zone A',
+          zone: zoneMap['Analakely'],
           etage: 'Rez-de-chaussée',
           numero: 'A-RC-01',
           surface: 45,
@@ -134,7 +146,7 @@ const seedBoutiques = async () => {
           telephone: '+261 33 11 222 33'
         },
         localisation: {
-          zone: 'Zone B',
+         zone: zoneMap['Ivato'],
           etage: '1er étage',
           numero: 'B-E1-02',
           surface: 60,
@@ -176,7 +188,7 @@ const seedBoutiques = async () => {
           telephone: '+261 32 44 555 66'
         },
         localisation: {
-          zone: 'Zone C',
+         zone: zoneMap['Antsirabe'],
           etage: '2ème étage',
           numero: 'C-E2-03',
           surface: 75,
@@ -218,7 +230,7 @@ const seedBoutiques = async () => {
           telephone: '+261 34 99 000 11'
         },
         localisation: {
-          zone: 'Zone A',
+          zone: zoneMap['Analakely'],
           etage: '1er étage',
           numero: 'A-E1-04',
           surface: 35,
@@ -258,7 +270,7 @@ const seedBoutiques = async () => {
           telephone: '+261 33 66 777 88'
         },
         localisation: {
-          zone: 'Zone B',
+         zone: zoneMap['Ivato'],
           etage: 'Rez-de-chaussée',
           numero: 'B-RC-05',
           surface: 40,
@@ -300,7 +312,7 @@ const seedBoutiques = async () => {
           telephone: '+261 33 22 333 44'
         },
         localisation: {
-          zone: 'Zone D',
+         zone: zoneMap['Mahajanga'],
           etage: '2ème étage',
           numero: 'D-E2-06',
           surface: 65,

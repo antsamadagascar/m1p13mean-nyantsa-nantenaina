@@ -78,9 +78,10 @@ export class HomeComponent implements OnInit {
   applyFilters() {
     this.boutiquesFiltered = this.boutiques.filter(boutique => {
 
-      if (this.filters.categorie && boutique.categorie._id !== this.filters.categorie) {
-        return false;
-      }
+      const categorieId = typeof boutique.categorie === 'string' ? boutique.categorie : boutique.categorie._id;
+        if (this.filters.categorie && categorieId !== this.filters.categorie) {
+          return false;
+        }
 
 
       if (this.filters.search) {
@@ -112,7 +113,8 @@ export class HomeComponent implements OnInit {
 
       if (this.filters.lieu) {
         const lieu = this.filters.lieu.toLowerCase();
-        const zoneMatch = boutique.localisation.zone.toLowerCase().includes(lieu);
+        const zoneNom = typeof boutique.localisation.zone === 'string' ? boutique.localisation.zone : boutique.localisation.zone.nom;
+        const zoneMatch = zoneNom.toLowerCase().includes(lieu);
         const etageMatch = boutique.localisation.etage.toLowerCase().includes(lieu);
         const numeroMatch = boutique.localisation.numero.toLowerCase().includes(lieu);
         if (!zoneMatch && !etageMatch && !numeroMatch) return false;
@@ -172,12 +174,25 @@ export class HomeComponent implements OnInit {
   toggleViewMode() {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
   }
-
+  
   getUniqueCategories() {
-    const categories = this.boutiques.map(b => b.categorie);
-    return categories.filter((cat, index, self) =>
-      index === self.findIndex(c => c._id === cat._id)
-    );
+  const categories = this.boutiques
+    .map(b => b.categorie)
+    .filter(cat => typeof cat !== 'string'); // Exclure les IDs non-populés
+  
+  return categories.filter((cat, index, self) =>
+    index === self.findIndex(c => 
+      (typeof c !== 'string' && typeof cat !== 'string') && c._id === cat._id
+    )
+  );
+}
+
+  getCategorieNom(categorie: any): string {
+    return typeof categorie === 'string' ? categorie : categorie.nom;
+  }
+
+  getZoneNom(zone: any): string {
+    return typeof zone === 'string' ? zone : zone.nom;
   }
 
   voirDetails(id: string) {

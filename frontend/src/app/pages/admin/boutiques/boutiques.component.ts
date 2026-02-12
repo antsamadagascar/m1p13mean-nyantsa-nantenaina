@@ -3,11 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BoutiqueService } from '../../../services/boutique.service';
+import { ZoneService } from '../../../services/zone.service'; 
 import { Boutique } from '../../../models/boutique.model';
 import { AlertService } from '../../../services/alert.service';
 import { AuthService } from '../../../services/auth.service';
 import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-boutiques',
@@ -21,7 +23,7 @@ export class BoutiquesComponent implements OnInit {
   boutiquesFiltered: Boutique[] = [];
   loading = false;
   isModalOpen = false;
-  isSubmitting = false; // 🆕 Pour le loader de soumission
+  isSubmitting = false;
 
   // Filtres
   filters = {
@@ -37,6 +39,9 @@ export class BoutiquesComponent implements OnInit {
     en_attente: 0,
     suspendues: 0
   };
+
+  //  Zones dynamiques
+  zones: any[] = [];
 
   // Modal création boutique
   categories: any[] = [];
@@ -54,47 +59,86 @@ export class BoutiquesComponent implements OnInit {
       telephone: ''
     },
     localisation: {
-      zone: '',
+     zone: '' as any, 
       etage: '',
       numero: '',
-      surface: null
+      surface: null,
+      latitude: null,
+      longitude: null,
+      adresse_complete: ''
     },
     contact: {
       telephone: '',
       email: ''
+    },
+    //  Horaires par défaut
+    horaires: {
+      lundi: { ouvert: true, debut: '09:00', fin: '19:00' },
+      mardi: { ouvert: true, debut: '09:00', fin: '19:00' },
+      mercredi: { ouvert: true, debut: '09:00', fin: '19:00' },
+      jeudi: { ouvert: true, debut: '09:00', fin: '19:00' },
+      vendredi: { ouvert: true, debut: '09:00', fin: '21:00' },
+      samedi: { ouvert: true, debut: '10:00', fin: '21:00' },
+      dimanche: { ouvert: true, debut: '10:00', fin: '18:00' }
     }
   };
 
   constructor(
     private boutiqueService: BoutiqueService,
+    private zoneService: ZoneService, 
     private alertService: AlertService,
     public authService: AuthService,
     private categoryService: CategoryService,
-    private sousCategorieService: SousCategorieService
+    private sousCategorieService: SousCategorieService,
+    private router: Router 
   ) {}
 
-  ngOnInit() {
-    console.log('📍 Page Boutiques chargée');
-    console.log('👤 Utilisateur:', this.authService.getUserFullName());
-    console.log('🔑 Rôle:', this.authService.getUserRole());
+   ngOnInit() {
+  //   console.log('Page Boutiques chargée');
+  //   console.log(' Utilisateur:', this.authService.getUserFullName());
+  //   console.log(' Rôle:', this.authService.getUserRole());
     this.loadBoutiques();
+    this.loadZones(); 
   }
 
-  loadBoutiques() {
-    this.loading = true;
-    this.boutiqueService.getBoutiques().subscribe({
-      next: (data) => {
-        this.boutiques = data;
-        this.boutiquesFiltered = data;
-        this.calculateStats();
-        this.loading = false;
+  //  Charge tous  les zones actives (vao2)
+  loadZones() {
+    this.zoneService.getAllZones(true).subscribe({
+      next: (res: any) => 
+      {   this.zones = res.data || []; console.log(' Zones chargées:', this.zones); 
+
       },
-      error: (error) => {
-        this.alertService.error('Erreur lors du chargement des boutiques');
-        this.loading = false;
+      error: (err) => {
+        console.error(' Erreur chargement zones:', err);
+        this.alertService.error('Erreur lors du chargement des zones');
       }
     });
   }
+
+  getCategorieNom(categorie: any): string {
+    return typeof categorie === 'string' ? categorie : categorie.nom;
+  }
+
+  getZoneNom(zone: any): string {
+    return typeof zone === 'string' ? zone : zone.nom;
+  }
+
+ loadBoutiques() {
+  this.loading = true;
+  this.boutiqueService.getBoutiques().subscribe({
+    next: (response: any) => {
+      //  Vérifie si response.data existe
+      this.boutiques = Array.isArray(response.data) ? response.data : [];
+      this.boutiquesFiltered = this.boutiques;
+      this.calculateStats();
+      this.loading = false;
+    },
+    error: (error) => {
+      this.alertService.error('Erreur lors du chargement des boutiques');
+      this.loading = false;
+    }
+  });
+}
 
   calculateStats() {
     this.stats.total = this.boutiques.length;
@@ -128,9 +172,16 @@ export class BoutiquesComponent implements OnInit {
       }
 
       // Filtre par zone
-      if (this.filters.zone && boutique.localisation.zone !== this.filters.zone) {
-        return false;
+      if (this.filters.zone) {
+        const zoneId = typeof boutique.localisation.zone === 'string'
+          ? boutique.localisation.zone
+          : boutique.localisation.zone?._id;
+
+        if (zoneId !== this.filters.zone) {
+          return false;
+        }
       }
+
 
       // Filtre par recherche
       if (this.filters.search) {
@@ -241,23 +292,32 @@ export class BoutiquesComponent implements OnInit {
         zone: '',
         etage: '',
         numero: '',
-        surface: null
+        surface: null,
+        latitude: null,
+        longitude: null,
+        adresse_complete: ''
       },
       contact: {
         telephone: '',
         email: ''
+      },
+      horaires: {
+        lundi: { ouvert: true, debut: '09:00', fin: '19:00' },
+        mardi: { ouvert: true, debut: '09:00', fin: '19:00' },
+        mercredi: { ouvert: true, debut: '09:00', fin: '19:00' },
+        jeudi: { ouvert: true, debut: '09:00', fin: '19:00' },
+        vendredi: { ouvert: true, debut: '09:00', fin: '21:00' },
+        samedi: { ouvert: true, debut: '10:00', fin: '21:00' },
+        dimanche: { ouvert: true, debut: '10:00', fin: '18:00' }
       }
     };
   }
 
-  //  Formatage automatique du téléphone avec +261 par défaut
+  // Formatage automatique du téléphone
   formatPhoneNumber(event: any, field: 'gerant' | 'contact') {
     let input = event.target.value;
-    
-    // Enlever tous les caractères non-numériques sauf le +
     let cleaned = input.replace(/[^\d+]/g, '');
     
-    // Si vide ou juste en train de taper, ajouter +261
     if (cleaned === '' || cleaned === '+') {
       if (field === 'gerant') {
         this.boutique.gerant.telephone = '+261 ';
@@ -267,11 +327,9 @@ export class BoutiquesComponent implements OnInit {
       return;
     }
     
-    // Si ne commence pas par +261, l'ajouter
     if (!cleaned.startsWith('+261')) {
-      // Si l'utilisateur tape directement les chiffres (ex: 32, 33, 34, 38)
       if (cleaned.startsWith('3') || cleaned.startsWith('0')) {
-        cleaned = '+261' + cleaned.replace(/^0/, ''); // Enlever le 0 initial si présent
+        cleaned = '+261' + cleaned.replace(/^0/, '');
       } else if (cleaned.startsWith('+')) {
         cleaned = '+261' + cleaned.substring(1);
       } else {
@@ -279,27 +337,24 @@ export class BoutiquesComponent implements OnInit {
       }
     }
     
-    // Extraire uniquement les chiffres après +261
     const afterPrefix = cleaned.substring(4);
     const digitsOnly = afterPrefix.replace(/\D/g, '');
     
-    // Formater: +261 XX XX XXX XX
     let formatted = '+261';
     
     if (digitsOnly.length > 0) {
-      formatted += ' ' + digitsOnly.substring(0, 2); // Opérateur (32, 33, 34, 38)
+      formatted += ' ' + digitsOnly.substring(0, 2);
     }
     if (digitsOnly.length > 2) {
-      formatted += ' ' + digitsOnly.substring(2, 4); // 2 chiffres
+      formatted += ' ' + digitsOnly.substring(2, 4);
     }
     if (digitsOnly.length > 4) {
-      formatted += ' ' + digitsOnly.substring(4, 7); // 3 chiffres
+      formatted += ' ' + digitsOnly.substring(4, 7);
     }
     if (digitsOnly.length > 7) {
-      formatted += ' ' + digitsOnly.substring(7, 9); // 2 derniers chiffres
+      formatted += ' ' + digitsOnly.substring(7, 9);
     }
     
-    // Limiter à 9 chiffres après +261
     if (digitsOnly.length <= 9) {
       if (field === 'gerant') {
         this.boutique.gerant.telephone = formatted;
@@ -308,13 +363,11 @@ export class BoutiquesComponent implements OnInit {
       }
     }
     
-    // Positionner le curseur à la fin
     setTimeout(() => {
       event.target.setSelectionRange(formatted.length, formatted.length);
     }, 0);
   }
   
-  //  Initialisation  des champ téléphone avec +261 au focus
   onPhoneFocus(field: 'gerant' | 'contact') {
     const currentValue = field === 'gerant' 
       ? this.boutique.gerant.telephone 
@@ -330,28 +383,31 @@ export class BoutiquesComponent implements OnInit {
   }
 
   submitBoutique() {
-    //  Active le loader
     this.isSubmitting = true;
 
     const data = {
-      ...this.boutique,
-      categorie: this.selectedCategorie,
-      sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
-    };
-
-    console.log(' Envoi:', data);
+    ...this.boutique,
+    categorie: this.selectedCategorie,
+    sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
+  };
 
     this.boutiqueService.createBoutique(data).subscribe({
       next: (response) => {
-        this.isSubmitting = false; //  Désactive le loader
-        this.alertService.success("Boutique créée avec succès ! Un email de confirmation d’activation vous a été envoyé.");
+        this.isSubmitting = false;
+        this.alertService.success("Boutique créée avec succès ! Un email de confirmation d'activation vous a été envoyé.");
         this.closeModal();
-        this.loadBoutiques(); // Recharger la liste
+        this.loadBoutiques();
       },
       error: (error) => {
-        this.isSubmitting = false; //  Désactive le loader même en cas d'erreur
+        this.isSubmitting = false;
         this.alertService.error('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
       }
     });
   }
+
+  goToZones() {
+    this.router.navigate(['/backoffice/zones']);
+  }
+
+
 }

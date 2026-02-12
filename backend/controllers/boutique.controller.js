@@ -1,15 +1,39 @@
 const Boutique = require('../models/Boutique');
+const Zone = require('../models/Zone');
 const slugify = require('slugify');
-
-
-// fonciton create  // author nante // resolve conflit
 const { sendBoutiqueCreationEmail } = require('../services/email.service');
+
 // @desc    Créer une nouvelle boutique
 // @route   POST /api/boutiques
 // @access  Private
 const createBoutique = async (req, res) => {
   try {
-    const { nom, description, gerant, localisation, contact, categorie, sous_categories } = req.body;
+    const { 
+      nom, 
+      description, 
+      gerant, 
+      localisation, 
+      contact, 
+      categorie, 
+      sous_categories,
+      horaires 
+    } = req.body;
+
+    // Vérifier que la zone existe et est active
+    const zone = await Zone.findById(localisation.zone);
+    if (!zone) {
+      return res.status(404).json({
+        success: false,
+        message: 'Zone non trouvée'
+      });
+    }
+
+    if (!zone.actif) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cette zone n\'est pas active actuellement'
+      });
+    }
 
     // Générer le slug
     const slug = slugify(nom, { 
@@ -19,33 +43,50 @@ const createBoutique = async (req, res) => {
     });
 
     // Construire l'emplacement complet
-    const emplacement_complet = `${localisation.zone}, ${localisation.etage}, N°${localisation.numero}`;
+    const emplacement_complet = `${zone.nom}, ${localisation.etage}, N°${localisation.numero}`;
 
-    // Créer la boutique
-    const boutique = await Boutique.create({
+    // Données de localisation
+    const localisationData = {
+      zone: localisation.zone,
+      etage: localisation.etage,
+      numero: localisation.numero,
+      emplacement_complet,
+      surface: localisation.surface || null,
+      latitude: localisation.latitude || null,
+      longitude: localisation.longitude || null,
+      adresse_complete: localisation.adresse_complete || null
+    };
+
+    // Création de boutique avec horaires personnalisés ou par défaut
+    const boutiqueData = {
       nom,
       slug,
       description,
       gerant,
-      localisation: {
-        ...localisation,
-        emplacement_complet
-      },
+      localisation: localisationData,
       contact,
       categorie,
       sous_categories: sous_categories || []
-    });
+    };
+
+    // Si des horaires personnalisés sont fournis, les utiliser
+    if (horaires) {
+      boutiqueData.horaires = horaires;
+    }
+
+    const boutique = await Boutique.create(boutiqueData);
 
     // Peupler les références
-    await boutique.populate('categorie sous_categories');
-    // 🎯 ENVOYER L'EMAIL AU GÉRANT
+    await boutique.populate('categorie sous_categories localisation.zone');
+
+    // ENVOYER L'EMAIL AU GÉRANT
     try {
-        await sendBoutiqueCreationEmail(boutique);
-        console.log('✅ Email envoyé au gérant');
-        } catch (emailError) {
-        // On log l'erreur mais on ne fait pas échouer la création
-        console.error('⚠️ Erreur envoi email (boutique créée quand même):', emailError.message);
-        }
+      await sendBoutiqueCreationEmail(boutique);
+      console.log('Email envoyé au gérant');
+    } catch (emailError) {
+      console.error(' Erreur envoi email (boutique créée quand même):', emailError.message);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Boutique créée avec succès',
@@ -53,8 +94,6 @@ const createBoutique = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Erreur création:', error);
-
     // Erreur de validation
     if (error.name === 'ValidationError') {
       const messages = Object.values(error.errors).map(err => err.message);
@@ -81,38 +120,38 @@ const createBoutique = async (req, res) => {
     });
   }
 };
+
 // @desc    Obtenir une boutique par ID
 // @route   GET /api/boutiques/:id
 // @access  Private
 const getBoutiqueById = async (req, res) => {
-    try {
-      const boutique = await Boutique
-        .findById(req.params.id)
-        .populate('categorie sous_categories gerant');
-  
-      if (!boutique) {
-        return res.status(404).json({
-          success: false,
-          message: 'Boutique non trouvée'
-        });
-      }
-  
-      res.status(200).json({
-        success: true,
-        data: boutique
-      });
-  
-    } catch (error) {
-      console.error('❌ Erreur récupération boutique:', error);
-  
-      res.status(500).json({
+  try {
+    const boutique = await Boutique
+      .findById(req.params.id)
+      .populate('categorie sous_categories localisation.zone');
+
+    if (!boutique) {
+      return res.status(404).json({
         success: false,
-        message: 'Erreur serveur',
-        error: error.message
+        message: 'Boutique non trouvée'
       });
     }
-  };
-  
+
+    res.status(200).json({
+      success: true,
+      data: boutique
+    });
+
+  } catch (error) {
+    console.error(' Erreur récupération boutique:', error);
+
+    res.status(500).json({
+      success: false,
+      message: 'Erreur serveur',
+      error: error.message
+    });
+  }
+};
 
 // Obtenir toutes les boutiques (avec filtres)
 const getBoutiques = async (req, res) => {
@@ -120,32 +159,46 @@ const getBoutiques = async (req, res) => {
     const { statut, categorie, zone, search } = req.query;
     let filters = {};
 
+    // Filtrage par statut
     if (statut) {
-      if (statut === 'actif') {
-        filters['statut.actif'] = true;
-      } else if (statut === 'en_attente') {
-        filters['statut.en_attente_validation'] = true;
-      } else if (statut === 'suspendu') {
-        filters['statut.suspendu'] = true;
+      if (statut === 'actif') filters['statut.actif'] = true;
+      else if (statut === 'en_attente') filters['statut.en_attente_validation'] = true;
+      else if (statut === 'suspendu') filters['statut.suspendu'] = true;
+    }
+
+    // Filtrage par catégorie
+    if (categorie) filters.categorie = categorie;
+
+    // Filtrage par zone (sécurisé)
+    if (zone) {
+      if (mongoose.Types.ObjectId.isValid(zone)) {
+        filters['localisation.zone'] = zone;
+      } else {
+        // Option : return erreur 400 si l'ID est invalide
+        return res.status(400).json({
+          success: false,
+          message: 'ID de zone invalide'
+        });
       }
     }
 
-    if (categorie) filters.categorie = categorie;
-    if (zone) filters['localisation.zone'] = zone;
+    // Filtrage par recherche
     if (search) filters.nom = { $regex: search, $options: 'i' };
 
     const boutiques = await Boutique.find(filters)
       .populate('categorie')
       .populate('sous_categories')
-      .sort({ 'date_creation': -1 });
+      .populate('localisation.zone')
+      .sort({ date_creation: -1 });
 
+    // Calcul statut ouvert/fermé
     const boutiquesAvecStatut = boutiques.map(boutique => {
       const maintenant = new Date();
       const jour = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][maintenant.getDay()];
       const horaireJour = boutique.horaires[jour];
-      
+
       let estOuverte = false;
-      if (horaireJour.ouvert) {
+      if (horaireJour?.ouvert) {
         const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
         const [hD, mD] = horaireJour.debut.split(':').map(Number);
         const [hF, mF] = horaireJour.fin.split(':').map(Number);
@@ -157,9 +210,9 @@ const getBoutiques = async (req, res) => {
       return { ...boutique.toObject(), estOuverte };
     });
 
-    res.json(boutiquesAvecStatut);
+    res.json({ success: true, data: boutiquesAvecStatut });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
   }
 };
 
@@ -168,7 +221,8 @@ const getBoutiqueDetailsById = async (req, res) => {
   try {
     const boutique = await Boutique.findById(req.params.id)
       .populate('categorie')
-      .populate('sous_categories');
+      .populate('sous_categories')
+      .populate('localisation.zone'); 
 
     if (!boutique) {
       return res.status(404).json({ message: 'Boutique non trouvée' });
@@ -195,8 +249,7 @@ const getBoutiqueDetailsById = async (req, res) => {
   }
 };
 
-
-//  Suspendre une boutique
+// Suspendre une boutique
 const suspendreBoutique = async (req, res) => {
   try {
     const { motif } = req.body;
@@ -226,7 +279,7 @@ const suspendreBoutique = async (req, res) => {
   }
 };
 
-//  Réactiver une boutique suspendue
+// Réactiver une boutique suspendue
 const reactiverBoutique = async (req, res) => {
   try {
     const boutique = await Boutique.findByIdAndUpdate(
@@ -267,6 +320,7 @@ const getBoutiquesPublic = async (req, res) => {
     const boutiques = await Boutique.find(filters)
       .populate('categorie')
       .populate('sous_categories')
+      .populate('localisation.zone')
       .sort({ 'date_creation': -1 });
 
     const boutiquesAvecStatut = boutiques.map(boutique => {
@@ -299,6 +353,6 @@ module.exports = {
   getBoutiques,
   getBoutiqueDetailsById,     
   suspendreBoutique,   
-  reactiverBoutique ,
+  reactiverBoutique,
   getBoutiquesPublic
 };

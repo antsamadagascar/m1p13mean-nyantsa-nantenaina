@@ -65,6 +65,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      {
+        path: 'zones',
+        loadComponent: () => import('./pages/admin/zones/zones.component')
+          .then(m => m.ZonesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      }
+      ,
       // Gestion des utilisateurs
       { 
         path: 'users', 

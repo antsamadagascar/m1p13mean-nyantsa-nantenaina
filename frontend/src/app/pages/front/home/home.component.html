@@ -39,7 +39,7 @@
           class="filter-select"
         >
           <option value="">Toutes les catégories</option>
-          <option *ngFor="let cat of getUniqueCategories()" [value]="cat._id">
+         <option *ngFor="let cat of getUniqueCategories()" [value]="cat._id">
             {{ cat.nom }}
           </option>
         </select>
@@ -135,10 +135,6 @@
           <!-- Contenu -->
           <div class="card-content">
             <h3 class="card-title">{{ boutique.nom }}</h3>
-            <p class="card-category">
-              <i class="fa-solid fa-tag"></i>
-              {{ boutique.categorie.nom }}
-            </p>
             <p class="card-location">
               <i class="fa-solid fa-location-dot"></i>
               {{ boutique.localisation.emplacement_complet || 
@@ -182,8 +178,8 @@
           </div>
 
             <p class="list-meta">
-              <span><i class="fa-solid fa-tag"></i> {{ boutique.categorie.nom }}</span>
-              <span><i class="fa-solid fa-location-dot"></i> {{ boutique.localisation.zone }} - {{ boutique.localisation.etage }}</span>
+             <span><i class="fa-solid fa-tag"></i>  {{ getCategorieNom(boutique.categorie) }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ getZoneNom(boutique.localisation.zone) }} - {{ boutique.localisation.etage }}</span>
             </p>
             <p class="list-description">{{ boutique.description }}</p>
           </div>

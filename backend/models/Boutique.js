@@ -67,68 +67,80 @@ const boutiqueSchema = new mongoose.Schema({
       }
     },
     telephone: {
-        type: String,
-        required: [true, 'Le téléphone du gérant est requis'],
-        validate: {
-          validator: function(v) {
-             return /^\+261\s(32|33|34|38)\s\d{2}\s\d{3}\s\d{2}$/
-
-          },
-          message: 'Format invalide. Exemple: +261 34 12 34 56'
-        }
-      },
-
+      type: String,
+      required: [true, 'Le téléphone du gérant est requis'],
+      validate: {
+        validator: function(v) {
+          return /^\+261\s(32|33|34|38)\s\d{2}\s\d{3}\s\d{2}$/
+        },
+        message: 'Format invalide. Exemple: +261 34 12 34 56'
+      }
+    },
   },
   
   // ============================================
-  // LOCALISATION
+  // LOCALISATION 
   // ============================================
   localisation: {
+    // Zone dynamique référençant le modèle Zone
     zone: {
-      type: String,
-      required: [true, 'La zone est requise'],
-      enum: ['Zone A', 'Zone B', 'Zone C', 'Zone D']
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Zone',
+      required: [true, 'La zone est requise']
     },
+    
+    // Étage en texte libre (plus flexible)
     etage: {
       type: String,
       required: [true, 'L\'étage est requis'],
-      enum: ['Rez-de-chaussée', '1er étage', '2ème étage', '3ème étage']
+      trim: true
     },
+    
     numero: {
       type: String,
       required: [true, 'Le numéro de boutique est requis']
     },
+    
     emplacement_complet: String,
+    
+    // Coordonnées GPS précises de la boutique
     latitude: {
       type: Number,
       min: -90,
       max: 90
     },
+    
     longitude: {
       type: Number,
       min: -180,
       max: 180
     },
+    
     surface: {
       type: Number,
       min: 0
+    },
+    
+    // Adresse complète (optionnel)
+    adresse_complete: {
+      type: String,
+      maxlength: [500, 'L\'adresse ne peut pas dépasser 500 caractères']
     }
   },
   
-// ============================================
-// CATÉGORIE & SOUS-CATÉGORIES
-// ============================================
-    categorie: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Categorie',
-        required: [true, 'La catégorie principale est requise']
-    },
-    
-    sous_categories: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'SousCategorie'
-    }],
+  // ============================================
+  // CATÉGORIE & SOUS-CATÉGORIES
+  // ============================================
+  categorie: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Categorie',
+    required: [true, 'La catégorie principale est requise']
+  },
   
+  sous_categories: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'SousCategorie'
+  }],
   
   // ============================================
   // CONTACT
@@ -236,14 +248,13 @@ const boutiqueSchema = new mongoose.Schema({
   toObject: { virtuals: true }
 });
 
-// Génére automatiquement le slug avant la sauvegarde
+// Génère automatiquement le slug avant la sauvegarde
 boutiqueSchema.pre('save', function(next) {
   if (!this.slug && this.nom) {
     this.slug = slugify(this.nom, { lower: true, strict: true });
   }
   next();
 });
-
 
 // ============================================
 // EXPORT
