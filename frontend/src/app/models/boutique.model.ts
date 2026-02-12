@@ -40,6 +40,7 @@ export interface Localisation {
   latitude?: number;
   longitude?: number;
   surface?: number;
+   adresse_complete?: string;
 }
 
 export interface Categorie {

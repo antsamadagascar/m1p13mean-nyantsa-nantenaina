@@ -385,16 +385,23 @@ export class BoutiquesComponent implements OnInit {
   submitBoutique() {
     this.isSubmitting = true;
 
+    const localisationData = {
+      ...this.boutique.localisation,
+      adresse_complete: this.boutique.localisation.adresse_complete || 
+                      `${this.getZoneNom(this.boutique.localisation.zone)}, ${this.boutique.localisation.etage}, N°${this.boutique.localisation.numero}`
+    };
+
     const data = {
-    ...this.boutique,
-    categorie: this.selectedCategorie,
-    sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
-  };
+      ...this.boutique,
+      localisation: localisationData,
+      categorie: this.selectedCategorie,
+      sous_categories: this.selectedSousCategorie ? [this.selectedSousCategorie] : []
+    };
 
     this.boutiqueService.createBoutique(data).subscribe({
       next: (response) => {
         this.isSubmitting = false;
-        this.alertService.success("Boutique créée avec succès ! Un email de confirmation d'activation vous a été envoyé.");
+        this.alertService.success("Boutique créée avec succès !");
         this.closeModal();
         this.loadBoutiques();
       },
@@ -404,6 +411,7 @@ export class BoutiquesComponent implements OnInit {
       }
     });
   }
+
 
   goToZones() {
     this.router.navigate(['/backoffice/zones']);

@@ -153,6 +153,9 @@
               Localisation
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Adresse complète
+            </th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Catégorie
             </th>
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -194,13 +197,24 @@
               <div class="text-sm text-gray-500">{{ boutique.gerant.email }}</div>
             </td>
 
-            <!-- Localisation -->
+            <!-- Zone -->
             <td class="px-6 py-4 whitespace-nowrap">
-              <div class="text-sm font-medium text-gray-900">
-               {{ boutique.localisation.emplacement_complet || 
-  (getZoneNom(boutique.localisation.zone) + ' - ' + boutique.localisation.etage + ' - N°' + boutique.localisation.numero) }}
+              <div class="text-sm text-gray-900">
+                {{ getZoneNom(boutique.localisation.zone) }}
               </div>
             </td>
+
+
+            <!-- Adresse complète (concaténée si emplacement_complet vide) -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm text-gray-900">
+                {{ boutique.localisation.adresse_complete 
+                  || (getZoneNom(boutique.localisation.zone) + 
+                      (boutique.localisation.etage ? ', ' + boutique.localisation.etage : '') +
+                      (boutique.localisation.numero ? ', N°' + boutique.localisation.numero : '')) }}
+              </div>
+            </td>
+
 
             <!-- Catégorie -->
             <td class="px-6 py-4 whitespace-nowrap">
@@ -436,7 +450,8 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Surface -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               <i class="fa-solid fa-ruler-combined mr-1"></i> Surface (m²)
@@ -447,9 +462,56 @@
               name="surface"
               min="0"
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: 50">
+              placeholder="Ex: 50"
+            >
+          </div>
+
+          <!-- Adresse complète -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-location-dot mr-1"></i> Adresse complète
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="boutique.localisation.adresse_complete"
+              name="adresse_complete"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: Zone Analakely, 2ème étage, N°5"
+            >
+          </div>
+
+          <!-- Latitude -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-map-pin mr-1"></i> Latitude
+            </label>
+            <input
+              type="number"
+              step="any"
+              [(ngModel)]="boutique.localisation.latitude"
+              name="latitude"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: -18.8792"
+            >
+          </div>
+
+          <!-- Longitude -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-map-pin mr-1"></i> Longitude
+            </label>
+            <input
+              type="number"
+              step="any"
+              [(ngModel)]="boutique.localisation.longitude"
+              name="longitude"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: 47.5079"
+            >
           </div>
         </div>
+
+
       </div>
 
       <!-- ============================================ -->
