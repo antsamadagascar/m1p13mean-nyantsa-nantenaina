@@ -216,4 +216,12 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   getJours(): string[] {
     return ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
   }
+
+  getZoneName(): string {
+  if (!this.boutique?.localisation?.zone) return '-';
+  return typeof this.boutique.localisation.zone === 'object'
+    ? this.boutique.localisation.zone.nom
+    : this.boutique.localisation.zone;
+}
+
 }

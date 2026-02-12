@@ -92,32 +92,31 @@
             Localisation
           </h2>
           <div class="space-y-2">
-          <div *ngIf="boutique.localisation.emplacement_complet">
-            <p class="text-sm text-gray-600">Emplacement</p>
-            <p class="font-medium text-gray-800 text-lg">
-              <i class="fa-solid fa-map-pin text-blue-600 mr-2"></i>
-              {{ boutique.localisation.emplacement_complet }}
-            </p>
-          </div>
-          
-            <div>
-              <p class="text-sm text-gray-600">Zone</p>
-              <p class="font-medium text-gray-800">{{ boutique.localisation.zone }}</p>
+
+            <!-- Adresse complète -->
+            <div *ngIf="boutique.localisation.adresse_complete">
+              <p class="text-sm text-gray-600">Adresse complète</p>
+              <p class="font-medium text-gray-800">{{ boutique.localisation.adresse_complete }}</p>
             </div>
-            <div>
-              <p class="text-sm text-gray-600">Étage</p>
-              <p class="text-gray-800">{{ boutique.localisation.etage }}</p>
+
+            <!-- Emplacement complet -->
+            <div *ngIf="boutique.localisation.zone || boutique.localisation.etage || boutique.localisation.numero">
+              <p class="text-sm text-gray-600">Emplacement</p>
+              <p class="font-medium text-gray-800 text-lg">
+                <i class="fa-solid fa-map-pin text-blue-600 mr-2"></i>
+                 {{ getZoneName() }} 
+                <span *ngIf="boutique.localisation.etage">, {{ boutique.localisation.etage }}</span>
+                <span *ngIf="boutique.localisation.numero">, N°{{ boutique.localisation.numero }}</span>
+              </p>
             </div>
-            <div>
-              <p class="text-sm text-gray-600">Numéro</p>
-              <p class="text-gray-800">{{ boutique.localisation.numero }}</p>
-            </div>
+
+            <!-- Surface -->
             <div *ngIf="boutique.localisation.surface">
               <p class="text-sm text-gray-600">Surface</p>
               <p class="text-gray-800">{{ boutique.localisation.surface }} m²</p>
             </div>
-            
-            <!--  COORDONNÉES GPS -->
+
+            <!-- Coordonnées GPS -->
             <div *ngIf="boutique.localisation.latitude && boutique.localisation.longitude" class="pt-2">
               <p class="text-sm text-gray-600">Coordonnées GPS</p>
               <p class="text-xs text-gray-500 font-mono">
@@ -126,6 +125,7 @@
             </div>
           </div>
         </div>
+
 
         <!--  SECTION CARTE-->
         <div 
