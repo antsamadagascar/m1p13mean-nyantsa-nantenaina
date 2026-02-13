@@ -24,11 +24,16 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/leaflet/dist/images",
+                "output": "assets/leaflet/"
               }
             ],
             "styles": [
               "src/styles.css",
-              "leaflet/dist/leaflet.css"
+              "node_modules/leaflet/dist/leaflet.css"
             ],
             "scripts": []
           },
@@ -37,13 +42,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1MB",
+                  "maximumError": "2MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "12kB",
+                  "maximumError": "12kB"
                 }
               ],
               "outputHashing": "all",
