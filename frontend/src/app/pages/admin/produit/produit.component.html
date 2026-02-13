@@ -1,0 +1,156 @@
+<div class="p-6">
+
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2">
+        Gestion des Produits
+      </h1>
+      <p class="text-gray-600">
+        Produits de la boutique
+      </p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-500">
+      <p class="text-sm text-gray-600">Total</p>
+      <p class="text-2xl font-bold">{{ stats.total }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-500">
+      <p class="text-sm text-gray-600">Actifs</p>
+      <p class="text-2xl font-bold">{{ stats.actifs }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-yellow-500">
+      <p class="text-sm text-gray-600">Stock faible</p>
+      <p class="text-2xl font-bold">{{ stats.stockFaible }}</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-red-500">
+      <p class="text-sm text-gray-600">Rupture</p>
+      <p class="text-2xl font-bold">{{ stats.rupture }}</p>
+    </div>
+
+  </div>
+
+  <!-- Filtres -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+      <input
+        type="text"
+        [(ngModel)]="filters.search"
+        (ngModelChange)="applyFilters()"
+        placeholder="Recherche..."
+        class="px-3 py-2 border rounded-lg"
+      />
+
+      <select
+        [(ngModel)]="filters.categorie"
+        (ngModelChange)="applyFilters()"
+        class="px-3 py-2 border rounded-lg"
+      >
+        <option value="">Toutes catégories</option>
+        <option *ngFor="let cat of categories" [value]="cat._id">
+          {{ cat.nom }}
+        </option>
+      </select>
+
+      <button
+        (click)="resetFilters()"
+        class="bg-gray-200 px-4 py-2 rounded-lg">
+        Réinitialiser
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs uppercase">Produit</th>
+          <th class="px-6 py-3 text-left text-xs uppercase">Catégorie</th>
+          <th class="px-6 py-3 text-left text-xs uppercase">Prix</th>
+          <th class="px-6 py-3 text-left text-xs uppercase">Stock</th>
+          <th class="px-6 py-3 text-left text-xs uppercase">Statut</th>
+          <th class="px-6 py-3 text-left text-xs uppercase">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody class="divide-y divide-gray-200">
+        <tr *ngFor="let produit of produitsFiltered">
+
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <img
+                [src]="produit.images?.[0] || 'assets/no-image.png'"
+                class="h-10 w-10 rounded object-cover"
+              />
+              <div>
+                <div class="font-semibold">
+                  {{ produit.nom }}
+                </div>
+                <div class="text-sm text-gray-500">
+                  Réf: {{ produit.reference }}
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <td class="px-6 py-4">
+            {{ produit.categorie?.nom }}
+          </td>
+
+          <td class="px-6 py-4 font-semibold text-blue-600">
+            {{ produit.prix | number }} Ar
+          </td>
+
+          <td class="px-6 py-4">
+            <span
+              [ngClass]="
+                produit.quantite === 0 ? 'text-red-600 font-bold' :
+                produit.quantite <= 5 ? 'text-yellow-600 font-semibold' :
+                'text-green-600'
+              ">
+              {{ produit.quantite }}
+            </span>
+          </td>
+
+          <td class="px-6 py-4">
+            <span
+              [ngClass]="produit.actif ?
+                'bg-green-100 text-green-800' :
+                'bg-red-100 text-red-800'"
+              class="px-3 py-1 text-xs rounded-full font-semibold">
+              {{ produit.actif ? 'Actif' : 'Inactif' }}
+            </span>
+          </td>
+
+          <td class="px-6 py-4">
+            <button
+              (click)="deleteProduit(produit._id)"
+              class="text-red-600 hover:text-red-900">
+              Supprimer
+            </button>
+          </td>
+
+        </tr>
+      </tbody>
+
+    </table>
+
+    <div *ngIf="produitsFiltered.length === 0"
+         class="text-center py-10 text-gray-500">
+      Aucun produit trouvé
+    </div>
+
+  </div>
+
+</div>

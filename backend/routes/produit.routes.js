@@ -1,3 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const zoneController = require('../controllers/produit.controller');
+const produitController = require('../controllers/produit.controller');
+
+const auth = require('../middleware/auth');
+
+router.get('/mes-produits', auth, produitController.getMesProduits);
+
+module.exports = router;
