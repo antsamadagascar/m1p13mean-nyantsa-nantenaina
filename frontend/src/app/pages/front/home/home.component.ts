@@ -112,13 +112,21 @@ export class HomeComponent implements OnInit {
       }
 
       if (this.filters.lieu) {
-        const lieu = this.filters.lieu.toLowerCase();
-        const zoneNom = typeof boutique.localisation.zone === 'string' ? boutique.localisation.zone : boutique.localisation.zone.nom;
-        const zoneMatch = zoneNom.toLowerCase().includes(lieu);
-        const etageMatch = boutique.localisation.etage.toLowerCase().includes(lieu);
-        const numeroMatch = boutique.localisation.numero.toLowerCase().includes(lieu);
-        if (!zoneMatch && !etageMatch && !numeroMatch) return false;
-      }
+          const lieu = this.filters.lieu.toLowerCase();
+
+          const zoneNom =
+            typeof boutique.localisation.zone === 'string'
+              ? boutique.localisation.zone
+              : boutique.localisation.zone?.nom || '';
+
+          const adresse = boutique.localisation.adresse_complete || '';
+
+          const zoneMatch = zoneNom.toLowerCase().includes(lieu);
+          const adresseMatch = adresse.toLowerCase().includes(lieu);
+
+          if (!zoneMatch && !adresseMatch) return false;
+        }
+
 
       return true;
     });
@@ -197,5 +205,11 @@ export class HomeComponent implements OnInit {
 
   voirDetails(id: string) {
     this.router.navigate(['/boutiques', id]);
+  }
+
+
+
+  getAdresseComplete(boutique: Boutique): string {
+    return boutique.localisation.adresse_complete || '';
   }
 }

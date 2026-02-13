@@ -100,13 +100,11 @@
             </div>
 
             <!-- Emplacement complet -->
-            <div *ngIf="boutique.localisation.zone || boutique.localisation.etage || boutique.localisation.numero">
+            <div *ngIf="boutique.localisation.zone">
               <p class="text-sm text-gray-600">Emplacement</p>
               <p class="font-medium text-gray-800 text-lg">
                 <i class="fa-solid fa-map-pin text-blue-600 mr-2"></i>
                  {{ getZoneName() }} 
-                <span *ngIf="boutique.localisation.etage">, {{ boutique.localisation.etage }}</span>
-                <span *ngIf="boutique.localisation.numero">, N°{{ boutique.localisation.numero }}</span>
               </p>
             </div>
 

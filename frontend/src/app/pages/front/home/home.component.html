@@ -136,10 +136,10 @@
           <div class="card-content">
             <h3 class="card-title">{{ boutique.nom }}</h3>
             <p class="card-location">
-              <i class="fa-solid fa-location-dot"></i>
-              {{ boutique.localisation.emplacement_complet || 
-                (boutique.localisation.zone + ' - ' + boutique.localisation.etage + ' - N°' + boutique.localisation.numero) }}
+                <i class="fa-solid fa-location-dot"></i>
+                {{ getAdresseComplete(boutique) }}
             </p>
+
  
             <p class="card-description">
               {{ boutique.description | slice:0:100 }}{{ boutique.description.length > 100 ? '...' : '' }}
@@ -179,7 +179,7 @@
 
             <p class="list-meta">
              <span><i class="fa-solid fa-tag"></i>  {{ getCategorieNom(boutique.categorie) }}</span>
-            <span><i class="fa-solid fa-location-dot"></i> {{ getZoneNom(boutique.localisation.zone) }} - {{ boutique.localisation.etage }}</span>
+            <span><i class="fa-solid fa-location-dot"></i> {{ getZoneNom(boutique.localisation.zone) }}</span>
             </p>
             <p class="list-description">{{ boutique.description }}</p>
           </div>

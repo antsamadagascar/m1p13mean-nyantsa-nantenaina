@@ -42,15 +42,11 @@ const createBoutique = async (req, res) => {
       locale: 'fr'
     });
 
-    // Construire l'emplacement complet
-    const emplacement_complet = `${zone.nom}, ${localisation.etage}, N°${localisation.numero}`;
 
     // Données de localisation
     const localisationData = {
       zone: localisation.zone,
-      etage: localisation.etage,
       numero: localisation.numero,
-      emplacement_complet,
       surface: localisation.surface || null,
       latitude: localisation.latitude || null,
       longitude: localisation.longitude || null,

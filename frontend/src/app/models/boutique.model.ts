@@ -34,7 +34,6 @@ export interface Zone {
 
 export interface Localisation {
   zone: string | Zone;  
-  etage: string;
   numero: string;
   emplacement_complet?: string;
   latitude?: number;

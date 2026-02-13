@@ -89,18 +89,7 @@ const boutiqueSchema = new mongoose.Schema({
       required: [true, 'La zone est requise']
     },
     
-    // Étage en texte libre (plus flexible)
-    etage: {
-      type: String,
-      required: [true, 'L\'étage est requis'],
-      trim: true
-    },
-    
-    numero: {
-      type: String,
-      required: [true, 'Le numéro de boutique est requis']
-    },
-    
+
     emplacement_complet: String,
     
     // Coordonnées GPS précises de la boutique

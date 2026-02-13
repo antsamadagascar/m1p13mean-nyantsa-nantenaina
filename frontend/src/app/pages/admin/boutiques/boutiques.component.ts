@@ -60,7 +60,6 @@ export class BoutiquesComponent implements OnInit {
     },
     localisation: {
      zone: '' as any, 
-      etage: '',
       numero: '',
       surface: null,
       latitude: null,
@@ -290,7 +289,6 @@ export class BoutiquesComponent implements OnInit {
       },
       localisation: {
         zone: '',
-        etage: '',
         numero: '',
         surface: null,
         latitude: null,
@@ -388,7 +386,7 @@ export class BoutiquesComponent implements OnInit {
     const localisationData = {
       ...this.boutique.localisation,
       adresse_complete: this.boutique.localisation.adresse_complete || 
-                      `${this.getZoneNom(this.boutique.localisation.zone)}, ${this.boutique.localisation.etage}, N°${this.boutique.localisation.numero}`
+                      `${this.getZoneNom(this.boutique.localisation.zone)}`
     };
 
     const data = {

@@ -164,9 +164,6 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
           <h3 style="margin:0;font-size:16px;font-weight:bold;text-align:center">
             ${this.boutique.nom}
           </h3>
-          <p style="margin:6px 0 0 0;text-align:center;color:#666">
-             ${this.boutique.localisation.zone} • ${this.boutique.localisation.etage}
-          </p>
         </div>
       `).openPopup();
 

@@ -210,7 +210,6 @@
               <div class="text-sm text-gray-900">
                 {{ boutique.localisation.adresse_complete 
                   || (getZoneNom(boutique.localisation.zone) + 
-                      (boutique.localisation.etage ? ', ' + boutique.localisation.etage : '') +
                       (boutique.localisation.numero ? ', N°' + boutique.localisation.numero : '')) }}
               </div>
             </td>
@@ -418,37 +417,8 @@
               <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
             </select>
           </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Étage <span class="text-red-500">*</span>
-            </label>
-            <select
-              [(ngModel)]="boutique.localisation.etage"
-              name="etage"
-              required
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="">-- Sélectionner --</option>
-              <option value="Rez-de-chaussée">Rez-de-chaussée</option>
-              <option value="1er étage">1er étage</option>
-              <option value="2ème étage">2ème étage</option>
-              <option value="3ème étage">3ème étage</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              Numéro <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              [(ngModel)]="boutique.localisation.numero"
-              name="numero"
-              required
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: B-123">
-          </div>
         </div>
+
 
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <!-- Surface -->
