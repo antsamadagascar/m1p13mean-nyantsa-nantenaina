@@ -43,7 +43,7 @@ const seedBoutiques = async () => {
         description: 'Téléphones, ordinateurs, accessoires électroniques, dernières technologies' 
       },
       { 
-        nom: 'Maison & Déco', 
+        nom: 'Maison et Déco', 
         description: 'Meubles, décoration intérieure, objets design pour embellir votre espace de vie' 
       },
       { 

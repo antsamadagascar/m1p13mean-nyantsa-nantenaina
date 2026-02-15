@@ -7,7 +7,7 @@ import { ConnexionComponent } from './pages/front/auth/connexion.component';
 import { BoutiqueDetailComponent } from './pages/admin/boutiques/boutique-detail.component';
 import { authGuard } from './guards/auth.guard';
 import { roleGuard } from './guards/role.guard';
-import { GerantRegistrationComponent } from './pages/front/gerant-registration/gerant-registration.component'
+import { GerantRegistrationComponent } from './pages/front/gerant-registration/gerant-registration.component';
 
 export const routes: Routes = [
   {
@@ -22,11 +22,8 @@ export const routes: Routes = [
     path: 'users/verify-email',
     component: VerifyEmailComponent
   },
-
-
   {
     path: 'forgot-password',
-
     loadComponent: () => import('./pages/front/forgot-password/forgot-password.component')
       .then(m => m.ForgotPasswordComponent)
   },
@@ -39,7 +36,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/front/reset-password/reset-password.component')
       .then(m => m.ResetPasswordComponent)
   },
-
   {
     path: 'backoffice',
     component: AdminLayoutComponent,
@@ -52,6 +48,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'BOUTIQUE'] }
       },
+
+      // route pour la gestions boutiques
       {
         path: 'boutiques',
         loadComponent: () => import('./pages/admin/boutiques/boutiques.component')
@@ -71,8 +69,8 @@ export const routes: Routes = [
           .then(m => m.ZonesComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
-      }
-      ,
+      },
+      
       // Gestion des utilisateurs
       { 
         path: 'users', 
@@ -88,7 +86,6 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       }
-        
     ]
   },
   {
@@ -99,10 +96,21 @@ export const routes: Routes = [
         path: '',
         loadComponent: () => import('./pages/front/home/home.component')
           .then(m => m.HomeComponent)
+      },
+      
+      // Gestion des produits (achat + panier ) 
+      {
+        path: 'produits',
+        loadComponent: () => import('./pages/front/product-list/product-list.component')
+          .then(m => m.ProductListComponent)
+      },
+      {
+        path: 'produits/:slug',
+        loadComponent: () => import('./pages/front/product-detail/product-detail.component')
+          .then(m => m.ProductDetailComponent)
       }
     ]
   },
-
   // Redirection 404
   { path: '**', redirectTo: 'connexion' }
 ];
