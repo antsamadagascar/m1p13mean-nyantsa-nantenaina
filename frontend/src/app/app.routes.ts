@@ -108,7 +108,14 @@ export const routes: Routes = [
         path: 'produits/:slug',
         loadComponent: () => import('./pages/front/product-detail/product-detail.component')
           .then(m => m.ProductDetailComponent)
-      }
+      },
+        
+      // DÉTAIL BOUTIQUE PUBLIC(client)
+      {
+        path: 'boutiques/:id',
+        loadComponent: () => import('./pages/front/boutique-detail/boutique-detail.component')
+          .then(m => m.BoutiqueDetailComponent)
+      },
     ]
   },
   // Redirection 404

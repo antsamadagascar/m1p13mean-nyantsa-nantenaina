@@ -1,0 +1,915 @@
+/* ============================================
+   VARIABLES
+   ============================================ */
+:host {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-900: #111827;
+}
+
+/* ============================================
+   HEADER BOUTIQUE
+   ============================================ */
+.boutique-detail-page {
+  min-height: 100vh;
+  background: var(--gray-50);
+}
+
+.boutique-header {
+  position: relative;
+  background: white;
+  border-bottom: 1px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.header-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.header-content {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 2rem 0;
+}
+
+.boutique-main {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+}
+
+.boutique-logo {
+  width: 120px;
+  height: 120px;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.boutique-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.boutique-info {
+  flex: 1;
+}
+
+.boutique-name {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0 0 1rem 0;
+}
+
+.boutique-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: 0.75rem;
+}
+
+.boutique-status.open {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.boutique-status.closed {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+
+.boutique-status svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.horaires-aujourdhui,
+.boutique-category {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--gray-600);
+  font-size: 0.875rem;
+  margin: 0.5rem 0;
+}
+
+.horaires-aujourdhui svg,
+.boutique-category svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-contact {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-contact:hover {
+  background: var(--primary-hover);
+}
+
+.btn-contact svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============================================
+   TABS NAVIGATION
+   ============================================ */
+.tabs-navigation {
+  background: white;
+  border-bottom: 2px solid var(--gray-200);
+  margin-bottom: 2rem;
+}
+
+.tabs-navigation .container {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--gray-600);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+  color: var(--primary);
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+
+.tab-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============================================
+   ALERT
+   ============================================ */
+.alert {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.alert .container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.alert svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  color: var(--warning);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.alert strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.alert p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+/* ============================================
+   PRODUITS SECTION
+   ============================================ */
+.produits-section {
+  padding: 2rem 0;
+}
+
+.produits-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.produits-toolbar h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin: 0;
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.toolbar-actions label {
+  font-weight: 500;
+  color: var(--gray-700);
+  font-size: 0.875rem;
+}
+
+.sort-select {
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  background: white;
+}
+
+/* ============================================
+   GRILLE PRODUITS
+   ============================================ */
+.produits-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.product-card {
+  background: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s;
+}
+
+.product-card:hover {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+}
+
+.product-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-image {
+  position: relative;
+  padding-top: 100%;
+  background: var(--gray-100);
+  overflow: hidden;
+}
+
+.product-image img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.product-card:hover .product-image img {
+  transform: scale(1.05);
+}
+
+.product-badges {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-promo {
+  background: var(--danger);
+  color: white;
+}
+
+.badge-closed {
+  background: var(--warning);
+  color: white;
+}
+
+.badge-rupture {
+  background: var(--gray-600);
+  color: white;
+}
+
+.product-content {
+  padding: 1rem;
+}
+
+.product-brand {
+  display: block;
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+.product-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 0.5rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.product-price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.price-current {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.price-current.price-promo {
+  color: var(--danger);
+}
+
+.price-original {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  text-decoration: line-through;
+}
+
+.product-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #fbbf24;
+  font-size: 0.875rem;
+}
+
+.product-rating svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn-add-cart {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0 0 0.75rem 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-add-cart:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.btn-add-cart:disabled {
+  background: var(--gray-600);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-add-cart svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============================================
+   ÉTATS
+   ============================================ */
+.loading-state,
+.empty-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid var(--gray-200);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.empty-state svg,
+.error-state svg {
+  width: 4rem;
+  height: 4rem;
+  color: var(--gray-600);
+  margin-bottom: 1rem;
+}
+
+.empty-state h3,
+.error-state h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: var(--gray-600);
+  margin: 0;
+}
+
+.btn-back {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2rem 0;
+}
+
+.pagination-btn {
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.5rem;
+  background: white;
+  border: 1px solid var(--gray-300);
+  border-radius: 0.375rem;
+  color: var(--gray-700);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background: var(--gray-100);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.pagination-btn.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-btn svg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+  }
+
+  .boutique-main {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .boutique-logo {
+    margin: 0 auto;
+  }
+
+  .boutique-name {
+    font-size: 1.5rem;
+  }
+
+  .tabs-navigation .container {
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+
+  .produits-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .produits-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+
+/* ============================================
+   ONGLETS NAVIGATION - STYLES AMÉLIORÉS
+   ============================================ */
+.tabs-navigation {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.tabs-navigation .container {
+  display: flex;
+  gap: 0;
+}
+
+.tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.5rem;
+  background: white;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.938rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.tab-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.tab-btn:hover {
+  color: #5a67d8;
+  background: #f9fafb;
+}
+
+.tab-btn.active {
+  color: #5a67d8;
+  border-bottom-color: #5a67d8;
+  background: #f9fafb;
+}
+
+/* ============================================
+   ONGLET À PROPOS
+   ============================================ */
+.apropos-section {
+  padding: 3rem 0;
+  background: #f9fafb;
+}
+
+.apropos-card {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.apropos-card h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.apropos-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.info-block h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin: 0 0 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.info-block p {
+  color: #6b7280;
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+/* Contact */
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.contact-item svg {
+  width: 24px;
+  height: 24px;
+  color: #5a67d8;
+  flex-shrink: 0;
+}
+
+.contact-item span {
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Localisation */
+.localisation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.local-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.local-item svg {
+  width: 24px;
+  height: 24px;
+  color: #5a67d8;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.local-item strong {
+  display: block;
+  color: #374151;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.local-item p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.938rem;
+}
+
+/* ============================================
+   ONGLET HORAIRES
+   ============================================ */
+.horaires-section {
+  padding: 3rem 0;
+  background: #f9fafb;
+}
+
+.horaires-card {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.horaires-card h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.horaires-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.horaire-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s;
+}
+
+.horaire-item:last-child {
+  border-bottom: none;
+}
+
+.horaire-item:hover {
+  background: #f9fafb;
+}
+
+.horaire-item.today {
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 100%);
+  border-left: 4px solid #5a67d8;
+  padding-left: calc(1.5rem - 4px);
+}
+
+.horaire-item.closed {
+  opacity: 0.6;
+}
+
+.jour-label {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.jour-nom {
+  font-weight: 600;
+  color: #374151;
+  font-size: 1rem;
+  text-transform: capitalize;
+}
+
+.today-badge {
+  background: #5a67d8;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.horaire-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 1rem;
+}
+
+.horaire-value .ferme {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+.horaires-note {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding: 1.25rem;
+  background: #fef3c7;
+  border-radius: 12px;
+  border: 1px solid #fbbf24;
+}
+
+.horaires-note svg {
+  width: 24px;
+  height: 24px;
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.horaires-note p {
+  color: #92400e;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .tabs-navigation .container {
+    overflow-x: auto;
+  }
+  
+  .tab-btn {
+    white-space: nowrap;
+    font-size: 0.875rem;
+    padding: 1rem;
+  }
+  
+  .apropos-card,
+  .horaires-card {
+    padding: 2rem 1.5rem;
+  }
+  
+  .apropos-card h2,
+  .horaires-card h2 {
+    font-size: 1.5rem;
+  }
+  
+  .horaire-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .horaire-value {
+    width: 100%;
+    text-align: left;
+  }
+}
