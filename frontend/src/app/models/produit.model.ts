@@ -62,6 +62,7 @@ export interface FiltresProduits {
   categorie?: string;
   sous_categorie?: string;
   boutique?: string;
+   statut?: string;
   prix_min?: number;
   prix_max?: number;
   marque?: string[];

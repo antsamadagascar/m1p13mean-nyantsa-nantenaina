@@ -30,4 +30,11 @@ router.get('/:idOrSlug', produitController.getProduit);
  */
 router.get('/:id/similaires', produitController.getProduitsSimilaires);
 
+/**
+ * @route   PATCH /api/produits/:id/statut
+ * @desc    Met à jour le statut d'un produit
+ * @access  Admin/Boutique
+ */
+router.patch('/:id/statut', produitController.updateStatutProduit);
+
 module.exports = router;

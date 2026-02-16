@@ -1,0 +1,6 @@
+/* Utilise Tailwind - Juste quelques ajustements si nécessaire */
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

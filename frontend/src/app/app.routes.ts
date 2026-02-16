@@ -63,6 +63,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      // Dans la section backoffice/children, ajoutez :
+      {
+        path: 'products',
+        loadComponent: () => import('./pages/admin/products/products.component')
+          .then(m => m.ProductsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'BOUTIQUE'] }
+      },
       {
         path: 'zones',
         loadComponent: () => import('./pages/admin/zones/zones.component')

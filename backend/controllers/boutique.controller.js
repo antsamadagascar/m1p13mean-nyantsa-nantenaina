@@ -302,6 +302,20 @@ const getBoutiquesPublic = async (req, res) => {
   }
 };
 
+// GET /api/boutiques/all
+const getAllBoutiques = async (req, res) => {
+  try {
+    const boutiques = await Boutique.find()
+      .select('_id nom slug') // récupère uniquement ces champs
+      .sort({ date_creation: -1 });
+
+    res.json(boutiques);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 module.exports = {
   createBoutique,
   getBoutiqueById,
@@ -309,5 +323,6 @@ module.exports = {
   getBoutiqueDetailsById,     
   suspendreBoutique,   
   reactiverBoutique,
-  getBoutiquesPublic
+  getBoutiquesPublic,
+  getAllBoutiques
 };

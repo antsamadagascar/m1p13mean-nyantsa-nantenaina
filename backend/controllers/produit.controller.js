@@ -10,6 +10,7 @@ exports.getProduits = async (req, res) => {
       categorie,
       sous_categorie,
       boutique,
+      statut,
       prix_min,
       prix_max,
       marque,
@@ -19,56 +20,55 @@ exports.getProduits = async (req, res) => {
       tags,
       tri = 'nouveaute',
       page = 1,
-      limite = 12
+      limite = 12,
+      admin = 'false'  //  if admin
     } = req.query;
 
     // Construction du filtre
-    const filtre = 
-    {   statut: 'ACTIF' };
+    const filtre = {};
+
+    // Si admin=true, on affiche tous les statuts (sauf si statut spécifique demandé)
+    // Sinon, uniquement ACTIF
+    if (admin === 'true') {
+      if (statut) {
+        filtre.statut = statut;
+      }
+      // Si admin et pas de filtre statut, on affiche tout
+    } else {
+      // Public : uniquement ACTIF
+      filtre.statut = 'ACTIF';
+    }
 
     // Recherche textuelle
     if (recherche) {
       filtre.$or = [
         { nom: { $regex: recherche, $options: 'i' } },
         { description: { $regex: recherche, $options: 'i' } },
+        { reference: { $regex: recherche, $options: 'i' } },
         { tags: { $in: [new RegExp(recherche, 'i')] } }
       ];
     }
 
-    // Catégorie
-    if (categorie) 
-    {   filtre.categorie = categorie;  }
+    if (categorie) filtre.categorie = categorie;
+    if (sous_categorie) filtre.sous_categorie = sous_categorie;
+    if (boutique) filtre.boutique = boutique;
 
-    // Sous-catégorie
-    if (sous_categorie) 
-    {   filtre.sous_categorie = sous_categorie;}
-
-    // Boutique
-    if (boutique) 
-    {   filtre.boutique = boutique; }
-
-    // Marque(s)
-    if (marque) 
-    {
+    if (marque) {
       const marques = marque.split(',');
       filtre.marque = { $in: marques };
     }
 
-    // Prix
     if (prix_min || prix_max) {
       filtre.prix = {};
       if (prix_min) filtre.prix.$gte = parseFloat(prix_min);
       if (prix_max) filtre.prix.$lte = parseFloat(prix_max);
     }
 
-
-    // Condition(s)
     if (condition) {
       const conditions = condition.split(',');
       filtre.condition = { $in: conditions };
     }
 
-    // En promotion
     if (en_promotion === 'true') {
       filtre.prix_promo = { $exists: true, $ne: null };
       filtre.$expr = {
@@ -79,9 +79,7 @@ exports.getProduits = async (req, res) => {
       };
     }
 
-    // Tags
-    if (tags)
-    {
+    if (tags) {
       const tagsList = tags.split(',');
       filtre.tags = { $in: tagsList };
     }
@@ -106,10 +104,8 @@ exports.getProduits = async (req, res) => {
         sortOptions = { date_creation: -1 };
     }
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limite);
 
-    // Requête avec population
     let query = Produit.find(filtre)
       .populate('boutique', 'nom slug')
       .populate('categorie', 'nom')
@@ -118,17 +114,15 @@ exports.getProduits = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limite));
 
-    // En stock uniquement (miankina @ gesions stock)
-    if (en_stock === 'true') 
-    {   query = query.where('quantite').gt(0); }
+    if (en_stock === 'true') {
+      query = query.where('quantite').gt(0);
+    }
 
-    // Exécution de la requête
     const [produits, total] = await Promise.all([
       query.exec(),
       Produit.countDocuments(filtre)
     ]);
 
-    // Calcul du nombre de pages
     const pages = Math.ceil(total / parseInt(limite));
 
     res.json({
@@ -157,21 +151,13 @@ exports.getFiltresDisponibles = async (req, res) => {
 
     const filtre = { statut: 'ACTIF' };
     
-    if (categorie) 
-    {   filtre.categorie = categorie; }
-    
-    if (sous_categorie) 
-    {  filtre.sous_categorie = sous_categorie; }
+    if (categorie) filtre.categorie = categorie;
+    if (sous_categorie) filtre.sous_categorie = sous_categorie;
 
-    // Aggrégation pour obtenir les filtres disponibles
     const [categoriesAgg, sousCategories, marques, prixRange, boutiques] = await Promise.all([
-      // Catégories avec comptage
       Produit.aggregate([
         { $match: filtre },
-        { $group: { 
-          _id: '$categorie', 
-          count: { $sum: 1 } 
-        }},
+        { $group: { _id: '$categorie', count: { $sum: 1 } }},
         { $lookup: {
           from: 'categories',
           localField: '_id',
@@ -187,13 +173,9 @@ exports.getFiltresDisponibles = async (req, res) => {
         { $sort: { nom: 1 } }
       ]),
 
-      // Sous-catégories avec comptage
       Produit.aggregate([
         { $match: { ...filtre, sous_categorie: { $exists: true } } },
-        { $group: { 
-          _id: '$sous_categorie', 
-          count: { $sum: 1 } 
-        }},
+        { $group: { _id: '$sous_categorie', count: { $sum: 1 } }},
         { $lookup: {
           from: 'souscategories',
           localField: '_id',
@@ -209,22 +191,13 @@ exports.getFiltresDisponibles = async (req, res) => {
         { $sort: { nom: 1 } }
       ]),
 
-      // Marques avec comptage
       Produit.aggregate([
         { $match: { ...filtre, marque: { $exists: true, $ne: null } } },
-        { $group: { 
-          _id: '$marque', 
-          count: { $sum: 1 } 
-        }},
-        { $project: {
-          _id: 0,
-          nom: '$_id',
-          count: 1
-        }},
+        { $group: { _id: '$marque', count: { $sum: 1 } }},
+        { $project: { _id: 0, nom: '$_id', count: 1 }},
         { $sort: { nom: 1 } }
       ]),
 
-      // Prix min/max
       Produit.aggregate([
         { $match: filtre },
         { $group: {
@@ -234,13 +207,9 @@ exports.getFiltresDisponibles = async (req, res) => {
         }}
       ]),
 
-      // Boutiques avec comptage
       Produit.aggregate([
         { $match: filtre },
-        { $group: { 
-          _id: '$boutique', 
-          count: { $sum: 1 } 
-        }},
+        { $group: { _id: '$boutique', count: { $sum: 1 } }},
         { $lookup: {
           from: 'boutiques',
           localField: '_id',
@@ -282,10 +251,8 @@ exports.getProduit = async (req, res) => {
   try {
     const { idOrSlug } = req.params;
 
-    // Vérifie si c'est un ObjectId MongoDB valide
     const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
 
-    // Recherche par ID ou slug
     const query = isValidObjectId 
       ? { _id: idOrSlug, statut: 'ACTIF' }
       : { slug: idOrSlug, statut: 'ACTIF' };
@@ -296,9 +263,7 @@ exports.getProduit = async (req, res) => {
       .populate('sous_categorie', 'nom slug');
 
     if (!produit) {
-      return res.status(404).json({
-        message: 'Produit non trouvé'
-      });
+      return res.status(404).json({ message: 'Produit non trouvé' });
     }
 
     res.json(produit);
@@ -323,12 +288,9 @@ exports.getProduitsSimilaires = async (req, res) => {
     const produit = await Produit.findById(id);
 
     if (!produit) {
-      return res.status(404).json({
-        message: 'Produit non trouvé'
-      });
+      return res.status(404).json({ message: 'Produit non trouvé' });
     }
 
-    // Produits similaires : même catégorie ou sous-catégorie
     const produitsSimilaires = await Produit.find({
       _id: { $ne: id },
       $or: [
@@ -349,6 +311,49 @@ exports.getProduitsSimilaires = async (req, res) => {
     console.error('Erreur getProduitsSimilaires:', error);
     res.status(500).json({
       message: 'Erreur lors de la récupération des produits similaires',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * Met à jour le statut d'un produit
+ */
+exports.updateStatutProduit = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { statut } = req.body;
+
+    const statutsValides = ['BROUILLON', 'ACTIF', 'RUPTURE', 'ARCHIVE'];
+    if (!statutsValides.includes(statut)) {
+      return res.status(400).json({ message: 'Statut invalide' });
+    }
+
+    const updateData = { statut };
+    if (statut === 'RUPTURE') updateData.quantite = 0;
+
+    const produit = await Produit.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    )
+    .populate('boutique', 'nom slug')
+    .populate('categorie', 'nom')
+    .populate('sous_categorie', 'nom');
+
+    if (!produit) {
+      return res.status(404).json({ message: 'Produit non trouvé' });
+    }
+
+    res.json({
+      message: 'Statut mis à jour avec succès',
+      produit
+    });
+
+  } catch (error) {
+    console.error('Erreur updateStatutProduit:', error);
+    res.status(500).json({
+      message: 'Erreur lors de la mise à jour du statut',
       error: error.message
     });
   }
