@@ -33,6 +33,12 @@ export class ProduitService {
 
   // Mettre à jour un produit avec image possible
   update(id: string, formData: FormData): Observable<any> {
+    console.log('🔄 Service: Mise à jour produit', id);
     return this.http.put(`${this.apiUrl}/${id}`, formData);
+  }
+  softDelete(id: string, motif?: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}/soft`, {
+      body: { motif }
+    });
   }
 }

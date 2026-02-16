@@ -15,6 +15,14 @@ router.post('/',
 
 router.post('/:id/stock', auth, produitController.addStock);
 
-router.put('/:id', auth, produitController.updateProduit);
+// router.put('/:id', auth, produitController.updateProduit);
+router.put(
+    '/:id',
+    auth,
+    upload.single('image'), // ⚠️ IMPORTANT: Middleware multer
+    produitController.updateProduit
+  );
+
+router.delete('/:id/soft', auth, produitController.softDeleteProduit);
 
 module.exports = router;
