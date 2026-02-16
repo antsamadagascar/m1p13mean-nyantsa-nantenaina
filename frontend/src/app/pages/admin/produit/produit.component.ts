@@ -521,6 +521,7 @@ export class ProduitComponent implements OnInit {
     this.selectedProduit = null;
     this.stockQuantite = 0;
   }
+  
 
   addStock() {
     if (!this.stockQuantite || this.stockQuantite <= 0) {
