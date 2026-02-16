@@ -4,6 +4,8 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ProductService } from '../../../services/produit.service';
 import { Produit } from '../../../models/produit.model';
+// IMPORT DE L'UTILITAIRE
+import * as HorairesUtils from '../../../utils/boutique-horaires.util';
 
 @Component({
   selector: 'app-product-detail',
@@ -47,8 +49,10 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  ngOnDestroy(): void
-  {   this.destroy$.next();  this.destroy$.complete(); }
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   /**
    * Charge les détails du produit
@@ -81,34 +85,38 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    */
   chargerProduitsSimilaires(produitId: string): void {
     this.productService.getProduitsSimilaires(produitId, 4).subscribe({
-      next: (produits: Produit[]) => 
-      {   this.produitsSimilaires = produits; },
-      error: (err: any) => 
-      {   console.error('Erreur lors du chargement des produits similaires:', err);  }
+      next: (produits: Produit[]) => {
+        this.produitsSimilaires = produits;
+      },
+      error: (err: any) => {
+        console.error('Erreur lors du chargement des produits similaires:', err);
+      }
     });
   }
 
   /**
    * Sélectionne une image
    */
-  selectionnerImage(index: number): void
-  {   this.imageSelectionnee = index ; }
+  selectionnerImage(index: number): void {
+    this.imageSelectionnee = index;
+  }
 
   /**
    * Image précédente
    */
-  imagePrecedente(): void 
-  {
-    if (this.produit && this.imageSelectionnee > 0) 
-    {    this.imageSelectionnee--; }
+  imagePrecedente(): void {
+    if (this.produit && this.imageSelectionnee > 0) {
+      this.imageSelectionnee--;
+    }
   }
 
   /**
    * Image suivante
    */
   imageSuivante(): void {
-    if (this.produit && this.imageSelectionnee < this.produit.images.length - 1) 
-    {   this.imageSelectionnee++; }
+    if (this.produit && this.imageSelectionnee < this.produit.images.length - 1) {
+      this.imageSelectionnee++;
+    }
   }
 
   /**
@@ -124,7 +132,7 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    * Augmente la quantité
    */
   augmenterQuantite(): void {
-    if (this.produit) {
+    if (this.produit && this.peutAcheter()) {
       const stockDisponible = this.varianteSelectionnee 
         ? this.varianteSelectionnee.quantite 
         : this.produit.quantite;
@@ -152,13 +160,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.quantite = 1; // Reset quantité
   }
 
-
   /**
    * Acheter maintenant
    */
   acheterMaintenant(): void {
-    if (!this.produit) return;
+    if (!this.produit || !this.peutAcheter()) {
+      return;
+    }
 
+    // TODO: Ajouter au panier
     // Rediriger vers le panier après un court délai
     setTimeout(() => {
       if (!this.ajoutEnCours) {
@@ -222,4 +232,57 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     return Array(5).fill(false).map((_, i) => i < note);
   }
 
+  // ============================================
+  // MÉTHODES POUR GÉRER LES HORAIRES
+  // ============================================
+
+  /**
+   * Vérifie si la boutique est ouverte
+   */
+  estBoutiqueOuverte(): boolean {
+    if (!this.produit?.boutique?.horaires) {
+      return false;
+    }
+    return HorairesUtils.estOuverte(this.produit.boutique.horaires);
+  }
+
+  /**
+   * Obtient le message de statut de la boutique
+   */
+  getStatutBoutique(): string {
+    if (!this.produit?.boutique?.horaires) {
+      return 'Horaires non disponibles';
+    }
+    return HorairesUtils.getStatutMessage(this.produit.boutique.horaires);
+  }
+
+  /**
+   * Obtient les horaires d'aujourd'hui
+   */
+  getHorairesAujourdhui(): string {
+    if (!this.produit?.boutique?.horaires) {
+      return 'Non disponible';
+    }
+    return HorairesUtils.getHorairesAujourdhui(this.produit.boutique.horaires);
+  }
+
+  /**
+   * Vérifie si on peut acheter (boutique ouverte ET stock disponible)
+   */
+  peutAcheter(): boolean {
+    return this.estBoutiqueOuverte() && this.isEnStock();
+  }
+
+  /**
+   * Obtient le message pour le bouton d'achat
+   */
+  getMessageAchat(): string {
+    if (!this.estBoutiqueOuverte()) {
+      return 'Boutique fermée';
+    }
+    if (!this.isEnStock()) {
+      return 'Rupture de stock';
+    }
+    return 'Ajouter au panier';
+  }
 }

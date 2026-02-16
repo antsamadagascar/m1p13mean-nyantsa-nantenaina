@@ -1,3 +1,4 @@
+import { HorairesBoutique } from './boutique.model'; 
 
 
 export interface Produit {
@@ -21,6 +22,7 @@ export interface Produit {
     _id: string;
     nom: string;
     slug: string;
+    horaires?: HorairesBoutique; 
   };
   categorie: {
     _id: string;

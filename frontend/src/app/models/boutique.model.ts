@@ -1,3 +1,28 @@
+// ============================================
+// INTERFACES POUR LES HORAIRES
+// ============================================
+
+export interface Horaire {
+  ouvert: boolean;
+  debut: string;
+  fin: string;
+}
+
+export interface HorairesBoutique {
+  lundi: Horaire;
+  mardi: Horaire;
+  mercredi: Horaire;
+  jeudi: Horaire;
+  vendredi: Horaire;
+  samedi: Horaire;
+  dimanche: Horaire;
+  [key: string]: Horaire; // Index signature pour accès dynamique
+}
+
+// ============================================
+// AUTRES INTERFACES
+// ============================================
+
 export interface Boutique {
   _id: string;
   nom: string;
@@ -10,11 +35,13 @@ export interface Boutique {
   categorie: string | Categorie;  
   sous_categories?: (string | SousCategorie)[];
   contact: Contact;
-  horaires: any;
+  horaires: HorairesBoutique;  // ✅ Typé correctement
   statut: Statut;
   estOuverte?: boolean;
+  statutMessage?: string;
   date_creation?: Date;
 }
+
 export interface Gerant {
   nom: string;
   prenom: string;
@@ -39,7 +66,7 @@ export interface Localisation {
   latitude?: number;
   longitude?: number;
   surface?: number;
-   adresse_complete?: string;
+  adresse_complete?: string;
 }
 
 export interface Categorie {

@@ -2,6 +2,8 @@ const Boutique = require('../models/Boutique');
 const Zone = require('../models/Zone');
 const slugify = require('slugify');
 const { sendBoutiqueCreationEmail } = require('../services/email.service');
+// IMPORT DE L'UTILITAIRE
+const HorairesUtils = require('../utils/boutique-horaires.utils');
 
 // @desc    Créer une nouvelle boutique
 // @route   POST /api/boutiques
@@ -42,7 +44,6 @@ const createBoutique = async (req, res) => {
       locale: 'fr'
     });
 
-
     // Données de localisation
     const localisationData = {
       zone: localisation.zone,
@@ -80,7 +81,7 @@ const createBoutique = async (req, res) => {
       await sendBoutiqueCreationEmail(boutique);
       console.log('Email envoyé au gérant');
     } catch (emailError) {
-      console.error(' Erreur envoi email (boutique créée quand même):', emailError.message);
+      console.error('Erreur envoi email (boutique créée quand même):', emailError.message);
     }
 
     res.status(201).json({
@@ -139,7 +140,7 @@ const getBoutiqueById = async (req, res) => {
     });
 
   } catch (error) {
-    console.error(' Erreur récupération boutique:', error);
+    console.error('Erreur récupération boutique:', error);
 
     res.status(500).json({
       success: false,
@@ -167,10 +168,10 @@ const getBoutiques = async (req, res) => {
 
     // Filtrage par zone (sécurisé)
     if (zone) {
+      const mongoose = require('mongoose');
       if (mongoose.Types.ObjectId.isValid(zone)) {
         filters['localisation.zone'] = zone;
       } else {
-        // Option : return erreur 400 si l'ID est invalide
         return res.status(400).json({
           success: false,
           message: 'ID de zone invalide'
@@ -187,24 +188,8 @@ const getBoutiques = async (req, res) => {
       .populate('localisation.zone')
       .sort({ date_creation: -1 });
 
-    // Calcul statut ouvert/fermé
-    const boutiquesAvecStatut = boutiques.map(boutique => {
-      const maintenant = new Date();
-      const jour = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][maintenant.getDay()];
-      const horaireJour = boutique.horaires[jour];
-
-      let estOuverte = false;
-      if (horaireJour?.ouvert) {
-        const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
-        const [hD, mD] = horaireJour.debut.split(':').map(Number);
-        const [hF, mF] = horaireJour.fin.split(':').map(Number);
-        const debut = hD * 60 + mD;
-        const fin = hF * 60 + mF;
-        estOuverte = heureActuelle >= debut && heureActuelle <= fin;
-      }
-
-      return { ...boutique.toObject(), estOuverte };
-    });
+    // UTILISATION DE L'UTILITAIRE pour ajouter le statut
+    const boutiquesAvecStatut = HorairesUtils.ajouterStatutOuvertureBatch(boutiques);
 
     res.json({ success: true, data: boutiquesAvecStatut });
   } catch (error) {
@@ -224,22 +209,10 @@ const getBoutiqueDetailsById = async (req, res) => {
       return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
-    // Ajouter statut ouvert/fermé
-    const maintenant = new Date();
-    const jour = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][maintenant.getDay()];
-    const horaireJour = boutique.horaires[jour];
-    
-    let estOuverte = false;
-    if (horaireJour.ouvert) {
-      const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
-      const [hD, mD] = horaireJour.debut.split(':').map(Number);
-      const [hF, mF] = horaireJour.fin.split(':').map(Number);
-      const debut = hD * 60 + mD;
-      const fin = hF * 60 + mF;
-      estOuverte = heureActuelle >= debut && heureActuelle <= fin;
-    }
+    // UTILISATION DE L'UTILITAIRE pour ajouter le statut
+    const boutiqueAvecStatut = HorairesUtils.ajouterStatutOuverture(boutique);
 
-    res.json({ ...boutique.toObject(), estOuverte });
+    res.json(boutiqueAvecStatut);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -299,6 +272,7 @@ const reactiverBoutique = async (req, res) => {
   }
 };
 
+// BOUTIQUES PUBLIQUES - UTILISE L'UTILITAIRE
 const getBoutiquesPublic = async (req, res) => {
   try {
     const { categorie, zone, search } = req.query;
@@ -319,23 +293,8 @@ const getBoutiquesPublic = async (req, res) => {
       .populate('localisation.zone')
       .sort({ 'date_creation': -1 });
 
-    const boutiquesAvecStatut = boutiques.map(boutique => {
-      const maintenant = new Date();
-      const jour = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'][maintenant.getDay()];
-      const horaireJour = boutique.horaires[jour];
-      
-      let estOuverte = false;
-      if (horaireJour.ouvert) {
-        const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
-        const [hD, mD] = horaireJour.debut.split(':').map(Number);
-        const [hF, mF] = horaireJour.fin.split(':').map(Number);
-        const debut = hD * 60 + mD;
-        const fin = hF * 60 + mF;
-        estOuverte = heureActuelle >= debut && heureActuelle <= fin;
-      }
-
-      return { ...boutique.toObject(), estOuverte };
-    });
+    // UTILISATION DE L'UTILITAIRE pour ajouter le statut
+    const boutiquesAvecStatut = HorairesUtils.ajouterStatutOuvertureBatch(boutiques);
 
     res.json(boutiquesAvecStatut);
   } catch (error) {
