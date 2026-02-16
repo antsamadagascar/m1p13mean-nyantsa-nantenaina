@@ -114,7 +114,11 @@ export class ProductsComponent implements OnInit {
     
     if (confirm(`Changer le statut de "${produit.nom}" en "${nouveauStatut}" ?`)) {
       this.productService.updateStatutProduit(produit._id, nouveauStatut).subscribe({
-        next: (produitMisAJour) => {
+        next: (response: any) => {
+          
+          // Le backend retourne { message, produit }
+          const produitMisAJour = response.produit || response;
+          
           const index = this.produits.findIndex(p => p._id === produit._id);
           if (index !== -1) {
             this.produits[index] = produitMisAJour;
