@@ -248,7 +248,10 @@
 
             <!-- Date de création -->
             <div class="text-xs text-gray-500 text-center pt-2 border-t">
-              Créé le {{ produit.date_creation | date:'dd/MM/yyyy à HH:mm' }}
+             <div> Créé le {{ produit.date_creation | date:'dd/MM/yyyy à HH:mm' }} </div>
+             <div *ngIf="produit.date_modification">
+                Modifié le {{ produit.date_modification |  date:'dd/MM/yyyy à HH:mm' }}
+              </div>
             </div>
           </div>
         </div>

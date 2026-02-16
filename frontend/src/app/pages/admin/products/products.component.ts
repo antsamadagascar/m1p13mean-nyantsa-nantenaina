@@ -6,7 +6,6 @@ import { ProductService } from '../../../services/produit.service';
 import { AuthService } from '../../../services/auth.service';
 import { AlertService } from '../../../services/alert.service';
 import { Produit, FiltresProduits, FiltresDisponibles } from '../../../models/produit.model';
-
 interface BoutiqueSimple {
   _id: string;
   nom: string;
@@ -115,7 +114,7 @@ export class ProductsComponent implements OnInit {
     if (confirm(`Changer le statut de "${produit.nom}" en "${nouveauStatut}" ?`)) {
       this.productService.updateStatutProduit(produit._id, nouveauStatut).subscribe({
         next: (response: any) => {
-          
+
           // Le backend retourne { message, produit }
           const produitMisAJour = response.produit || response;
           
