@@ -37,6 +37,7 @@ export class ProductsComponent implements OnInit {
   rechercheTexte = '';
   boutiqueSelectionnee = '';
   categorieSelectionnee = '';
+  statutSelectionne = '';
 
   constructor(
     private productService: ProductService,
@@ -88,7 +89,8 @@ export class ProductsComponent implements OnInit {
       page: 1,
       recherche: this.rechercheTexte || undefined,
       boutique: this.boutiqueSelectionnee || undefined,
-      categorie: this.categorieSelectionnee || undefined
+      categorie: this.categorieSelectionnee || undefined,
+      statut: this.statutSelectionne || undefined
     };
     this.chargerProduits();
   }
@@ -142,6 +144,16 @@ export class ProductsComponent implements OnInit {
       'ARCHIVE': 'bg-gray-100 text-gray-800'
     };
     return classes[statut] || 'bg-gray-100 text-gray-800';
+  }
+
+  getStatutLabel(statut: string): string {
+    const labels: { [key: string]: string } = {
+      'BROUILLON': 'Brouillon',
+      'ACTIF': 'Actif',
+      'RUPTURE': 'Rupture de stock',
+      'ARCHIVE': 'Archivé'
+    };
+    return labels[statut] || statut;
   }
 
   get pagesArray(): number[] {
