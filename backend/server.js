@@ -58,6 +58,8 @@ app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/zones', zoneRoutes);
 app.use('/api/produits',produitRoutes);
 
+app.use('/uploads', express.static('uploads'));
+
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 
 
