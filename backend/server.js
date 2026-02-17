@@ -38,6 +38,7 @@ require('./models/Boutique');
 require('./models/Categorie');
 require('./models/SousCategorie');
 require('./models/Zone'); 
+require('./models/Produit');
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -47,7 +48,6 @@ const categorieRoutes = require('./routes/categorieRoutes');
 const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 const zoneRoutes = require('./routes/zone.routes'); 
 const produitRoutes = require('./routes/produit.routes')
-
 
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/users', userRoutes);

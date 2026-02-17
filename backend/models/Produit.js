@@ -105,7 +105,6 @@ const produitSchema = new mongoose.Schema({
     enum: ['NEUF', 'OCCASION', 'RECONDITIONNE'],
     default: 'NEUF'
   },
-
   //updated
  quantite: {
     type: Number,
@@ -197,8 +196,6 @@ const produitSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  
-
 }, {
   // new - updated
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' },

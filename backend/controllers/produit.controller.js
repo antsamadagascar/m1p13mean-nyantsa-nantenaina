@@ -1,378 +1,296 @@
 const Produit = require('../models/Produit');
 const MouvementStock = require('../models/MouvementStock');
-const path = require('path');
 
-exports.getMesProduits = async (req, res) => {
-    try {
-      if (req.user.role !== 'BOUTIQUE') {
-        return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-      }
-  
-      if (!req.user.boutiqueId) {
-        return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-      }
-  
-      const produits = await Produit.find({
-        boutique: req.user.boutiqueId,
-        supprime: false,
-        statut: { $in: ['ACTIF', 'BROUILLON', 'RUPTURE'] } // Exclure ARCHIVE
-      })
+
+
+/* =========================================================
+   =================== PARTIE PUBLIQUE =====================
+========================================================= */
+
+/**
+ * Récupère la liste des produits avec filtres et pagination
+ */
+exports.getProduits = async (req, res) => {
+  try {
+    const {
+      recherche,
+      categorie,
+      sous_categorie,
+      boutique,
+      statut,
+      prix_min,
+      prix_max,
+      marque,
+      condition,
+      en_promotion,
+      en_stock,
+      tags,
+      tri = 'nouveaute',
+      page = 1,
+      limite = 12,
+      admin = 'false'
+    } = req.query;
+
+    const filtre = { supprime: { $ne: true } };
+
+    if (admin === 'true') {
+      if (statut) filtre.statut = statut;
+    } else {
+      filtre.statut = 'ACTIF';
+    }
+
+    if (recherche) {
+      filtre.$or = [
+        { nom: { $regex: recherche, $options: 'i' } },
+        { description: { $regex: recherche, $options: 'i' } },
+        { reference: { $regex: recherche, $options: 'i' } }
+      ];
+    }
+
+    if (categorie) filtre.categorie = categorie;
+    if (sous_categorie) filtre.sous_categorie = sous_categorie;
+    if (boutique) filtre.boutique = boutique;
+
+    if (marque) filtre.marque = { $in: marque.split(',') };
+
+    if (prix_min || prix_max) {
+      filtre.prix = {};
+      if (prix_min) filtre.prix.$gte = Number(prix_min);
+      if (prix_max) filtre.prix.$lte = Number(prix_max);
+    }
+
+    if (condition) filtre.condition = { $in: condition.split(',') };
+    if (tags) filtre.tags = { $in: tags.split(',') };
+
+    if (en_stock === 'true') filtre.quantite = { $gt: 0 };
+
+    let sortOptions = { date_creation: -1 };
+    if (tri === 'prix_asc') sortOptions = { prix: 1 };
+    if (tri === 'prix_desc') sortOptions = { prix: -1 };
+    if (tri === 'populaire') sortOptions = { ventes: -1 };
+    if (tri === 'meilleures_notes') sortOptions = { note_moyenne: -1 };
+
+    const skip = (Number(page) - 1) * Number(limite);
+
+    const [produits, total] = await Promise.all([
+      Produit.find(filtre)
+        .populate('boutique', 'nom slug')
         .populate('categorie', 'nom')
         .populate('sous_categorie', 'nom')
-        .sort({ date_creation: -1 });
-  
-      res.json(produits);
-  
-    } catch (error) {
-      console.error('❌ Erreur getMesProduits:', error);
-      res.status(500).json({ message: error.message });
-    }
-  };
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limite)),
+      Produit.countDocuments(filtre)
+    ]);
+
+    res.json({
+      produits,
+      total,
+      page: Number(page),
+      pages: Math.ceil(total / Number(limite)),
+      limite: Number(limite)
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+/**
+ * Récupère un produit par ID ou slug
+ */
+exports.getProduit = async (req, res) => {
+  try {
+    const { idOrSlug } = req.params;
+    const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
+
+    const query = isValidObjectId
+      ? { _id: idOrSlug, statut: 'ACTIF', supprime: { $ne: true } }
+      : { slug: idOrSlug, statut: 'ACTIF', supprime: { $ne: true } };
+
+    const produit = await Produit.findOne(query)
+      .populate('boutique', 'nom slug')
+      .populate('categorie', 'nom')
+      .populate('sous_categorie', 'nom');
+
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    res.json(produit);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+/**
+ * Produits similaires
+ */
+exports.getProduitsSimilaires = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { limite = 4 } = req.query;
+
+    const produit = await Produit.findById(id);
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    const similaires = await Produit.find({
+      _id: { $ne: id },
+      statut: 'ACTIF',
+      supprime: { $ne: true },
+      $or: [
+        { categorie: produit.categorie },
+        { sous_categorie: produit.sous_categorie },
+        { tags: { $in: produit.tags || [] } }
+      ]
+    })
+      .limit(Number(limite))
+      .sort({ ventes: -1 });
+
+    res.json(similaires);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+/* =========================================================
+   =================== PARTIE BOUTIQUE =====================
+========================================================= */
+
+exports.getMesProduits = async (req, res) => {
+  try {
+    const produits = await Produit.find({
+      boutique: req.user.boutiqueId,
+      supprime: false
+    }).sort({ date_creation: -1 });
+
+    res.json(produits);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 exports.createProduit = async (req, res) => {
   try {
-    if (req.user.role !== 'BOUTIQUE') {
-      return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-    }
-
-    if (!req.user.boutiqueId) {
-      return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-    }
-
     const {
       nom,
-      description,
-      description_courte,
       reference,
-      marque,
       prix,
-      prix_promo,
       quantite,
-      stock_minimum,
-      categorie,
-      sous_categorie,
-      condition,
-      tags,
-      caracteristiques
+      categorie
     } = req.body;
 
-    // ✅ Validation minimale
     if (!nom || !reference || !prix || quantite == null || !categorie) {
-      return res.status(400).json({
-        message: 'Champs obligatoires manquants (nom, référence, prix, quantité, catégorie)'
-      });
+      return res.status(400).json({ message: 'Champs obligatoires manquants' });
     }
 
-    // 🔎 Vérifier référence unique
-    const referenceExist = await Produit.findOne({ reference });
-    if (referenceExist) {
-      return res.status(400).json({
-        message: 'Cette référence existe déjà'
-      });
-    }
-
-    // 📷 Gérer l'image uploadée avec la nouvelle structure
-    const images = [];
-    if (req.file) {
-      images.push({
-        url: req.file.path, // ou req.file.filename selon config
-        principale: true, // La première image est principale
-        alt: nom,
-        ordre: 0
-      });
-    }
-
-    // 🏗 Création produit
     const produit = new Produit({
-      nom,
-      description,
-      description_courte,
-      reference,
-      marque,
-      prix,
-      prix_promo,
-      quantite,
-      stock_minimum: stock_minimum || 0,
-      categorie,
-      sous_categorie: sous_categorie || null,
-      statut: 'BROUILLON',
-      condition: condition || 'NEUF',
-      tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
-      caracteristiques: caracteristiques ? (Array.isArray(caracteristiques) ? caracteristiques : JSON.parse(caracteristiques)) : [],
-      images,
+      ...req.body,
       boutique: req.user.boutiqueId,
-      gestion_stock: 'SIMPLE'
+      statut: 'BROUILLON',
+      supprime: false
     });
 
     await produit.save();
 
-    // 🔄 Création mouvement stock initial
-    if (quantite > 0) {
-      await MouvementStock.create({
-        produit: produit._id,
-        type: 'ENTREE',
-        quantite: quantite,
-        motif: 'Stock initial',
-        boutique: req.user.boutiqueId
-      });
-    }
-
-    const produitPopulate = await Produit.findById(produit._id)
-      .populate('categorie', 'nom')
-      .populate('sous_categorie', 'nom');
-
-    res.status(201).json(produitPopulate);
+    res.status(201).json(produit);
 
   } catch (error) {
-    console.error('Erreur création produit:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
+
+
 exports.updateProduit = async (req, res) => {
-    try {
-      const produitId = req.params.id;
-      
-      console.log('🔄 Mise à jour produit:', produitId);
-      console.log('📦 Body reçu:', req.body);
-      console.log('📎 Fichier reçu:', req.file);
-  
-      // Vérifier rôle
-      if (req.user.role !== 'BOUTIQUE') {
-        return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-      }
-  
-      if (!req.user.boutiqueId) {
-        return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-      }
-  
-      // Récupérer le produit
-      const produit = await Produit.findOne({
-        _id: produitId,
-        boutique: req.user.boutiqueId
-      });
-  
-      if (!produit) {
-        return res.status(404).json({ message: 'Produit non trouvé' });
-      }
-  
-      const {
-        nom,
-        description,
-        description_courte,
-        reference,
-        marque,
-        prix,
-        prix_promo,
-        stock_minimum,
-        categorie,
-        sous_categorie,
-        statut,
-        condition,
-        tags
-      } = req.body;
-  
-      // Vérifier référence unique (si modifiée)
-      if (reference && reference !== produit.reference) {
-        const referenceExist = await Produit.findOne({ reference });
-        if (referenceExist) {
-          return res.status(400).json({ message: 'Cette référence existe déjà' });
-        }
-      }
-  
-      // Mise à jour des champs de base
-      if (nom !== undefined) produit.nom = nom;
-      if (description !== undefined) produit.description = description;
-      if (description_courte !== undefined) produit.description_courte = description_courte;
-      if (reference !== undefined) produit.reference = reference;
-      if (marque !== undefined) produit.marque = marque;
-      if (prix !== undefined) produit.prix = Number(prix);
-      if (prix_promo !== undefined) {
-        produit.prix_promo = prix_promo ? Number(prix_promo) : null;
-      }
-      if (stock_minimum !== undefined) produit.stock_minimum = Number(stock_minimum);
-      if (categorie !== undefined) produit.categorie = categorie;
-      if (sous_categorie !== undefined) {
-        produit.sous_categorie = sous_categorie || null;
-      }
-      if (statut !== undefined) produit.statut = statut;
-      if (condition !== undefined) produit.condition = condition;
-  
-      // Gérer les tags
-      if (tags !== undefined) {
-        try {
-          produit.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
-        } catch (e) {
-          console.log('⚠️ Erreur parsing tags:', e);
-          produit.tags = [];
-        }
-      }
-  
-      // Gérer la nouvelle image
-      if (req.file) {
-        const imagePath = `uploads/produits/${req.file.filename}`;
-        console.log('🖼️ Nouvelle image:', imagePath);
-        
-        const newImage = {
-          url: imagePath,
-          principale: produit.images.length === 0, // Principale si c'est la première
-          alt: nom || produit.nom,
-          ordre: produit.images.length
-        };
-        
-        produit.images.push(newImage);
-      }
-  
-      await produit.save();
-      console.log('✅ Produit mis à jour avec succès');
-  
-      const produitPopulate = await Produit.findById(produit._id)
-        .populate('categorie', 'nom')
-        .populate('sous_categorie', 'nom');
-  
-      res.json(produitPopulate);
-  
-    } catch (error) {
-      console.error('❌ Erreur mise à jour produit:', error);
-      console.error('Stack trace:', error.stack);
-      res.status(500).json({ 
-        message: error.message,
-        error: process.env.NODE_ENV === 'development' ? error.stack : undefined
-      });
-    }
-  };
+  try {
+    const produit = await Produit.findOne({
+      _id: req.params.id,
+      boutique: req.user.boutiqueId
+    });
+
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    Object.assign(produit, req.body);
+    await produit.save();
+
+    res.json(produit);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
 
 exports.addStock = async (req, res) => {
   try {
-    const produitId = req.params.id;
     const { quantite } = req.body;
 
-    // Vérifier rôle
-    if (req.user.role !== 'BOUTIQUE') {
-      return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-    }
-
-    if (!req.user.boutiqueId) {
-      return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-    }
-
-    if (!quantite || quantite <= 0) {
-      return res.status(400).json({ message: 'Quantité invalide' });
-    }
-
-    // Récupérer le produit
     const produit = await Produit.findOne({
-      _id: produitId,
+      _id: req.params.id,
       boutique: req.user.boutiqueId
     });
 
-    if (!produit) {
-      return res.status(404).json({ message: 'Produit non trouvé' });
-    }
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
 
-    // Mettre à jour la quantité
-    produit.quantite += quantite;
+    produit.quantite += Number(quantite);
     await produit.save();
 
-    // Créer mouvement de stock
     await MouvementStock.create({
       produit: produit._id,
       type: 'ENTREE',
-      quantite,
-      motif: 'Ajout stock manuel',
-      boutique: req.user.boutiqueId
+      quantite
     });
 
-    const produitPopulate = await Produit.findById(produit._id)
-      .populate('categorie', 'nom')
-      .populate('sous_categorie', 'nom');
-
-    res.json(produitPopulate);
+    res.json(produit);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// 🆕 Supprimer une image spécifique
-exports.deleteImage = async (req, res) => {
+
+
+exports.updateStatutProduit = async (req, res) => {
   try {
-    const { produitId, imageId } = req.params;
+    const { statut } = req.body;
 
-    if (req.user.role !== 'BOUTIQUE') {
-      return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-    }
+    const produit = await Produit.findByIdAndUpdate(
+      req.params.id,
+      { statut },
+      { new: true }
+    );
 
-    const produit = await Produit.findOne({
-      _id: produitId,
-      boutique: req.user.boutiqueId
-    });
-
-    if (!produit) {
-      return res.status(404).json({ message: 'Produit non trouvé' });
-    }
-
-    // Retirer l'image
-    produit.images = produit.images.filter(img => img._id.toString() !== imageId);
-    
-    // Si l'image supprimée était principale, mettre la première comme principale
-    if (produit.images.length > 0 && !produit.images.some(img => img.principale)) {
-      produit.images[0].principale = true;
-    }
-
-    await produit.save();
-
-    res.json({ message: 'Image supprimée avec succès', produit });
+    res.json(produit);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+
 
 exports.softDeleteProduit = async (req, res) => {
-    try {
-      const produitId = req.params.id;
-      const { motif } = req.body; // Motif optionnel de suppression
-  
-      console.log('🗑️ Suppression logique du produit:', produitId);
-  
-      // Vérifier rôle
-      if (req.user.role !== 'BOUTIQUE') {
-        return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-      }
-  
-      if (!req.user.boutiqueId) {
-        return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-      }
-  
-      // Récupérer le produit
-      const produit = await Produit.findOne({
-        _id: produitId,
-        boutique: req.user.boutiqueId,
-        supprime: false // Seulement les produits non supprimés
-      });
-  
-      if (!produit) {
-        return res.status(404).json({ message: 'Produit non trouvé' });
-      }
-  
-      // Marquer comme supprimé
-      produit.supprime = true;
-      produit.date_suppression = new Date();
-      produit.supprime_par = req.user._id;
-      produit.statut = 'ARCHIVE'; // Changer le statut aussi
-  
-      await produit.save();
-  
-      console.log('✅ Produit marqué comme supprimé');
-  
-      res.json({ 
-        message: 'Produit supprimé avec succès',
-        produit 
-      });
-  
-    } catch (error) {
-      console.error('❌ Erreur suppression produit:', error);
-      res.status(500).json({ message: error.message });
-    }
-  };
+  try {
+    const produit = await Produit.findById(req.params.id);
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    produit.supprime = true;
+    produit.statut = 'ARCHIVE';
+    await produit.save();
+
+    res.json({ message: 'Produit supprimé' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
