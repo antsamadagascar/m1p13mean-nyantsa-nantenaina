@@ -35,7 +35,7 @@ export interface Boutique {
   categorie: string | Categorie;  
   sous_categories?: (string | SousCategorie)[];
   contact: Contact;
-  horaires: HorairesBoutique;  // ✅ Typé correctement
+  horaires: HorairesBoutique; 
   statut: Statut;
   estOuverte?: boolean;
   statutMessage?: string;
