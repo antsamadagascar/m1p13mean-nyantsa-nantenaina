@@ -14,8 +14,8 @@ interface BoutiqueSimple {
   selector: 'app-products',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './products.component.html',
-  styleUrls: ['./products.component.css']
+  templateUrl: './products-list-admin.component.html',
+  styleUrls: ['./products-list-admin.component.css']
 })
 export class ProductsComponent implements OnInit {
   produits: Produit[] = [];
