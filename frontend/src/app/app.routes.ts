@@ -72,7 +72,7 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
       {
-        path: 'products',
+        path: 'products/boutique',
         loadComponent: () => import('./pages/admin/produit/produit.component')
           .then(m => m.ProduitComponent),
         canActivate: [roleGuard],

@@ -85,7 +85,7 @@ export class AdminLayoutComponent implements OnInit {
       ];
 
       this.managementMenuItems = [
-        { path: '/backoffice/products', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
+        { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
         { path: '/backoffice/boutiques', label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false }
       ];
