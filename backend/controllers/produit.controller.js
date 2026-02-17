@@ -383,7 +383,7 @@ exports.getMesProduits = async (req, res) => {
       res.json(produits);
   
     } catch (error) {
-      console.error('❌ Erreur getMesProduits:', error);
+      console.error(' Erreur getMesProduits:', error);
       res.status(500).json({ message: error.message });
     }
   };
@@ -421,7 +421,7 @@ exports.getMesProduits = async (req, res) => {
       console.log('📦 Body reçu:', req.body);
       console.log('📎 Fichier reçu:', req.file);
   
-      // ✅ Validation minimale
+      //  Validation minimale
       if (!nom || !reference || !prix || quantite == null || !categorie) {
         return res.status(400).json({
           message: 'Champs obligatoires manquants (nom, référence, prix, quantité, catégorie)'
@@ -444,7 +444,7 @@ exports.getMesProduits = async (req, res) => {
         try {
           tagsParsed = typeof tags === 'string' ? JSON.parse(tags) : tags;
         } catch (e) {
-          console.error('⚠️ Erreur parsing tags:', e);
+          console.error(' Erreur parsing tags:', e);
           tagsParsed = [];
         }
       }
@@ -468,7 +468,7 @@ exports.getMesProduits = async (req, res) => {
             }));
   
         } catch (e) {
-          console.error('⚠️ Erreur parsing caractéristiques:', e);
+          console.error(' Erreur parsing caractéristiques:', e);
           caracsParsed = [];
         }
       }
@@ -509,7 +509,7 @@ exports.getMesProduits = async (req, res) => {
           }
   
         } catch (e) {
-          console.error('⚠️ Erreur parsing variantes:', e);
+          console.error(' Erreur parsing variantes:', e);
           return res.status(400).json({ message: 'Format des variantes invalide' });
         }
       }
@@ -527,7 +527,7 @@ exports.getMesProduits = async (req, res) => {
           alt:        nom,
           ordre:      0
         });
-        console.log('🖼️ Image sauvegardée:', imagePath);
+        console.log(' Image sauvegardée:', imagePath);
       }
   
       // ─── Calcul de la quantité totale ────────────────────────
@@ -561,9 +561,9 @@ exports.getMesProduits = async (req, res) => {
       });
   
       await produit.save();
-      console.log('✅ Produit créé:', produit._id);
+      console.log(' Produit créé:', produit._id);
   
-      // 🔄 Création mouvement stock initial
+      // Création mouvement stock initial
       if (quantiteTotale > 0) {
         await MouvementStock.create({
           produit:  produit._id,
@@ -576,7 +576,7 @@ exports.getMesProduits = async (req, res) => {
         });
       }
   
-      // 📤 Retourner le produit populé
+      //  Retourner le produit populé
       const produitPopulate = await Produit.findById(produit._id)
         .populate('categorie',     'nom')
         .populate('sous_categorie', 'nom');
@@ -584,7 +584,7 @@ exports.getMesProduits = async (req, res) => {
       res.status(201).json(produitPopulate);
   
     } catch (error) {
-      console.error('❌ Erreur création produit:', error);
+      console.error(' Erreur création produit:', error);
       res.status(500).json({ message: error.message });
     }
   };
@@ -592,30 +592,28 @@ exports.getMesProduits = async (req, res) => {
 exports.updateProduit = async (req, res) => {
     try {
       const produitId = req.params.id;
-      
-      console.log('🔄 Mise à jour produit:', produitId);
-      console.log('📦 Body reçu:', req.body);
-      console.log('📎 Fichier reçu:', req.file);
-  
+      console.log(' Mise à jour produit:', produitId);
+      console.log(' Body reçu:', req.body);
+      console.log(' Fichier reçu:', req.file);
+
       // Vérifier rôle
       if (req.user.role !== 'BOUTIQUE') {
         return res.status(403).json({ message: 'Accès réservé aux boutiques' });
       }
-  
       if (!req.user.boutiqueId) {
         return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
       }
-  
+
       // Récupérer le produit
       const produit = await Produit.findOne({
         _id: produitId,
         boutique: req.user.boutiqueId
       });
-  
+
       if (!produit) {
         return res.status(404).json({ message: 'Produit non trouvé' });
       }
-  
+
       const {
         nom,
         description,
@@ -629,9 +627,12 @@ exports.updateProduit = async (req, res) => {
         sous_categorie,
         statut,
         condition,
-        tags
+        tags,
+        caracteristiques,    
+        variantes,           
+        gestion_stock        
       } = req.body;
-  
+
       // Vérifier référence unique (si modifiée)
       if (reference && reference !== produit.reference) {
         const referenceExist = await Produit.findOne({ reference });
@@ -639,7 +640,7 @@ exports.updateProduit = async (req, res) => {
           return res.status(400).json({ message: 'Cette référence existe déjà' });
         }
       }
-  
+
       // Mise à jour des champs de base
       if (nom !== undefined) produit.nom = nom;
       if (description !== undefined) produit.description = description;
@@ -657,45 +658,147 @@ exports.updateProduit = async (req, res) => {
       }
       if (statut !== undefined) produit.statut = statut;
       if (condition !== undefined) produit.condition = condition;
-  
+
       // Gérer les tags
       if (tags !== undefined) {
         try {
           produit.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
         } catch (e) {
-          console.log('⚠️ Erreur parsing tags:', e);
           produit.tags = [];
         }
       }
-  
+
+      //  Géstions  caractéristiques
+      if (caracteristiques !== undefined) {
+        try {
+          let caracsParsed = typeof caracteristiques === 'string' 
+            ? JSON.parse(caracteristiques) 
+            : caracteristiques;
+          
+          // Filtrer et nettoyer
+          caracsParsed = (caracsParsed || [])
+            .filter(c => c.nom?.trim() && c.valeur?.trim())
+            .map((c, index) => ({
+              nom:    c.nom.trim(),
+              valeur: c.valeur.trim(),
+              unite:  c.unite?.trim() || '',
+              ordre:  index
+            }));
+
+          //  Remplacer complètement (pas de push)
+          produit.caracteristiques = caracsParsed;
+          console.log(' Caractéristiques mises à jour:', caracsParsed.length, 'éléments');
+        } catch (e) {
+          console.error(' Erreur parsing caracteristiques:', e);
+        }
+      }
+
+      //  Gérer les variantes (remplacer même si vide)
+            if (variantes !== undefined) {
+              try {
+                let variantesParsed = typeof variantes === 'string' 
+                  ? JSON.parse(variantes) 
+                  : variantes;
+
+                // Nettoyer et valider
+                variantesParsed = (variantesParsed || []).map(v => ({
+                  nom:             v.nom?.trim()           || '',
+                  sku:             v.sku?.trim()           || '',
+                  prix_supplement: Number(v.prix_supplement) || 0,
+                  quantite:        Number(v.quantite)        || 0,
+                  image:           v.image                   || '',
+                  attributs: (v.attributs || [])
+                    .filter(a => a.nom?.trim() && a.valeur?.trim())
+                    .map(a => ({
+                      nom:    a.nom.trim(),
+                      valeur: a.valeur.trim()
+                    }))
+                }));
+
+                // Remplace complètement
+                produit.variantes = variantesParsed;
+
+                //  Recalcule quantité totale si mode VARIANTES
+                if (produit.gestion_stock === 'VARIANTES' && variantesParsed.length > 0) {
+                  const quantiteTotale = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
+                  produit.quantite = quantiteTotale;
+
+                }
+              } catch (e) {
+              
+              }
+            }
+
+            //  Gérer gestion_stock
+            if (gestion_stock !== undefined) {
+              produit.gestion_stock = gestion_stock;
+              console.log(' Mode gestion stock:', gestion_stock);
+            }
+
+            //  Gérer les variantes
+            if (variantes !== undefined) {
+              try {
+                let variantesParsed = typeof variantes === 'string' 
+                  ? JSON.parse(variantes) 
+                  : variantes;
+
+                // Nettoyer et valider
+                variantesParsed = variantesParsed.map(v => ({
+                  nom:             v.nom?.trim()           || '',
+                  sku:             v.sku?.trim()           || '',
+                  prix_supplement: Number(v.prix_supplement) || 0,
+                  quantite:        Number(v.quantite)        || 0,
+                  image:           v.image                   || '',
+                  attributs: (v.attributs || [])
+                    .filter(a => a.nom?.trim() && a.valeur?.trim())
+                    .map(a => ({
+                      nom:    a.nom.trim(),
+                      valeur: a.valeur.trim()
+                    }))
+                }));
+
+                produit.variantes = variantesParsed;
+                console.log(' Variantes mises à jour:', variantesParsed);
+
+                //  Recalculer quantité totale si mode VARIANTES
+                if (produit.gestion_stock === 'VARIANTES' && variantesParsed.length > 0) {
+                  const quantiteTotale = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
+                  produit.quantite = quantiteTotale;
+                  console.log(' Quantité totale recalculée:', quantiteTotale);
+                }
+              } catch (e) {
+                console.error(' Erreur parsing variantes:', e);
+                // Ne pas modifier si erreur
+              }
+            }
+
       // Gérer la nouvelle image
       if (req.file) {
         const baseUrl = `${req.protocol}://${req.get('host')}`;
         const imagePath = `${baseUrl}/uploads/produits/${req.file.filename}`;
-        
-        console.log('🖼️ Nouvelle image:', imagePath);
-        
+        console.log(' Nouvelle image:', imagePath);
+
         const newImage = {
           url: imagePath,
-          principale: produit.images.length === 0, // Principale si c'est la première
+          principale: produit.images.length === 0,
           alt: nom || produit.nom,
           ordre: produit.images.length
         };
-        
+
         produit.images.push(newImage);
       }
-  
+
       await produit.save();
-      console.log('✅ Produit mis à jour avec succès');
-  
+      console.log(' Produit mis à jour avec succès');
+
       const produitPopulate = await Produit.findById(produit._id)
         .populate('categorie', 'nom')
         .populate('sous_categorie', 'nom');
-  
+
       res.json(produitPopulate);
-  
+
     } catch (error) {
-      console.error('❌ Erreur mise à jour produit:', error);
+      console.error(' Erreur mise à jour produit:', error);
       console.error('Stack trace:', error.stack);
       res.status(500).json({ 
         message: error.message,
@@ -756,7 +859,7 @@ exports.addStock = async (req, res) => {
   }
 };
 
-// 🆕 Supprimer une image spécifique
+//  Supprimer une image spécifique
 exports.deleteImage = async (req, res) => {
   try {
     const { produitId, imageId } = req.params;
@@ -837,4 +940,5 @@ exports.softDeleteProduit = async (req, res) => {
       res.status(500).json({ message: error.message });
     }
   };
+
 module.exports = exports;

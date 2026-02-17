@@ -6,7 +6,7 @@ import { ProductService } from '../../../services/produit.service';
 import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { AlertService } from '../../../services/alert.service';
-// import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-produit',
@@ -79,7 +79,8 @@ export class ProduitComponent implements OnInit {
   produitToDelete: any = null;
   deleteMotif: string = '';
 
-  private apiBaseUrl = 'http://localhost:5000';
+  private apiBaseUrl = `${environment.apiUrl}`;
+  
 
   constructor(
     private produitService: ProductService,
@@ -467,6 +468,7 @@ export class ProduitComponent implements OnInit {
       }
     });
   }
+
   // ================================
   // MISE À JOUR PRODUIT
   // ================================
@@ -477,10 +479,22 @@ export class ProduitComponent implements OnInit {
     const sousCategorieId = produit.sous_categorie?._id || produit.sous_categorie;
 
     this.selectedProduit.categorie = categorieId;
+
+
+    this.selectedProduit.caracteristiques = produit.caracteristiques 
+      ? produit.caracteristiques.map((c: any) => ({ ...c })) 
+      : [];
+    this.selectedProduit.variantes = produit.variantes 
+      ? produit.variantes.map((v: any) => ({ 
+          ...v, 
+          attributs: v.attributs ? [...v.attributs] : [] 
+        })) 
+      : [];
+    this.selectedProduit.gestion_stock = produit.gestion_stock || 'SIMPLE';
+
     this.showUpdateModal = true;
 
-    // Charger les tags dans l'input
-    if (this.selectedProduit.tags && this.selectedProduit.tags.length > 0) {
+    if (this.selectedProduit.tags?.length > 0) {
       this.tagsInput = this.selectedProduit.tags.join(', ');
     }
 
@@ -489,9 +503,7 @@ export class ProduitComponent implements OnInit {
         this.sousCategories = res.data || [];
         this.selectedProduit.sous_categorie = sousCategorieId;
       },
-      error: () => {
-        this.sousCategories = [];
-      }
+      error: () => { this.sousCategories = []; }
     });
   }
 
@@ -502,13 +514,13 @@ export class ProduitComponent implements OnInit {
     this.removeImage();
   }
 
-  updateProduit() {
+ updateProduit() {
     if (!this.selectedProduit) {
-      console.log('❌ Aucun produit sélectionné');
+      console.log(' Aucun produit sélectionné');
       return;
     }
 
-    console.log('📝 Produit à mettre à jour:', this.selectedProduit);
+    console.log(' Produit à mettre à jour:', this.selectedProduit);
 
     // Validation
     if (!this.selectedProduit.nom || !this.selectedProduit.reference || !this.selectedProduit.prix) {
@@ -525,8 +537,8 @@ export class ProduitComponent implements OnInit {
     formData.append('prix', this.selectedProduit.prix.toString());
     formData.append('stock_minimum', this.selectedProduit.stock_minimum?.toString() || '0');
     formData.append('categorie', this.selectedProduit.categorie);
-    // formData.append('statut', this.selectedProduit.statut || 'ACTIF');
     formData.append('condition', this.selectedProduit.condition || 'NEUF');
+    formData.append('gestion_stock', this.selectedProduit.gestion_stock || 'SIMPLE');
 
     if (this.selectedProduit.sous_categorie) {
       formData.append('sous_categorie', this.selectedProduit.sous_categorie);
@@ -540,33 +552,49 @@ export class ProduitComponent implements OnInit {
       formData.append('tags', JSON.stringify(this.selectedProduit.tags));
     }
 
+    // TOUJOURS envoyer caracteristiques (même si vide)
+    const caracsFiltrees = (this.selectedProduit.caracteristiques || [])
+      .filter((c: any) => c.nom?.trim() && c.valeur?.trim())
+      .map((c: any, index: number) => ({
+        nom:    c.nom.trim(),
+        valeur: c.valeur.trim(),
+        unite:  c.unite?.trim() || '',
+        ordre:  index
+      }));
+    
+    // Envoyer même si vide pour remplacer l'ancien contenu
+    formData.append('caracteristiques', JSON.stringify(caracsFiltrees));
+
+    //  TOUJOURS envoyer variantes selon le mode
+    if (this.selectedProduit.gestion_stock === 'VARIANTES') {
+      const variantesFiltrees = (this.selectedProduit.variantes || []).map((v: any) => ({
+        nom:             v.nom?.trim()  || '',
+        sku:             v.sku?.trim()  || '',
+        prix_supplement: Number(v.prix_supplement) || 0,
+        quantite:        Number(v.quantite) || 0,
+        attributs: (v.attributs || [])
+          .filter((a: any) => a.nom?.trim() && a.valeur?.trim())
+          .map((a: any) => ({ nom: a.nom.trim(), valeur: a.valeur.trim() }))
+      }));
+      formData.append('variantes', JSON.stringify(variantesFiltrees));
+    } else {
+      //  Si mode SIMPLE, envoyer tableau vide pour vider les variantes
+      formData.append('variantes', JSON.stringify([]));
+    }
+
     if (this.selectedFile) {
       console.log('📎 Ajout fichier:', this.selectedFile.name);
       formData.append('image', this.selectedFile);
     }
 
-    // Log du FormData (pour debug)
-    console.log('📦 FormData préparé:');
-    formData.forEach((value, key) => {
-      console.log(`  ${key}:`, value);
-    });
-
-    console.log('🚀 Envoi de la requête PUT...');
-
     this.produitService.update(this.selectedProduit._id, formData).subscribe({
       next: (response) => {
-        console.log('✅ Réponse serveur:', response);
+
         this.alertService.success('Produit mis à jour avec succès !');
         this.loadProduits();
         this.closeUpdateModal();
       },
       error: (error) => {
-        console.error('❌ Erreur mise à jour:', error);
-        console.error('Status:', error.status);
-        console.error('Message:', error.message);
-        console.error('Error object:', error.error);
-
-        // Afficher le message d'erreur du serveur si disponible
         const errorMessage = error.error?.message || error.message || 'Erreur inconnue';
         this.alertService.error('Erreur: ' + errorMessage);
       }
