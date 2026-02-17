@@ -518,7 +518,9 @@ exports.getMesProduits = async (req, res) => {
       const images = [];
       if (req.file) {
         // Normaliser le chemin (remplacer les backslashes Windows)
-        const imagePath = req.file.path.replace(/\\/g, '/');
+         const baseUrl = `${req.protocol}://${req.get('host')}`;
+          const imagePath = `${baseUrl}/uploads/produits/${req.file.filename}`;
+          
         images.push({
           url:       imagePath,
           principale: true,
