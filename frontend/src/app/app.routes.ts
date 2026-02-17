@@ -57,8 +57,8 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
-      { 
-        path: 'boutiques/details/:id', 
+      {
+        path: 'boutiques/details/:id',
         component: BoutiqueDetailComponent,
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
@@ -72,6 +72,13 @@ export const routes: Routes = [
         data: { roles: ['ADMIN'] }
       },
       {
+        path: 'products',
+        loadComponent: () => import('./pages/admin/produit/produit.component')
+          .then(m => m.ProduitComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['BOUTIQUE'] }
+      },
+      {
         path: 'zones',
         loadComponent: () => import('./pages/admin/zones/zones.component')
           .then(m => m.ZonesComponent),
@@ -80,20 +87,21 @@ export const routes: Routes = [
       },
       
       // Gestion des utilisateurs
-      { 
-        path: 'users', 
+      {
+        path: 'users',
         loadComponent: () => import('./pages/admin/users/users.component')
           .then(m => m.UsersComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
       {
-        path: 'users/:id', 
+        path: 'users/:id',
         loadComponent: () => import('./pages/admin/users/user-detail.component')
           .then(m => m.UserDetailComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       }
+
     ]
   },
   {

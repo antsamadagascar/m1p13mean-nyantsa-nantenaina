@@ -105,7 +105,6 @@ const produitSchema = new mongoose.Schema({
     enum: ['NEUF', 'OCCASION', 'RECONDITIONNE'],
     default: 'NEUF'
   },
-
   //updated
  quantite: {
     type: Number,
@@ -183,8 +182,20 @@ const produitSchema = new mongoose.Schema({
   nombre_avis: {
     type: Number,
     default: 0
-  }
+  },
 
+    // ============================================
+  // SUPPRESSION LOGIQUE
+  // ============================================
+  supprime: {
+    type: Boolean,
+    default: false
+  },
+  
+  date_suppression: {
+    type: Date,
+    default: null
+  },
 }, {
   // new - updated
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' },

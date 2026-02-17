@@ -1,4 +1,11 @@
 const Produit = require('../models/Produit');
+const MouvementStock = require('../models/MouvementStock');
+
+
+
+/* =========================================================
+   =================== PARTIE PUBLIQUE =====================
+========================================================= */
 
 /**
  * Récupère la liste des produits avec filtres et pagination
@@ -21,31 +28,22 @@ exports.getProduits = async (req, res) => {
       tri = 'nouveaute',
       page = 1,
       limite = 12,
-      admin = 'false'  //  if admin
+      admin = 'false'
     } = req.query;
 
-    // Construction du filtre
-    const filtre = {};
+    const filtre = { supprime: { $ne: true } };
 
-    // Si admin=true, on affiche tous les statuts (sauf si statut spécifique demandé)
-    // Sinon, uniquement ACTIF
     if (admin === 'true') {
-      if (statut) {
-        filtre.statut = statut;
-      }
-      // Si admin et pas de filtre statut, on affiche tout
+      if (statut) filtre.statut = statut;
     } else {
-      // Public : uniquement ACTIF
       filtre.statut = 'ACTIF';
     }
 
-    // Recherche textuelle
     if (recherche) {
       filtre.$or = [
         { nom: { $regex: recherche, $options: 'i' } },
         { description: { $regex: recherche, $options: 'i' } },
-        { reference: { $regex: recherche, $options: 'i' } },
-        { tags: { $in: [new RegExp(recherche, 'i')] } }
+        { reference: { $regex: recherche, $options: 'i' } }
       ];
     }
 
@@ -53,196 +51,52 @@ exports.getProduits = async (req, res) => {
     if (sous_categorie) filtre.sous_categorie = sous_categorie;
     if (boutique) filtre.boutique = boutique;
 
-    if (marque) {
-      const marques = marque.split(',');
-      filtre.marque = { $in: marques };
-    }
+    if (marque) filtre.marque = { $in: marque.split(',') };
 
     if (prix_min || prix_max) {
       filtre.prix = {};
-      if (prix_min) filtre.prix.$gte = parseFloat(prix_min);
-      if (prix_max) filtre.prix.$lte = parseFloat(prix_max);
+      if (prix_min) filtre.prix.$gte = Number(prix_min);
+      if (prix_max) filtre.prix.$lte = Number(prix_max);
     }
 
-    if (condition) {
-      const conditions = condition.split(',');
-      filtre.condition = { $in: conditions };
-    }
+    if (condition) filtre.condition = { $in: condition.split(',') };
+    if (tags) filtre.tags = { $in: tags.split(',') };
 
-    if (en_promotion === 'true') {
-      filtre.prix_promo = { $exists: true, $ne: null };
-      filtre.$expr = {
-        $and: [
-          { $ne: ['$prix_promo', null] },
-          { $lt: ['$prix_promo', '$prix'] }
-        ]
-      };
-    }
+    if (en_stock === 'true') filtre.quantite = { $gt: 0 };
 
-    if (tags) {
-      const tagsList = tags.split(',');
-      filtre.tags = { $in: tagsList };
-    }
+    let sortOptions = { date_creation: -1 };
+    if (tri === 'prix_asc') sortOptions = { prix: 1 };
+    if (tri === 'prix_desc') sortOptions = { prix: -1 };
+    if (tri === 'populaire') sortOptions = { ventes: -1 };
+    if (tri === 'meilleures_notes') sortOptions = { note_moyenne: -1 };
 
-    // Options de tri
-    let sortOptions = {};
-    switch (tri) {
-      case 'prix_asc':
-        sortOptions = { prix: 1 };
-        break;
-      case 'prix_desc':
-        sortOptions = { prix: -1 };
-        break;
-      case 'populaire':
-        sortOptions = { ventes: -1, vues: -1 };
-        break;
-      case 'meilleures_notes':
-        sortOptions = { note_moyenne: -1, nombre_avis: -1 };
-        break;
-      case 'nouveaute':
-      default:
-        sortOptions = { date_creation: -1 };
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limite);
-
-    let query = Produit.find(filtre)
-      .populate('boutique', 'nom slug')
-      .populate('categorie', 'nom')
-      .populate('sous_categorie', 'nom')
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limite));
-
-    if (en_stock === 'true') {
-      query = query.where('quantite').gt(0);
-    }
+    const skip = (Number(page) - 1) * Number(limite);
 
     const [produits, total] = await Promise.all([
-      query.exec(),
+      Produit.find(filtre)
+        .populate('boutique', 'nom slug')
+        .populate('categorie', 'nom')
+        .populate('sous_categorie', 'nom')
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(Number(limite)),
       Produit.countDocuments(filtre)
     ]);
-
-    const pages = Math.ceil(total / parseInt(limite));
 
     res.json({
       produits,
       total,
-      page: parseInt(page),
-      pages,
-      limite: parseInt(limite)
+      page: Number(page),
+      pages: Math.ceil(total / Number(limite)),
+      limite: Number(limite)
     });
 
   } catch (error) {
-    console.error('Erreur getProduits:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération des produits',
-      error: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-/**
- * Récupère les filtres disponibles
- */
-exports.getFiltresDisponibles = async (req, res) => {
-  try {
-    const { categorie, sous_categorie } = req.query;
 
-    const filtre = { statut: 'ACTIF' };
-    
-    if (categorie) filtre.categorie = categorie;
-    if (sous_categorie) filtre.sous_categorie = sous_categorie;
-
-    const [categoriesAgg, sousCategories, marques, prixRange, boutiques] = await Promise.all([
-      Produit.aggregate([
-        { $match: filtre },
-        { $group: { _id: '$categorie', count: { $sum: 1 } }},
-        { $lookup: {
-          from: 'categories',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'categorie'
-        }},
-        { $unwind: '$categorie' },
-        { $project: {
-          _id: '$categorie._id',
-          nom: '$categorie.nom',
-          count: 1
-        }},
-        { $sort: { nom: 1 } }
-      ]),
-
-      Produit.aggregate([
-        { $match: { ...filtre, sous_categorie: { $exists: true } } },
-        { $group: { _id: '$sous_categorie', count: { $sum: 1 } }},
-        { $lookup: {
-          from: 'souscategories',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'sous_categorie'
-        }},
-        { $unwind: '$sous_categorie' },
-        { $project: {
-          _id: '$sous_categorie._id',
-          nom: '$sous_categorie.nom',
-          count: 1
-        }},
-        { $sort: { nom: 1 } }
-      ]),
-
-      Produit.aggregate([
-        { $match: { ...filtre, marque: { $exists: true, $ne: null } } },
-        { $group: { _id: '$marque', count: { $sum: 1 } }},
-        { $project: { _id: 0, nom: '$_id', count: 1 }},
-        { $sort: { nom: 1 } }
-      ]),
-
-      Produit.aggregate([
-        { $match: filtre },
-        { $group: {
-          _id: null,
-          prix_min: { $min: '$prix' },
-          prix_max: { $max: '$prix' }
-        }}
-      ]),
-
-      Produit.aggregate([
-        { $match: filtre },
-        { $group: { _id: '$boutique', count: { $sum: 1 } }},
-        { $lookup: {
-          from: 'boutiques',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'boutique'
-        }},
-        { $unwind: '$boutique' },
-        { $project: {
-          _id: '$boutique._id',
-          nom: '$boutique.nom',
-          count: 1
-        }},
-        { $sort: { nom: 1 } }
-      ])
-    ]);
-
-    res.json({
-      categories: categoriesAgg,
-      sous_categories: sousCategories,
-      marques: marques.filter(m => m.nom), 
-      prix_min: prixRange[0]?.prix_min || 0,
-      prix_max: prixRange[0]?.prix_max || 0,
-      boutiques: boutiques
-    });
-
-  } catch (error) {
-    console.error('Erreur getFiltresDisponibles:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération des filtres',
-      error: error.message
-    });
-  }
-};
 
 /**
  * Récupère un produit par ID ou slug
@@ -250,35 +104,30 @@ exports.getFiltresDisponibles = async (req, res) => {
 exports.getProduit = async (req, res) => {
   try {
     const { idOrSlug } = req.params;
-
     const isValidObjectId = /^[0-9a-fA-F]{24}$/.test(idOrSlug);
 
-    const query = isValidObjectId 
-      ? { _id: idOrSlug, statut: 'ACTIF' }
-      : { slug: idOrSlug, statut: 'ACTIF' };
+    const query = isValidObjectId
+      ? { _id: idOrSlug, statut: 'ACTIF', supprime: { $ne: true } }
+      : { slug: idOrSlug, statut: 'ACTIF', supprime: { $ne: true } };
 
     const produit = await Produit.findOne(query)
-      .populate('boutique', 'nom slug logo contact horaires')
-      .populate('categorie', 'nom slug')
-      .populate('sous_categorie', 'nom slug');
+      .populate('boutique', 'nom slug')
+      .populate('categorie', 'nom')
+      .populate('sous_categorie', 'nom');
 
-    if (!produit) {
-      return res.status(404).json({ message: 'Produit non trouvé' });
-    }
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
 
     res.json(produit);
 
   } catch (error) {
-    console.error('Erreur getProduit:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération du produit',
-      error: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
+
+
 /**
- * Récupère les produits similaires
+ * Produits similaires
  */
 exports.getProduitsSimilaires = async (req, res) => {
   try {
@@ -286,77 +135,162 @@ exports.getProduitsSimilaires = async (req, res) => {
     const { limite = 4 } = req.query;
 
     const produit = await Produit.findById(id);
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
 
-    if (!produit) {
-      return res.status(404).json({ message: 'Produit non trouvé' });
-    }
-
-    const produitsSimilaires = await Produit.find({
+    const similaires = await Produit.find({
       _id: { $ne: id },
+      statut: 'ACTIF',
+      supprime: { $ne: true },
       $or: [
         { categorie: produit.categorie },
         { sous_categorie: produit.sous_categorie },
         { tags: { $in: produit.tags || [] } }
-      ],
-      statut: 'ACTIF'
+      ]
     })
-      .populate('boutique', 'nom slug')
-      .populate('categorie', 'nom')
-      .limit(parseInt(limite))
-      .sort({ ventes: -1, note_moyenne: -1 });
+      .limit(Number(limite))
+      .sort({ ventes: -1 });
 
-    res.json(produitsSimilaires);
+    res.json(similaires);
 
   } catch (error) {
-    console.error('Erreur getProduitsSimilaires:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération des produits similaires',
-      error: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-/**
- * Met à jour le statut d'un produit
- */
+
+
+/* =========================================================
+   =================== PARTIE BOUTIQUE =====================
+========================================================= */
+
+exports.getMesProduits = async (req, res) => {
+  try {
+    const produits = await Produit.find({
+      boutique: req.user.boutiqueId,
+      supprime: false
+    }).sort({ date_creation: -1 });
+
+    res.json(produits);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+exports.createProduit = async (req, res) => {
+  try {
+    const {
+      nom,
+      reference,
+      prix,
+      quantite,
+      categorie
+    } = req.body;
+
+    if (!nom || !reference || !prix || quantite == null || !categorie) {
+      return res.status(400).json({ message: 'Champs obligatoires manquants' });
+    }
+
+    const produit = new Produit({
+      ...req.body,
+      boutique: req.user.boutiqueId,
+      statut: 'BROUILLON',
+      supprime: false
+    });
+
+    await produit.save();
+
+    res.status(201).json(produit);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+exports.updateProduit = async (req, res) => {
+  try {
+    const produit = await Produit.findOne({
+      _id: req.params.id,
+      boutique: req.user.boutiqueId
+    });
+
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    Object.assign(produit, req.body);
+    await produit.save();
+
+    res.json(produit);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
+exports.addStock = async (req, res) => {
+  try {
+    const { quantite } = req.body;
+
+    const produit = await Produit.findOne({
+      _id: req.params.id,
+      boutique: req.user.boutiqueId
+    });
+
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    produit.quantite += Number(quantite);
+    await produit.save();
+
+    await MouvementStock.create({
+      produit: produit._id,
+      type: 'ENTREE',
+      quantite
+    });
+
+    res.json(produit);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+
 exports.updateStatutProduit = async (req, res) => {
   try {
-    const { id } = req.params;
     const { statut } = req.body;
 
-    const statutsValides = ['BROUILLON', 'ACTIF', 'RUPTURE', 'ARCHIVE'];
-    if (!statutsValides.includes(statut)) {
-      return res.status(400).json({ message: 'Statut invalide' });
-    }
-
-    const updateData = { statut };
-    if (statut === 'RUPTURE') updateData.quantite = 0;
-
     const produit = await Produit.findByIdAndUpdate(
-      id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    )
-    .populate('boutique', 'nom slug')
-    .populate('categorie', 'nom')
-    .populate('sous_categorie', 'nom');
+      req.params.id,
+      { statut },
+      { new: true }
+    );
 
-    if (!produit) {
-      return res.status(404).json({ message: 'Produit non trouvé' });
-    }
-
-    res.json({
-      message: 'Statut mis à jour avec succès',
-      produit
-    });
+    res.json(produit);
 
   } catch (error) {
-    console.error('Erreur updateStatutProduit:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la mise à jour du statut',
-      error: error.message
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 
-module.exports = exports;
+
+
+exports.softDeleteProduit = async (req, res) => {
+  try {
+    const produit = await Produit.findById(req.params.id);
+    if (!produit) return res.status(404).json({ message: 'Produit non trouvé' });
+
+    produit.supprime = true;
+    produit.statut = 'ARCHIVE';
+    await produit.save();
+
+    res.json({ message: 'Produit supprimé' });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
