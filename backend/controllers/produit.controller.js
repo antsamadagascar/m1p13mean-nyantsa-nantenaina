@@ -668,7 +668,9 @@ exports.updateProduit = async (req, res) => {
   
       // Gérer la nouvelle image
       if (req.file) {
-        const imagePath = `uploads/produits/${req.file.filename}`;
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const imagePath = `${baseUrl}/uploads/produits/${req.file.filename}`;
+        
         console.log('🖼️ Nouvelle image:', imagePath);
         
         const newImage = {
