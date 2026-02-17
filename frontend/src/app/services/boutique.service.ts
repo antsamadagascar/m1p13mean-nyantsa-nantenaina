@@ -4,13 +4,13 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Boutique } from '../models/boutique.model';
 import { map } from 'rxjs/operators';
-
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BoutiqueService {
-  private apiUrl = 'http://localhost:5000/api/boutiques';
+  private apiUrl = `${environment.apiUrl}/api/boutiques`;
 
 
   constructor(private http: HttpClient) {}
