@@ -270,7 +270,7 @@
         <h2>Horaires d'ouverture</h2>
         
         <div class="horaires-list">
-          <div class="horaire-item" *ngFor="let jour of joursOrdre" [class.today]="estAujourdhui(jour)" [class.closed]="!boutique.horaires[jour]?.ouvert">
+          <div class="horaire-item" *ngFor="let jour of joursOrdre" [class.today]="estAujourdhui(jour)" [class.closed]="!boutique.horaires[jour].ouvert">
             <div class="jour-label">
               <span class="jour-nom">{{ jour | titlecase }}</span>
               <span class="today-badge" *ngIf="estAujourdhui(jour)">Aujourd'hui</span>
@@ -279,7 +279,7 @@
               <span *ngIf="boutique.horaires[jour]?.ouvert">
                 {{ boutique.horaires[jour].debut }} - {{ boutique.horaires[jour].fin }}
               </span>
-              <span class="ferme" *ngIf="!boutique.horaires[jour]?.ouvert">Fermé</span>
+              <span class="ferme" *ngIf="!boutique.horaires[jour].ouvert">Fermé</span>
             </div>
           </div>
         </div>
