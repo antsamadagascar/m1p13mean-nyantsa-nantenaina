@@ -40,7 +40,20 @@ export interface Produit {
     sku: string;
     quantite: number;
     prix_supplement: number;
+    attributs?: Array<{   
+      nom: string;
+      valeur: string;
+    }>;
+  
   }>;
+  caracteristiques?: Array<{  
+    _id?: string;
+    nom: string;
+    valeur: string;
+    unite?: string;
+    ordre?: number;
+  }>;
+
   tags?: string[];
   statut: 'BROUILLON' | 'ACTIF' | 'RUPTURE' | 'ARCHIVE';
   condition: 'NEUF' | 'OCCASION' | 'RECONDITIONNE';

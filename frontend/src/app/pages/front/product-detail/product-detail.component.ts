@@ -285,4 +285,11 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     }
     return 'Ajouter au panier';
   }
+  // Onglet actif
+  ongletActif = 'description';
+
+  changerOnglet(onglet: string): void {
+    this.ongletActif = onglet;
+  }
+
 }

@@ -221,26 +221,40 @@
     <!-- Onglets détails -->
     <div class="product-tabs">
       <div class="tabs-navigation">
-        <button class="tab-btn active" data-tab="description">Description</button>
-        <button class="tab-btn" data-tab="specs">Caractéristiques</button>
-        <button class="tab-btn" data-tab="avis">Avis ({{ produit.nombre_avis }})</button>
+        <button 
+          class="tab-btn" 
+          [class.active]="ongletActif === 'description'"
+          (click)="changerOnglet('description')">
+          Description
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="ongletActif === 'specs'"
+          (click)="changerOnglet('specs')">
+          Caractéristiques
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="ongletActif === 'avis'"
+          (click)="changerOnglet('avis')">
+          Avis ({{ produit.nombre_avis }})
+        </button>
       </div>
 
       <div class="tabs-content">
+
         <!-- Description -->
-        <div class="tab-panel active" id="description">
+        <div class="tab-panel" [class.active]="ongletActif === 'description'">
           <div class="description-content">
             <p>{{ produit.description }}</p>
           </div>
-          
-          <!-- Tags -->
           <div class="product-tags" *ngIf="produit.tags && produit.tags.length > 0">
             <span class="tag" *ngFor="let tag of produit.tags">#{{ tag }}</span>
           </div>
         </div>
 
         <!-- Caractéristiques -->
-        <div class="tab-panel" id="specs">
+        <div class="tab-panel" [class.active]="ongletActif === 'specs'">
           <div class="specs-grid">
             <div class="spec-item">
               <span class="spec-label">Référence</span>
@@ -266,11 +280,30 @@
               <span class="spec-label">Stock</span>
               <span class="spec-value">{{ produit.quantite }} unités</span>
             </div>
+
+            <!--  Caractéristiques dynamiques -->
+            <div 
+              class="spec-item" 
+              *ngFor="let carac of produit.caracteristiques">
+              <span class="spec-label">{{ carac.nom }}</span>
+              <span class="spec-value">
+                {{ carac.valeur }}
+                <small *ngIf="carac.unite"> {{ carac.unite }}</small>
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Message si aucune caractéristique -->
+          <div 
+            *ngIf="!produit.caracteristiques || produit.caracteristiques.length === 0"
+            class="reviews-empty">
+            <p>Aucune caractéristique renseignée</p>
           </div>
         </div>
 
         <!-- Avis -->
-        <div class="tab-panel" id="avis">
+        <div class="tab-panel" [class.active]="ongletActif === 'avis'">
           <div class="reviews-empty">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -278,6 +311,7 @@
             <p>Les avis clients seront bientôt disponibles</p>
           </div>
         </div>
+
       </div>
     </div>
 
