@@ -5,6 +5,12 @@ const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
 
+/**
+ * @route   GET /api/produits/mes-produits
+ * @desc    Produits de la boutique connectée
+ * @access  Boutique
+ */
+router.get('/mes-produits', auth, produitController.getMesProduits);
 
 /* =======================================================
    ROUTES PUBLIQUES (CLIENT)
@@ -44,12 +50,6 @@ router.get('/:id/similaires', produitController.getProduitsSimilaires);
    ROUTES BOUTIQUE / ADMIN (PROTÉGÉES)
 ======================================================= */
 
-/**
- * @route   GET /api/produits/mes-produits
- * @desc    Produits de la boutique connectée
- * @access  Boutique
- */
-router.get('/mes-produits', auth, produitController.getMesProduits);
 
 /**
  * @route   POST /api/produits
