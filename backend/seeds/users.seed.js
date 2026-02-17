@@ -94,29 +94,27 @@ async function seedUsers() {
     await User.deleteMany({});
     console.log('🗑️  Utilisateurs existants supprimés');
 
-    for (let user of usersTest) {
-      const salt = await bcrypt.genSalt(10);
-      user.motDePasse = await bcrypt.hash(user.motDePasse, salt);
-    }
-
     for (let userData of usersTest) {
       const boutiqueNom = userData._boutiqueNom;
-      delete userData._boutiqueNom; // ne pas sauvegarder ce champ temporaire
+      delete userData._boutiqueNom; // champ temporaire, ne pas sauvegarder
 
-      const user = new User(userData);
-      await user.save();
+      // Hasher le mot de passe
+      const salt = await bcrypt.genSalt(10);
+      userData.motDePasse = await bcrypt.hash(userData.motDePasse, salt);
 
-      // Lier la boutique à l'utilisateur
+      // Chercher la boutique et écrire son _id sur le User ✅
       if (boutiqueNom) {
         const boutique = await Boutique.findOne({ nom: boutiqueNom });
         if (boutique) {
-          boutique.userId = user._id;
-          await boutique.save();
-          console.log(`🔗 ${boutiqueNom} liée à ${userData.email}`);
+          userData.boutiqueId = boutique._id; // ← bonne direction : User → Boutique
+          console.log(`🔗 ${userData.email} → boutiqueId = ${boutique._id} (${boutiqueNom})`);
         } else {
           console.warn(`⚠️  Boutique "${boutiqueNom}" non trouvée — lancez seedBoutiques d'abord`);
         }
       }
+
+      const user = new User(userData);
+      await user.save();
     }
 
     console.log('\n🎉 SEED USERS TERMINÉ !');
