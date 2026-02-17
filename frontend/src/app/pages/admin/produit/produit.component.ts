@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ProduitService } from '../../../services/produit.service';
+import { ProductService } from '../../../services/produit.service';
 import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { AlertService } from '../../../services/alert.service';
@@ -82,7 +82,7 @@ export class ProduitComponent implements OnInit {
   private apiBaseUrl = 'http://localhost:5000';
 
   constructor(
-    private produitService: ProduitService,
+    private produitService: ProductService,
     private categoryService: CategoryService,
     private sousCategorieService: SousCategorieService,
     private alertService: AlertService
@@ -177,7 +177,7 @@ export class ProduitComponent implements OnInit {
 
   deleteProduit(id: string) {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
-      this.produitService.delete(id).subscribe({
+      this.produitService.softDelete(id).subscribe({
         next: () => {
           this.alertService.success('Produit supprimé avec succès');
           this.loadProduits();
