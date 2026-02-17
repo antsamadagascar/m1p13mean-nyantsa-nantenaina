@@ -12,8 +12,8 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-produit',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './produit.component.html',
-  styleUrls: ['./produit.component.css']
+  templateUrl: './products-list-boutique.component.html',
+  styleUrls: ['./products-list-boutique.component.css']
 })
 export class ProduitComponent implements OnInit {
 

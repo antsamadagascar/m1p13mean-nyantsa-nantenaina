@@ -73,7 +73,7 @@ export const routes: Routes = [
       },
       {
         path: 'products/boutique',
-        loadComponent: () => import('./pages/admin/produit/produit.component')
+        loadComponent: () => import('./pages/admin/products-boutique/products-list-boutique.component')
           .then(m => m.ProduitComponent),
         canActivate: [roleGuard],
         data: { roles: ['BOUTIQUE'] }
