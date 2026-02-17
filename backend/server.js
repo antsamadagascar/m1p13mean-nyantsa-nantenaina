@@ -46,6 +46,7 @@ const boutiqueRoutes = require('./routes/boutique.routes');
 const categorieRoutes = require('./routes/categorieRoutes');
 const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 const zoneRoutes = require('./routes/zone.routes'); 
+const produitRoutes = require('./routes/produit.routes')
 
 
 app.use('/api/boutiques', boutiqueRoutes);
@@ -55,6 +56,9 @@ app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/zones', zoneRoutes);
+app.use('/api/produits',produitRoutes);
+
+app.use('/uploads', express.static('uploads'));
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 
