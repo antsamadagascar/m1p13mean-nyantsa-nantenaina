@@ -97,5 +97,7 @@ router.post('/:id/stock', auth, produitController.addStock);
 router.delete('/:id/soft', auth, produitController.softDeleteProduit);
 
 
+// Route pour supprimer une image spécifique
+router.delete('/:produitId/images/:imageId', auth, produitController.deleteImage);
 
 module.exports = router;

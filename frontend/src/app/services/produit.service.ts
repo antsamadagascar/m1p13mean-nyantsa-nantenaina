@@ -141,7 +141,9 @@ export class ProductService {
     });
   }
 
-
+  deleteImage(produitId: string, imageId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${produitId}/images/${imageId}`);
+  }
   /* =========================================================
      ===================== ADMIN BONUS =======================
   ========================================================= */

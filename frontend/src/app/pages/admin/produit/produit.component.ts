@@ -637,6 +637,32 @@ export class ProduitComponent implements OnInit {
       });
   }
 
+  deleteImageFromProduct(imageId: string) {
+    if (!this.selectedProduit || !this.selectedProduit._id) return;
+
+    if (!confirm('Voulez-vous vraiment supprimer cette image ?')) {
+      return;
+    }
+
+    this.produitService.deleteImage(this.selectedProduit._id, imageId).subscribe({
+      next: (response) => {
+        this.alertService.success('Image supprimée avec succès');
+        
+        // Mettre à jour l'affichage sans recharger
+        this.selectedProduit.images = this.selectedProduit.images.filter(
+          (img: any) => img._id !== imageId
+        );
+        
+        // Optionnel : recharger tous les produits
+        this.loadProduits();
+      },
+      error: (error) => {
+        console.error('Erreur suppression image:', error);
+        this.alertService.error('Erreur lors de la suppression de l\'image');
+      }
+    });
+  }
+
   // ================================
   // RESET FORM
   // ================================
