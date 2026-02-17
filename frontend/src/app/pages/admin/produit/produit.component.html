@@ -539,6 +539,261 @@
           </div>
         </div>
 
+                <!-- Section 5: Caractéristiques -->
+    <div class="border-b pb-6">
+      <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-list-check text-orange-500"></i>
+        Caractéristiques
+      </h3>
+
+      <div class="space-y-3">
+        <!-- Liste des caractéristiques -->
+        <div *ngFor="let carac of newProduit.caracteristiques; let i = index"
+            class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+
+          <div class="flex-1 grid grid-cols-3 gap-3">
+            <!-- Nom -->
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Nom *</label>
+              <input
+                type="text"
+                [(ngModel)]="carac.nom"
+                [name]="'carac_nom_' + i"
+                placeholder="Ex: Couleur"
+                class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Valeur -->
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Valeur *</label>
+              <input
+                type="text"
+                [(ngModel)]="carac.valeur"
+                [name]="'carac_valeur_' + i"
+                placeholder="Ex: Rouge"
+                class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+
+            <!-- Unité -->
+            <div>
+              <label class="block text-xs font-medium text-gray-500 mb-1">Unité</label>
+              <input
+                type="text"
+                [(ngModel)]="carac.unite"
+                [name]="'carac_unite_' + i"
+                placeholder="Ex: cm, kg..."
+                class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Bouton supprimer -->
+          <button
+            type="button"
+            (click)="removeCaracteristique(i)"
+            class="flex-shrink-0 text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
+            title="Supprimer cette caractéristique">
+            <i class="fa-solid fa-trash text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Message si vide -->
+        <div *ngIf="newProduit.caracteristiques.length === 0"
+            class="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <i class="fa-solid fa-list text-gray-300 text-3xl mb-2"></i>
+          <p class="text-sm text-gray-500">Aucune caractéristique ajoutée</p>
+        </div>
+
+        <!-- Bouton ajouter -->
+        <button
+          type="button"
+          (click)="addCaracteristique()"
+          class="flex items-center gap-2 text-blue-600 hover:text-blue-700 px-4 py-2 border border-blue-300 rounded-lg hover:bg-blue-50 transition text-sm font-medium w-full justify-center">
+          <i class="fa-solid fa-plus"></i>
+          Ajouter une caractéristique
+        </button>
+      </div>
+    </div>
+
+<!-- Section 6: Variantes -->
+<div class="border-b pb-6">
+  <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center gap-2">
+    <i class="fa-solid fa-layer-group text-violet-500"></i>
+    Variantes
+    <span class="text-xs font-normal text-gray-500 ml-2">(taille, couleur, etc.)</span>
+  </h3>
+
+  <!-- Toggle gestion stock -->
+  <div class="mb-4 p-3 bg-violet-50 border border-violet-200 rounded-lg flex items-center justify-between">
+    <div>
+      <p class="text-sm font-medium text-violet-800">Activer les variantes</p>
+      <p class="text-xs text-violet-600">Gérer le stock par combinaison (taille/couleur/etc.)</p>
+    </div>
+    <label class="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        class="sr-only peer"
+        [checked]="newProduit.gestion_stock === 'VARIANTES'"
+        (change)="toggleGestionStock()">
+      <div class="w-11 h-6 bg-gray-200 peer-focus:ring-2 peer-focus:ring-violet-300 rounded-full peer
+                  peer-checked:after:translate-x-full peer-checked:after:border-white
+                  after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+                  after:bg-white after:border-gray-300 after:border after:rounded-full
+                  after:h-5 after:w-5 after:transition-all peer-checked:bg-violet-600"></div>
+    </label>
+  </div>
+
+  <!-- Variantes actives -->
+  <div *ngIf="newProduit.gestion_stock === 'VARIANTES'" class="space-y-4">
+
+    <!-- Liste des variantes -->
+    <div *ngFor="let variante of newProduit.variantes; let vi = index"
+         class="border border-gray-200 rounded-xl p-4 bg-gray-50 space-y-3">
+
+      <!-- En-tête variante -->
+      <div class="flex items-center justify-between">
+        <h4 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
+          <span class="bg-violet-100 text-violet-700 text-xs px-2 py-0.5 rounded-full font-medium">
+            Variante {{ vi + 1 }}
+          </span>
+          <span *ngIf="variante.nom" class="text-gray-500">- {{ variante.nom }}</span>
+        </h4>
+        <button
+          type="button"
+          (click)="removeVariante(vi)"
+          class="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition"
+          title="Supprimer cette variante">
+          <i class="fa-solid fa-trash text-sm"></i>
+        </button>
+      </div>
+
+      <!-- Champs de base de la variante -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <!-- Nom variante -->
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Nom variante</label>
+          <input
+            type="text"
+            [(ngModel)]="variante.nom"
+            [name]="'var_nom_' + vi"
+            placeholder="Ex: Rouge XL"
+            class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+        </div>
+
+        <!-- SKU -->
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">SKU</label>
+          <input
+            type="text"
+            [(ngModel)]="variante.sku"
+            [name]="'var_sku_' + vi"
+            placeholder="Ex: PROD-RGE-XL"
+            class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+        </div>
+
+        <!-- Quantité -->
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Stock *</label>
+          <input
+            type="number"
+            [(ngModel)]="variante.quantite"
+            [name]="'var_qte_' + vi"
+            min="0"
+            placeholder="0"
+            class="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+        </div>
+
+        <!-- Prix supplément -->
+        <div>
+          <label class="block text-xs font-medium text-gray-500 mb-1">Supplément prix</label>
+          <div class="relative">
+            <input
+              type="number"
+              [(ngModel)]="variante.prix_supplement"
+              [name]="'var_prix_' + vi"
+              min="0"
+              placeholder="0"
+              class="w-full rounded-lg border border-gray-300 px-3 py-1.5 pr-8 text-sm focus:ring-2 focus:ring-violet-500 focus:outline-none">
+            <span class="absolute right-2 top-1.5 text-xs text-gray-500">Ar</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attributs de la variante -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <label class="text-xs font-medium text-gray-600">
+            <i class="fa-solid fa-tags mr-1"></i> Attributs
+          </label>
+          <button
+            type="button"
+            (click)="addAttribut(vi)"
+            class="text-xs text-violet-600 hover:text-violet-800 flex items-center gap-1 px-2 py-1 rounded hover:bg-violet-50 transition">
+            <i class="fa-solid fa-plus"></i> Ajouter attribut
+          </button>
+        </div>
+
+        <div class="space-y-2">
+          <div *ngFor="let attr of variante.attributs; let ai = index"
+               class="flex items-center gap-2">
+
+            <input
+              type="text"
+              [(ngModel)]="attr.nom"
+              [name]="'attr_nom_' + vi + '_' + ai"
+              placeholder="Attribut (ex: Taille)"
+              class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none">
+
+            <span class="text-gray-400 text-xs">:</span>
+
+            <input
+              type="text"
+              [(ngModel)]="attr.valeur"
+              [name]="'attr_val_' + vi + '_' + ai"
+              placeholder="Valeur (ex: XL)"
+              class="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-xs focus:ring-2 focus:ring-violet-500 focus:outline-none">
+
+            <button
+              type="button"
+              (click)="removeAttribut(vi, ai)"
+              class="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition">
+              <i class="fa-solid fa-xmark text-xs"></i>
+            </button>
+          </div>
+
+          <div *ngIf="variante.attributs.length === 0"
+               class="text-xs text-gray-400 italic py-1">
+            Aucun attribut — cliquez sur "Ajouter attribut"
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Message si aucune variante -->
+    <div *ngIf="newProduit.variantes.length === 0"
+         class="text-center py-6 bg-gray-50 rounded-lg border-2 border-dashed border-violet-300">
+      <i class="fa-solid fa-layer-group text-violet-300 text-3xl mb-2"></i>
+      <p class="text-sm text-gray-500">Aucune variante ajoutée</p>
+      <p class="text-xs text-gray-400 mt-1">Cliquez sur le bouton ci-dessous pour commencer</p>
+    </div>
+
+    <!-- Bouton ajouter variante -->
+    <button
+      type="button"
+      (click)="addVariante()"
+      class="flex items-center gap-2 text-violet-600 hover:text-violet-700 px-4 py-2 border border-violet-300 rounded-lg hover:bg-violet-50 transition text-sm font-medium w-full justify-center">
+      <i class="fa-solid fa-plus"></i>
+      Ajouter une variante
+    </button>
+  </div>
+
+  <!-- Message si variantes désactivées -->
+  <div *ngIf="newProduit.gestion_stock !== 'VARIANTES'"
+       class="text-center py-4 text-sm text-gray-400">
+    <i class="fa-solid fa-info-circle mr-1"></i>
+    Activez les variantes pour gérer différentes combinaisons de stock
+  </div>
+</div>
+
         <!-- Boutons -->
         <div class="flex justify-end gap-3 pt-4">
           <button type="button" (click)="closeCreateModal()"

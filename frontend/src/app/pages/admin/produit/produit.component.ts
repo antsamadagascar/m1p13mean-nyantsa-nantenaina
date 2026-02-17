@@ -346,6 +346,7 @@ export class ProduitComponent implements OnInit {
   // CRÉATION PRODUIT
   // ================================
   createProduit() {
+    // Validation catégorie
     if (!this.selectedCategorie) {
       this.alertService.error('Veuillez sélectionner une catégorie');
       return;
@@ -357,35 +358,101 @@ export class ProduitComponent implements OnInit {
       return;
     }
 
+    // Validation variantes si mode VARIANTES activé
+    if (this.newProduit.gestion_stock === 'VARIANTES') {
+      if (!this.newProduit.variantes || this.newProduit.variantes.length === 0) {
+        this.alertService.error('Veuillez ajouter au moins une variante');
+        return;
+      }
+      // Vérifier que chaque variante a un stock
+      const variantesInvalides = this.newProduit.variantes.filter(
+        (v: any) => v.quantite === null || v.quantite === undefined || v.quantite < 0
+      );
+      if (variantesInvalides.length > 0) {
+        this.alertService.error('Veuillez renseigner le stock de chaque variante');
+        return;
+      }
+    }
+
+    // Validation caractéristiques (nom et valeur obligatoires)
+    const caracsInvalides = (this.newProduit.caracteristiques || []).filter(
+      (c: any) => (c.nom && !c.valeur) || (!c.nom && c.valeur)
+    );
+    if (caracsInvalides.length > 0) {
+      this.alertService.error('Chaque caractéristique doit avoir un nom et une valeur');
+      return;
+    }
+
     const formData = new FormData();
-    formData.append('nom', this.newProduit.nom);
-    formData.append('reference', this.newProduit.reference);
-    formData.append('description', this.newProduit.description || '');
-    formData.append('description_courte', this.newProduit.description_courte || '');
-    formData.append('marque', this.newProduit.marque || '');
-    formData.append('prix', this.newProduit.prix.toString());
-    formData.append('quantite', this.newProduit.quantite.toString());
+
+    // ── Informations de base ──────────────────────────
+    formData.append('nom',               this.newProduit.nom);
+    formData.append('reference',         this.newProduit.reference);
+    formData.append('description',       this.newProduit.description       || '');
+    formData.append('description_courte',this.newProduit.description_courte || '');
+    formData.append('marque',            this.newProduit.marque             || '');
+
+    // ── Prix & Stock ─────────────────────────────────
+    formData.append('prix',          this.newProduit.prix.toString());
+    formData.append('quantite',      this.newProduit.quantite.toString());
     formData.append('stock_minimum', this.newProduit.stock_minimum?.toString() || '0');
+    formData.append('gestion_stock', this.newProduit.gestion_stock || 'SIMPLE');
+
+    if (this.newProduit.prix_promo) {
+      formData.append('prix_promo', this.newProduit.prix_promo.toString());
+    }
+
+    // ── Catégorisation ───────────────────────────────
     formData.append('categorie', this.selectedCategorie);
-    // formData.append('statut', this.newProduit.statut || 'ACTIF');
     formData.append('condition', this.newProduit.condition || 'NEUF');
 
     if (this.selectedSousCategorie) {
       formData.append('sous_categorie', this.selectedSousCategorie);
     }
 
-    if (this.newProduit.prix_promo) {
-      formData.append('prix_promo', this.newProduit.prix_promo.toString());
-    }
-
+    // ── Tags ─────────────────────────────────────────
     if (this.newProduit.tags && this.newProduit.tags.length > 0) {
       formData.append('tags', JSON.stringify(this.newProduit.tags));
     }
 
+    // ── Caractéristiques ─────────────────────────────
+    const caracsFiltrees = (this.newProduit.caracteristiques || [])
+      .filter((c: any) => c.nom?.trim() && c.valeur?.trim())
+      .map((c: any, index: number) => ({
+        nom:    c.nom.trim(),
+        valeur: c.valeur.trim(),
+        unite:  c.unite?.trim() || '',
+        ordre:  index
+      }));
+
+    if (caracsFiltrees.length > 0) {
+      formData.append('caracteristiques', JSON.stringify(caracsFiltrees));
+    }
+
+    // ── Variantes ────────────────────────────────────
+    if (this.newProduit.gestion_stock === 'VARIANTES' && this.newProduit.variantes?.length > 0) {
+      const variantesFiltrees = this.newProduit.variantes.map((v: any) => ({
+        nom:             v.nom?.trim()  || '',
+        sku:             v.sku?.trim()  || '',
+        prix_supplement: Number(v.prix_supplement) || 0,
+        quantite:        Number(v.quantite)         || 0,
+        attributs: (v.attributs || [])
+          .filter((a: any) => a.nom?.trim() && a.valeur?.trim())
+          .map((a: any) => ({
+            nom:    a.nom.trim(),
+            valeur: a.valeur.trim()
+          }))
+      }));
+
+      formData.append('variantes', JSON.stringify(variantesFiltrees));
+    }
+
+    // ── Image ────────────────────────────────────────
     if (this.selectedFile) {
       formData.append('image', this.selectedFile);
     }
 
+    // ── Envoi ────────────────────────────────────────
     this.produitService.create(formData).subscribe({
       next: () => {
         this.alertService.success('Produit créé avec succès !');
@@ -400,7 +467,6 @@ export class ProduitComponent implements OnInit {
       }
     });
   }
-
   // ================================
   // MISE À JOUR PRODUIT
   // ================================
@@ -521,7 +587,7 @@ export class ProduitComponent implements OnInit {
     this.selectedProduit = null;
     this.stockQuantite = 0;
   }
-  
+
 
   addStock() {
     if (!this.stockQuantite || this.stockQuantite <= 0) {
@@ -569,4 +635,67 @@ export class ProduitComponent implements OnInit {
     this.tagsInput = '';
     this.removeImage();
   }
+
+  addCaracteristique() {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    if (!target.caracteristiques) target.caracteristiques = [];
+    target.caracteristiques.push({
+      nom: '',
+      valeur: '',
+      unite: '',
+      ordre: target.caracteristiques.length
+    });
+  }
+
+  removeCaracteristique(index: number) {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    target.caracteristiques.splice(index, 1);
+    // Réordonner
+    target.caracteristiques.forEach((c: any, i: number) => c.ordre = i);
+  }
+
+  // ================================
+  // GESTION VARIANTES
+  // ================================
+
+  toggleGestionStock() {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    target.gestion_stock = target.gestion_stock === 'VARIANTES' ? 'SIMPLE' : 'VARIANTES';
+    if (target.gestion_stock === 'VARIANTES' && (!target.variantes || target.variantes.length === 0)) {
+      target.variantes = [];
+      this.addVariante(); // Ajouter une première variante automatiquement
+    }
+  }
+
+  addVariante() {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    if (!target.variantes) target.variantes = [];
+    target.variantes.push({
+      nom: '',
+      sku: '',
+      attributs: [],
+      prix_supplement: 0,
+      quantite: 0,
+      image: ''
+    });
+  }
+
+  removeVariante(index: number) {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    target.variantes.splice(index, 1);
+  }
+
+  addAttribut(varianteIndex: number) {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    if (!target.variantes[varianteIndex].attributs) {
+      target.variantes[varianteIndex].attributs = [];
+    }
+    target.variantes[varianteIndex].attributs.push({ nom: '', valeur: '' });
+  }
+
+  removeAttribut(varianteIndex: number, attributIndex: number) {
+    const target = this.showUpdateModal ? this.selectedProduit : this.newProduit;
+    target.variantes[varianteIndex].attributs.splice(attributIndex, 1);
+  }
+
 }

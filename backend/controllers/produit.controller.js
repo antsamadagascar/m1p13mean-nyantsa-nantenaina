@@ -388,105 +388,204 @@ exports.getMesProduits = async (req, res) => {
     }
   };
 
-exports.createProduit = async (req, res) => {
-  try {
-    if (req.user.role !== 'BOUTIQUE') {
-      return res.status(403).json({ message: 'Accès réservé aux boutiques' });
-    }
-
-    if (!req.user.boutiqueId) {
-      return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
-    }
-
-    const {
-      nom,
-      description,
-      description_courte,
-      reference,
-      marque,
-      prix,
-      prix_promo,
-      quantite,
-      stock_minimum,
-      categorie,
-      sous_categorie,
-      condition,
-      tags,
-      caracteristiques
-    } = req.body;
-
-    // ✅ Validation minimale
-    if (!nom || !reference || !prix || quantite == null || !categorie) {
-      return res.status(400).json({
-        message: 'Champs obligatoires manquants (nom, référence, prix, quantité, catégorie)'
+  exports.createProduit = async (req, res) => {
+    try {
+      // 🔐 Vérification rôle
+      if (req.user.role !== 'BOUTIQUE') {
+        return res.status(403).json({ message: 'Accès réservé aux boutiques' });
+      }
+  
+      if (!req.user.boutiqueId) {
+        return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
+      }
+  
+      const {
+        nom,
+        description,
+        description_courte,
+        reference,
+        marque,
+        prix,
+        prix_promo,
+        quantite,
+        stock_minimum,
+        categorie,
+        sous_categorie,
+        condition,
+        gestion_stock,
+        tags,
+        caracteristiques,
+        variantes
+      } = req.body;
+  
+      console.log('📦 Body reçu:', req.body);
+      console.log('📎 Fichier reçu:', req.file);
+  
+      // ✅ Validation minimale
+      if (!nom || !reference || !prix || quantite == null || !categorie) {
+        return res.status(400).json({
+          message: 'Champs obligatoires manquants (nom, référence, prix, quantité, catégorie)'
+        });
+      }
+  
+      // 🔎 Vérifier référence unique
+      const referenceExist = await Produit.findOne({ reference });
+      if (referenceExist) {
+        return res.status(400).json({
+          message: 'Cette référence existe déjà'
+        });
+      }
+  
+      // ─── Parser les champs JSON ───────────────────────────────
+  
+      // Tags
+      let tagsParsed = [];
+      if (tags) {
+        try {
+          tagsParsed = typeof tags === 'string' ? JSON.parse(tags) : tags;
+        } catch (e) {
+          console.error('⚠️ Erreur parsing tags:', e);
+          tagsParsed = [];
+        }
+      }
+  
+      // Caractéristiques
+      let caracsParsed = [];
+      if (caracteristiques) {
+        try {
+          caracsParsed = typeof caracteristiques === 'string'
+            ? JSON.parse(caracteristiques)
+            : caracteristiques;
+  
+          // Filtrer les caractéristiques invalides
+          caracsParsed = caracsParsed
+            .filter(c => c.nom?.trim() && c.valeur?.trim())
+            .map((c, index) => ({
+              nom:    c.nom.trim(),
+              valeur: c.valeur.trim(),
+              unite:  c.unite?.trim() || '',
+              ordre:  index
+            }));
+  
+        } catch (e) {
+          console.error('⚠️ Erreur parsing caractéristiques:', e);
+          caracsParsed = [];
+        }
+      }
+  
+      // Variantes
+      let variantesParsed = [];
+      const modeGestionStock = gestion_stock || 'SIMPLE';
+  
+      if (modeGestionStock === 'VARIANTES' && variantes) {
+        try {
+          variantesParsed = typeof variantes === 'string'
+            ? JSON.parse(variantes)
+            : variantes;
+  
+          // Nettoyer et valider chaque variante
+          variantesParsed = variantesParsed.map(v => ({
+            nom:             v.nom?.trim()           || '',
+            sku:             v.sku?.trim()            || '',
+            prix_supplement: Number(v.prix_supplement) || 0,
+            quantite:        Number(v.quantite)        || 0,
+            image:           v.image                   || '',
+            attributs: (v.attributs || [])
+              .filter(a => a.nom?.trim() && a.valeur?.trim())
+              .map(a => ({
+                nom:    a.nom.trim(),
+                valeur: a.valeur.trim()
+              }))
+          }));
+  
+          // Validation : chaque variante doit avoir un stock >= 0
+          const variantesInvalides = variantesParsed.filter(
+            v => v.quantite === null || v.quantite === undefined || v.quantite < 0
+          );
+          if (variantesInvalides.length > 0) {
+            return res.status(400).json({
+              message: 'Le stock de chaque variante doit être >= 0'
+            });
+          }
+  
+        } catch (e) {
+          console.error('⚠️ Erreur parsing variantes:', e);
+          return res.status(400).json({ message: 'Format des variantes invalide' });
+        }
+      }
+  
+      // 📷 Gérer l'image uploadée
+      const images = [];
+      if (req.file) {
+        // Normaliser le chemin (remplacer les backslashes Windows)
+        const imagePath = req.file.path.replace(/\\/g, '/');
+        images.push({
+          url:       imagePath,
+          principale: true,
+          alt:        nom,
+          ordre:      0
+        });
+        console.log('🖼️ Image sauvegardée:', imagePath);
+      }
+  
+      // ─── Calcul de la quantité totale ────────────────────────
+      // En mode VARIANTES, la quantité totale = somme des variantes
+      let quantiteTotale = Number(quantite) || 0;
+      if (modeGestionStock === 'VARIANTES' && variantesParsed.length > 0) {
+        quantiteTotale = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
+      }
+  
+      // 🏗 Création produit
+      const produit = new Produit({
+        nom,
+        description:       description        || '',
+        description_courte: description_courte || '',
+        reference,
+        marque:            marque             || '',
+        prix:              Number(prix),
+        prix_promo:        prix_promo ? Number(prix_promo) : null,
+        quantite:          quantiteTotale,
+        stock_minimum:     Number(stock_minimum) || 0,
+        categorie,
+        sous_categorie:    sous_categorie || null,
+        statut:            'BROUILLON',
+        condition:         condition || 'NEUF',
+        gestion_stock:     modeGestionStock,
+        tags:              tagsParsed,
+        caracteristiques:  caracsParsed,
+        variantes:         modeGestionStock === 'VARIANTES' ? variantesParsed : [],
+        images,
+        boutique:          req.user.boutiqueId
       });
+  
+      await produit.save();
+      console.log('✅ Produit créé:', produit._id);
+  
+      // 🔄 Création mouvement stock initial
+      if (quantiteTotale > 0) {
+        await MouvementStock.create({
+          produit:  produit._id,
+          type:     'ENTREE',
+          quantite: quantiteTotale,
+          motif:    modeGestionStock === 'VARIANTES'
+                      ? 'Stock initial (variantes)'
+                      : 'Stock initial',
+          boutique: req.user.boutiqueId
+        });
+      }
+  
+      // 📤 Retourner le produit populé
+      const produitPopulate = await Produit.findById(produit._id)
+        .populate('categorie',     'nom')
+        .populate('sous_categorie', 'nom');
+  
+      res.status(201).json(produitPopulate);
+  
+    } catch (error) {
+      console.error('❌ Erreur création produit:', error);
+      res.status(500).json({ message: error.message });
     }
-
-    // 🔎 Vérifier référence unique
-    const referenceExist = await Produit.findOne({ reference });
-    if (referenceExist) {
-      return res.status(400).json({
-        message: 'Cette référence existe déjà'
-      });
-    }
-
-    // 📷 Gérer l'image uploadée avec la nouvelle structure
-    const images = [];
-    if (req.file) {
-      images.push({
-        url: req.file.path, // ou req.file.filename selon config
-        principale: true, // La première image est principale
-        alt: nom,
-        ordre: 0
-      });
-    }
-
-    // 🏗 Création produit
-    const produit = new Produit({
-      nom,
-      description,
-      description_courte,
-      reference,
-      marque,
-      prix,
-      prix_promo,
-      quantite,
-      stock_minimum: stock_minimum || 0,
-      categorie,
-      sous_categorie: sous_categorie || null,
-      statut: 'BROUILLON',
-      condition: condition || 'NEUF',
-      tags: tags ? (Array.isArray(tags) ? tags : JSON.parse(tags)) : [],
-      caracteristiques: caracteristiques ? (Array.isArray(caracteristiques) ? caracteristiques : JSON.parse(caracteristiques)) : [],
-      images,
-      boutique: req.user.boutiqueId,
-      gestion_stock: 'SIMPLE'
-    });
-
-    await produit.save();
-
-    // 🔄 Création mouvement stock initial
-    if (quantite > 0) {
-      await MouvementStock.create({
-        produit: produit._id,
-        type: 'ENTREE',
-        quantite: quantite,
-        motif: 'Stock initial',
-        boutique: req.user.boutiqueId
-      });
-    }
-
-    const produitPopulate = await Produit.findById(produit._id)
-      .populate('categorie', 'nom')
-      .populate('sous_categorie', 'nom');
-
-    res.status(201).json(produitPopulate);
-
-  } catch (error) {
-    console.error('Erreur création produit:', error);
-    res.status(500).json({ message: error.message });
-  }
-};
+  };
 
 exports.updateProduit = async (req, res) => {
     try {
