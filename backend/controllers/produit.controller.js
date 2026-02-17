@@ -1,5 +1,6 @@
 const Produit = require('../models/Produit');
 
+const MouvementStock = require('../models/MouvementStock'); 
 /**
  * Récupère la liste des produits avec filtres et pagination
  */
