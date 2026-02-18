@@ -3,13 +3,14 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Boutique } from '../models/boutique.model';
-
+import { map } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BoutiqueService {
-  private apiUrl = 'http://localhost:5000/api/boutiques';
+  private apiUrl = `${environment.apiUrl}/api/boutiques`;
 
 
   constructor(private http: HttpClient) {}
@@ -48,8 +49,11 @@ export class BoutiqueService {
     return this.http.post(`${this.apiUrl}/create`, boutiqueData);
   }
   
-  getBoutiqueById(id: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/${id}`);
+  //recupere un boutique par id
+  getBoutiqueById(id: string): Observable<Boutique> {
+    return this.http.get<{ success: boolean; data: Boutique }>(`${this.apiUrl}/${id}`).pipe(
+      map(response => response.data)
+    );
   }
 
   getBoutiqueDetailsById(id: string): Observable<any> {

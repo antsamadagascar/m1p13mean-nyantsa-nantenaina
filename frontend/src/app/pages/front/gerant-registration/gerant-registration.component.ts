@@ -56,7 +56,8 @@ export class GerantRegistrationComponent implements OnInit {
     this.loadingBoutique = true;
     this.boutiqueService.getBoutiqueById(this.boutiqueId).subscribe({
       next: (response) => {
-        this.boutique = response.data;
+        // this.boutique = response.data;
+        this.boutique = response;
         this.loadingBoutique = false;
       },
       error: () => {

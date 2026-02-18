@@ -43,12 +43,8 @@ const seedBoutiques = async () => {
         description: 'Téléphones, ordinateurs, accessoires électroniques, dernières technologies' 
       },
       { 
-        nom: 'Maison & Déco', 
+        nom: 'Maison et Déco', 
         description: 'Meubles, décoration intérieure, objets design pour embellir votre espace de vie' 
-      },
-      { 
-        nom: 'Beauté', 
-        description: 'Cosmétiques, produits de soins, parfums, accessoires de beauté et bien-être' 
       }
     ];
 
@@ -66,6 +62,7 @@ const seedBoutiques = async () => {
       { nom: 'Homme', categorieId: categories[0]._id },
       { nom: 'Femme', categorieId: categories[0]._id },
       { nom: 'Enfant', categorieId: categories[0]._id },
+      { nom: 'Tous', categorieId: categories[0]._id },
       
       // Électronique
       { nom: 'Téléphones', categorieId: categories[1]._id },
@@ -77,10 +74,6 @@ const seedBoutiques = async () => {
       { nom: 'Décoration', categorieId: categories[2]._id },
       { nom: 'Cuisine', categorieId: categories[2]._id },
       
-      // Beauté
-      { nom: 'Maquillage', categorieId: categories[3]._id },
-      { nom: 'Soins', categorieId: categories[3]._id },
-      { nom: 'Parfums', categorieId: categories[3]._id }
     ];
 
     const sousCategories = [];
@@ -215,45 +208,6 @@ const seedBoutiques = async () => {
       }
     },
 
-    {
-      nom: 'Beauty Corner',
-      description: 'Cosmétiques et produits de soins de qualité. Nous proposons des marques reconnues pour prendre soin de votre peau et de votre beauté au quotidien.',
-      logo: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop',
-      banniere: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200&h=300&fit=crop',
-      gerant: {
-        nom: 'Ratsimba',
-        prenom: 'Claudine',
-        email: 'claudine@beauty.mg',
-        telephone: '+261 34 99 000 11'
-      },
-      localisation: {
-        zone: zoneMap['Analakely'],
-        adresse_complete: 'Marché Analakely, Box D07, Antananarivo',
-        surface: 35,
-        latitude: -18.9115,
-        longitude: 47.5279
-      },
-      categorie: categories[3]._id,
-      sous_categories: [sousCategories[9]._id, sousCategories[10]._id],
-      contact: {
-        telephone: '+261 34 99 000 11',
-        email: 'info@beauty.mg'
-      },
-      horaires: {
-        lundi: { ouvert: true, debut: '09:00', fin: '18:00' },
-        mardi: { ouvert: true, debut: '09:00', fin: '18:00' },
-        mercredi: { ouvert: true, debut: '09:00', fin: '18:00' },
-        jeudi: { ouvert: true, debut: '09:00', fin: '18:00' },
-        vendredi: { ouvert: true, debut: '09:00', fin: '19:00' },
-        samedi: { ouvert: true, debut: '09:00', fin: '18:00' },
-        dimanche: { ouvert: false, debut: '00:00', fin: '00:00' }
-      },
-      statut: {
-        actif: false,
-        en_attente_validation: true,
-        suspendu: false
-      }
-    },
 
     {
       nom: 'Kids Fashion',

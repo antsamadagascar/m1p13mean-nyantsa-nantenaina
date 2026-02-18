@@ -8,6 +8,7 @@ router.post('/create', boutiqueController.createBoutique);
 // Routes publiques
 router.get('/public', boutiqueController.getBoutiquesPublic);
 router.get('/', boutiqueController.getBoutiques);
+router.get('/all', boutiqueController.getAllBoutiques);
 
 // Routes par ID
 router.get('/:id', boutiqueController.getBoutiqueById);

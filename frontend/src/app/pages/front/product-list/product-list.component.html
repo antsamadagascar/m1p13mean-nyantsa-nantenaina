@@ -1,0 +1,460 @@
+<div class="product-list-page">
+  <!-- Header avec recherche et tri -->
+  <div class="page-header">
+    <div class="container">
+      <div class="header-content">
+        <div class="header-left">
+          <h1 class="page-title">Nos Produits</h1>
+          <p class="results-count" *ngIf="!loading">
+            {{ totalProduits }} produit{{ totalProduits > 1 ? 's' : '' }} trouvé{{ totalProduits > 1 ? 's' : '' }}
+          </p>
+        </div>
+
+        <div class="header-actions">
+          <!-- Barre de recherche -->
+          <div class="search-bar">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input 
+              type="text" 
+              placeholder="Rechercher un produit..." 
+              [(ngModel)]="recherche"
+              (ngModelChange)="onRechercheChange($event)"
+              class="search-input"
+            />
+          </div>
+
+          <!-- Toggle affichage (desktop) -->
+          <button 
+            class="view-toggle desktop-only" 
+            (click)="toggleAffichage()"
+            [title]="affichage === 'grille' ? 'Vue liste' : 'Vue grille'"
+          >
+            <svg *ngIf="affichage === 'grille'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="8" y1="6" x2="21" y2="6"></line>
+              <line x1="8" y1="12" x2="21" y2="12"></line>
+              <line x1="8" y1="18" x2="21" y2="18"></line>
+              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+            </svg>
+            <svg *ngIf="affichage === 'liste'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </button>
+
+          <!-- Bouton filtres (mobile) -->
+          <button class="filter-btn mobile-only" (click)="toggleMobileFilters()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Filtres</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Barre de tri -->
+      <div class="sort-bar">
+        <label>Trier par :</label>
+        <select [(ngModel)]="filtres.tri" (ngModelChange)="onTriChange($event)" class="sort-select">
+          <option *ngFor="let option of optionsTri" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Filtres actifs -->
+      <div class="active-filters" *ngIf="marquesSelectionnees.length > 0 || conditionsSelectionnees.length > 0 || enPromotion || enStock || prixMin || prixMax">
+        <div class="filter-chips">
+          <span class="filter-chip" *ngFor="let marque of marquesSelectionnees">
+            {{ marque }}
+            <button (click)="toggleMarque(marque)">×</button>
+          </span>
+          <span class="filter-chip" *ngFor="let condition of conditionsSelectionnees">
+            {{ condition }}
+            <button (click)="toggleCondition(condition)">×</button>
+          </span>
+          <span class="filter-chip" *ngIf="enPromotion">
+            En promotion
+            <button (click)="togglePromotion()">×</button>
+          </span>
+          <span class="filter-chip" *ngIf="enStock">
+            En stock
+            <button (click)="toggleStock()">×</button>
+          </span>
+          <span class="filter-chip" *ngIf="prixMin || prixMax">
+            {{ prixMin || 0 }} Ar - {{ prixMax || '∞' }} Ar
+            <button (click)="prixMin = null; prixMax = null; appliquerFiltrePrix()">×</button>
+          </span>
+        </div>
+        <button class="reset-filters-btn" (click)="resetFiltres()">
+          Réinitialiser les filtres
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="container">
+    <div class="main-layout">
+      <!-- Sidebar des filtres (desktop) -->
+      <aside class="filters-sidebar desktop-only">
+        <div class="filters-header">
+          <h2>Filtres</h2>
+          <button class="reset-btn" (click)="resetFiltres()">Réinitialiser</button>
+        </div>
+
+        <!-- Prix -->
+        <div class="filter-section">
+          <h3 class="filter-title">Prix</h3>
+          <div class="price-inputs">
+            <input 
+              type="number" 
+              placeholder="Min" 
+              [(ngModel)]="prixMin"
+              class="price-input"
+            />
+            <span>-</span>
+            <input 
+              type="number" 
+              placeholder="Max" 
+              [(ngModel)]="prixMax"
+              class="price-input"
+            />
+          </div>
+          <button class="apply-btn" (click)="appliquerFiltrePrix()">Appliquer</button>
+        </div>
+
+        <!-- Marques -->
+        <div class="filter-section" *ngIf="hasMarques()">
+          <h3 class="filter-title">Marques</h3>
+          <div class="filter-options">
+            <label class="filter-option" *ngFor="let marque of getMarques()">
+              <input 
+                type="checkbox" 
+                [checked]="marquesSelectionnees.includes(marque.nom)"
+                (change)="toggleMarque(marque.nom)"
+              />
+              <span>{{ marque.nom }}</span>
+              <span class="option-count">({{ marque.count }})</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Condition -->
+        <div class="filter-section">
+          <h3 class="filter-title">État</h3>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('NEUF')"
+                (change)="toggleCondition('NEUF')"
+              />
+              <span>Neuf</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('OCCASION')"
+                (change)="toggleCondition('OCCASION')"
+              />
+              <span>Occasion</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('RECONDITIONNE')"
+                (change)="toggleCondition('RECONDITIONNE')"
+              />
+              <span>Reconditionné</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Disponibilité -->
+        <div class="filter-section">
+          <h3 class="filter-title">Disponibilité</h3>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="enPromotion"
+                (change)="togglePromotion()"
+              />
+              <span>En promotion</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="enStock"
+                (change)="toggleStock()"
+              />
+              <span>En stock</span>
+            </label>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Liste des produits -->
+      <div class="products-content">
+        <!-- Loading -->
+        <div class="loading-state" *ngIf="loading">
+          <div class="spinner"></div>
+          <p>Chargement des produits...</p>
+        </div>
+
+        <!-- Erreur -->
+        <div class="error-state" *ngIf="error && !loading">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <p>{{ error }}</p>
+          <button class="retry-btn" (click)="chargerProduits()">Réessayer</button>
+        </div>
+
+        <!-- Aucun résultat -->
+        <div class="empty-state" *ngIf="!loading && !error && produits.length === 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="m21 21-4.35-4.35"></path>
+          </svg>
+          <h3>Aucun produit trouvé</h3>
+          <p>Essayez de modifier vos critères de recherche</p>
+          <button class="reset-btn" (click)="resetFiltres()">Réinitialiser les filtres</button>
+        </div>
+
+        <!-- Grille de produits -->
+        <div 
+          class="products-grid" 
+          [class.grid-view]="affichage === 'grille'"
+          [class.list-view]="affichage === 'liste'"
+          *ngIf="!loading && !error && produits.length > 0"
+        >
+          <div class="product-card" *ngFor="let produit of produits">
+            <a [routerLink]="['/produits', produit.slug]" class="product-link">
+              <!-- Image -->
+              <div class="product-image">
+                <img [src]="getImagePrincipale(produit)" [alt]="produit.nom" />
+                
+                <!-- Badges -->
+                <div class="product-badges">
+                  <span class="badge badge-promo" *ngIf="produit.en_promotion">
+                    -{{ produit.pourcentage_reduction }}%
+                  </span>
+                  <span class="badge badge-new" *ngIf="produit.condition === 'NEUF'">
+                    Neuf
+                  </span>
+                  <span class="badge badge-rupture" *ngIf="produit.en_rupture">
+                    Rupture
+                  </span>
+                </div>
+              </div>
+
+              <!-- Contenu -->
+              <div class="product-content">
+                <div class="product-header">
+                  <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
+                  <h3 class="product-name">{{ produit.nom }}</h3>
+                </div>
+
+                <p class="product-description" *ngIf="affichage === 'liste' && produit.description_courte">
+                  {{ produit.description_courte }}
+                </p>
+
+                <div class="product-footer">
+                  <div class="product-price">
+                    <span class="price-current" [class.price-promo]="produit.en_promotion">
+                      {{ formatPrix(produit.prix_final || produit.prix) }}
+                    </span>
+                    <span class="price-original" *ngIf="produit.en_promotion">
+                      {{ formatPrix(produit.prix) }}
+                    </span>
+                  </div>
+
+                  <div class="product-meta">
+                    <div class="product-rating" *ngIf="produit.note_moyenne > 0">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                      </svg>
+                      <span>{{ produit.note_moyenne.toFixed(1) }}</span>
+                      <span class="reviews-count">({{ produit.nombre_avis }})</span>
+                    </div>
+
+                    <div class="product-boutique">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                      </svg>
+                      <span>{{ produit.boutique.nom }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </a>
+<!-- 
+            <button class="add-to-cart-btn" [disabled]="produit.en_rupture">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span *ngIf="!produit.en_rupture">Ajouter au panier</span>
+              <span *ngIf="produit.en_rupture">Rupture de stock</span>
+            </button> -->
+          </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" *ngIf="!loading && totalPages > 1">
+          <button 
+            class="pagination-btn" 
+            [disabled]="page === 1"
+            (click)="changerPage(page - 1)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+
+          <button 
+            *ngFor="let p of getPagesArray()"
+            class="pagination-btn"
+            [class.active]="p === page"
+            (click)="changerPage(p)"
+          >
+            {{ p }}
+          </button>
+
+          <button 
+            class="pagination-btn" 
+            [disabled]="page === totalPages"
+            (click)="changerPage(page + 1)"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal filtres mobile -->
+  <div class="mobile-filters-modal" [class.active]="mobileFiltersOpen">
+    <div class="modal-overlay" (click)="toggleMobileFilters()"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Filtres</h2>
+        <button class="close-btn" (click)="toggleMobileFilters()">×</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Prix -->
+        <div class="filter-section">
+          <h3 class="filter-title">Prix</h3>
+          <div class="price-inputs">
+            <input 
+              type="number" 
+              placeholder="Min" 
+              [(ngModel)]="prixMin"
+              class="price-input"
+            />
+            <span>-</span>
+            <input 
+              type="number" 
+              placeholder="Max" 
+              [(ngModel)]="prixMax"
+              class="price-input"
+            />
+          </div>
+        </div>
+
+        <!-- Marques -->
+        <div class="filter-section" *ngIf="hasMarques()">
+          <h3 class="filter-title">Marques</h3>
+          <div class="filter-options">
+            <label class="filter-option" *ngFor="let marque of getMarques()">
+              <input 
+                type="checkbox" 
+                [checked]="marquesSelectionnees.includes(marque.nom)"
+                (change)="toggleMarque(marque.nom)"
+              />
+              <span>{{ marque.nom }}</span>
+              <span class="option-count">({{ marque.count }})</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Condition -->
+        <div class="filter-section">
+          <h3 class="filter-title">État</h3>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('NEUF')"
+                (change)="toggleCondition('NEUF')"
+              />
+              <span>Neuf</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('OCCASION')"
+                (change)="toggleCondition('OCCASION')"
+              />
+              <span>Occasion</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="conditionsSelectionnees.includes('RECONDITIONNE')"
+                (change)="toggleCondition('RECONDITIONNE')"
+              />
+              <span>Reconditionné</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Disponibilité -->
+        <div class="filter-section">
+          <h3 class="filter-title">Disponibilité</h3>
+          <div class="filter-options">
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="enPromotion"
+                (change)="togglePromotion()"
+              />
+              <span>En promotion</span>
+            </label>
+            <label class="filter-option">
+              <input 
+                type="checkbox" 
+                [checked]="enStock"
+                (change)="toggleStock()"
+              />
+              <span>En stock</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="reset-btn" (click)="resetFiltres(); toggleMobileFilters()">
+          Réinitialiser
+        </button>
+        <button class="apply-btn" (click)="appliquerFiltres(); toggleMobileFilters()">
+          Appliquer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common'; 
 import { Router, RouterModule } from '@angular/router';
 import { AlertService } from '../../../services/alert.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-register',
@@ -44,7 +45,7 @@ export class RegisterComponent {
     };
 
     // Appel API
-    this.http.post<any>('http://localhost:5000/api/users/register', payload)
+    this.http.post<any>(`${environment.apiUrl}/api/users/register`, payload)
       .subscribe({
         next: (res) => {
           this.alertService.success(

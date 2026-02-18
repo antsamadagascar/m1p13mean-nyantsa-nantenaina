@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SousCategorieService {
 
-  private apiUrl = 'http://localhost:5000/api/sous-categories'; // adapter selon ton backend
+  private apiUrl = `${environment.apiUrl}/api/sous-categories`;
 
   constructor(private http: HttpClient) { }
 

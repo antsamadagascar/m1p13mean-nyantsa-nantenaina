@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AlertService } from '../../../services/alert.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-verify-email',
@@ -37,7 +38,7 @@ export class VerifyEmailComponent implements OnInit {
   }
 
   verifyEmail(token: string): void {
-    this.http.get(`http://localhost:5000/api/users/verify-email?token=${token}`)
+    this.http.get(`${environment.apiUrl}/api/users/verify-email?token=${token}`)
       .subscribe({
         next: (response: any) => {
           this.isLoading = false;

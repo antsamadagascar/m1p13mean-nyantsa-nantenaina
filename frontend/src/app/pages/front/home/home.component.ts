@@ -4,8 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BoutiqueService } from '../../../services/boutique.service';
 import { Boutique } from '../../../models/boutique.model';
-
-import { AuthService } from '../../../services/auth.service'; 
+import { AuthService } from '../../../services/auth.service';
+// Import des utilitaires
+import * as HorairesUtils from '../../../utils/boutique-horaires.util';
 
 @Component({
   selector: 'app-boutiques-list',
@@ -14,7 +15,6 @@ import { AuthService } from '../../../services/auth.service';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.css']
 })
-
 export class HomeComponent implements OnInit {
 
   boutiques: Boutique[] = [];
@@ -22,7 +22,6 @@ export class HomeComponent implements OnInit {
   boutiquesPaginated: Boutique[] = [];
   loading = false;
   heures: string[] = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-
 
   // USER CONNECTÉ
   currentUser: any = null;
@@ -78,12 +77,13 @@ export class HomeComponent implements OnInit {
   applyFilters() {
     this.boutiquesFiltered = this.boutiques.filter(boutique => {
 
+      // Filtre par catégorie
       const categorieId = typeof boutique.categorie === 'string' ? boutique.categorie : boutique.categorie._id;
-        if (this.filters.categorie && categorieId !== this.filters.categorie) {
-          return false;
-        }
+      if (this.filters.categorie && categorieId !== this.filters.categorie) {
+        return false;
+      }
 
-
+      // Filtre par recherche
       if (this.filters.search) {
         const search = this.filters.search.toLowerCase();
         const nomMatch = boutique.nom.toLowerCase().includes(search);
@@ -91,42 +91,37 @@ export class HomeComponent implements OnInit {
         if (!nomMatch && !descMatch) return false;
       }
 
-      if (this.filters.ouvertes && !boutique.estOuverte) {
+      // Filtre par boutiques ouvertes - UTILISE L'UTILITAIRE
+      if (this.filters.ouvertes && !HorairesUtils.estOuverte(boutique.horaires)) {
         return false;
       }
 
+      // Filtre par heure d'ouverture - UTILISE L'UTILITAIRE
       if (this.filters.heure_ouverture) {
-        const maintenant = new Date();
-        const jour = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'][maintenant.getDay()];
-        const horaireJour = boutique.horaires[jour];
-
-        if (!horaireJour.ouvert) return false;
-
-        const heureRecherche = this.filters.heure_ouverture;
-        const [hD] = horaireJour.debut.split(':');
-        const [hF] = horaireJour.fin.split(':');
-
-        if (heureRecherche < hD || heureRecherche > hF) {
+        const heureRecherche = this.filters.heure_ouverture + ':00';
+        const jourActuel = HorairesUtils.getJourActuel();
+        
+        if (!HorairesUtils.seraOuverte(boutique.horaires, heureRecherche, jourActuel)) {
           return false;
         }
       }
 
+      // Filtre par lieu
       if (this.filters.lieu) {
-          const lieu = this.filters.lieu.toLowerCase();
+        const lieu = this.filters.lieu.toLowerCase();
 
-          const zoneNom =
-            typeof boutique.localisation.zone === 'string'
-              ? boutique.localisation.zone
-              : boutique.localisation.zone?.nom || '';
+        const zoneNom =
+          typeof boutique.localisation.zone === 'string'
+            ? boutique.localisation.zone
+            : boutique.localisation.zone?.nom || '';
 
-          const adresse = boutique.localisation.adresse_complete || '';
+        const adresse = boutique.localisation.adresse_complete || '';
 
-          const zoneMatch = zoneNom.toLowerCase().includes(lieu);
-          const adresseMatch = adresse.toLowerCase().includes(lieu);
+        const zoneMatch = zoneNom.toLowerCase().includes(lieu);
+        const adresseMatch = adresse.toLowerCase().includes(lieu);
 
-          if (!zoneMatch && !adresseMatch) return false;
-        }
-
+        if (!zoneMatch && !adresseMatch) return false;
+      }
 
       return true;
     });
@@ -184,16 +179,16 @@ export class HomeComponent implements OnInit {
   }
   
   getUniqueCategories() {
-  const categories = this.boutiques
-    .map(b => b.categorie)
-    .filter(cat => typeof cat !== 'string'); // Exclure les IDs non-populés
-  
-  return categories.filter((cat, index, self) =>
-    index === self.findIndex(c => 
-      (typeof c !== 'string' && typeof cat !== 'string') && c._id === cat._id
-    )
-  );
-}
+    const categories = this.boutiques
+      .map(b => b.categorie)
+      .filter(cat => typeof cat !== 'string');
+    
+    return categories.filter((cat, index, self) =>
+      index === self.findIndex(c => 
+        (typeof c !== 'string' && typeof cat !== 'string') && c._id === cat._id
+      )
+    );
+  }
 
   getCategorieNom(categorie: any): string {
     return typeof categorie === 'string' ? categorie : categorie.nom;
@@ -207,9 +202,20 @@ export class HomeComponent implements OnInit {
     this.router.navigate(['/boutiques', id]);
   }
 
-
-
   getAdresseComplete(boutique: Boutique): string {
     return boutique.localisation.adresse_complete || '';
   }
+
+  /**
+   * MÉTHODES UTILITAIRES POUR LE TEMPLATE
+   * Exposent les fonctions utilitaires pour une utilisation dans le HTML
+   */
+
+  /**
+   * Vérifie si une boutique est ouverte
+   */
+  estOuverte(boutique: Boutique): boolean {
+    return HorairesUtils.estOuverte(boutique.horaires);
+  }
+
 }

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AlertService } from '../../../services/alert.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-forgot-password',
@@ -30,21 +31,20 @@ export class ForgotPasswordComponent {
 
     this.loading = true;
 
-    this.http.post('http://localhost:5000/api/users/forgot-password', { email: this.email })
+    this.http.post(`${environment.apiUrl}/api/users/forgot-password`, { email: this.email })
       .subscribe({
-        next: (response: any) => {
+        next: () => {
           this.alertService.success(
             'Si cet email existe, un lien de réinitialisation a été envoyé. Vérifiez votre boîte mail.'
           );
           this.email = '';
           this.loading = false;
-          
-          // Redirection après 3 secondes
+
           setTimeout(() => {
             this.router.navigate(['/connexion']);
           }, 3000);
         },
-        error: (error) => {
+        error: () => {
           this.alertService.error('Une erreur est survenue. Veuillez réessayer.');
           this.loading = false;
         }

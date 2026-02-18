@@ -1,0 +1,313 @@
+<div class="boutique-detail-page" *ngIf="!loading && boutique">
+  <!-- Header Boutique -->
+  <div class="boutique-header">
+    <div class="header-background" [style.background-image]="'url(' + (boutique.banniere || '') + ')'"></div>
+    
+    <div class="container">
+      <div class="header-content">
+        <!-- Logo et infos principales -->
+        <div class="boutique-main">
+          <div class="boutique-logo">
+            <img [src]="boutique.logo" [alt]="boutique.nom" />
+          </div>
+          
+          <div class="boutique-info">
+            <h1 class="boutique-name">{{ boutique.nom }}</h1>
+            
+            <!-- Statut ouverture -->
+            <div class="boutique-status" [class.open]="estOuverte()" [class.closed]="!estOuverte()">
+              <svg viewBox="0 0 24 24" fill="currentColor" *ngIf="estOuverte()">
+                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <svg viewBox="0 0 24 24" fill="currentColor" *ngIf="!estOuverte()">
+                <path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span>{{ getStatutMessage() }}</span>
+            </div>
+
+            <!-- Horaires aujourd'hui -->
+            <p class="horaires-aujourdhui">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              {{ getHorairesAujourdhui() }}
+            </p>
+
+            <!-- Catégorie -->
+            <p class="boutique-category" *ngIf="boutique.categorie">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+              </svg>
+              {{ getCategorieNom() }}
+            </p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="boutique-actions">
+          <button class="btn-contact" *ngIf="boutique.contact?.telephone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            {{ boutique.contact.telephone }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation onglets -->
+  <div class="tabs-navigation">
+    <div class="container">
+      <button 
+        class="tab-btn" 
+        [class.active]="ongletActif === 'produits'"
+        (click)="changerOnglet('produits')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+        </svg>
+        Produits ({{ totalProduits }})
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="ongletActif === 'apropos'"
+        (click)="changerOnglet('apropos')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        À propos
+      </button>
+      <button 
+        class="tab-btn"
+        [class.active]="ongletActif === 'horaires'"
+        (click)="changerOnglet('horaires')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Horaires
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerte si boutique fermée -->
+  <div class="alert alert-warning" *ngIf="!estOuverte()">
+    <div class="container">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+      <div>
+        <strong>Boutique fermée</strong>
+        <p>Vous pouvez parcourir les produits mais les achats ne sont pas disponibles actuellement.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET PRODUITS -->
+  <div class="produits-section" *ngIf="ongletActif === 'produits'">
+    <div class="container">
+      <!-- Barre de tri -->
+      <div class="produits-toolbar">
+        <h2>Produits de la boutique</h2>
+        
+        <div class="toolbar-actions">
+          <label>Trier par :</label>
+          <select [(ngModel)]="triProduits" (change)="onTriChange($event)" class="sort-select">
+            <option value="nouveaute">Nouveautés</option>
+            <option value="prix_asc">Prix croissant</option>
+            <option value="prix_desc">Prix décroissant</option>
+            <option value="populaire">Les plus populaires</option>
+            <option value="meilleures_notes">Meilleures notes</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Loading produits -->
+      <div class="loading-state" *ngIf="loadingProduits">
+        <div class="spinner"></div>
+        <p>Chargement des produits...</p>
+      </div>
+
+      <!-- Grille de produits -->
+      <div class="produits-grid" *ngIf="!loadingProduits && produits.length > 0">
+        <div class="product-card" *ngFor="let produit of produits">
+          <a [routerLink]="['/produits', produit.slug]" class="product-link">
+            <div class="product-image">
+              <img [src]="getImagePrincipale(produit)" [alt]="produit.nom" />
+              <div class="product-badges">
+                <span class="badge badge-promo" *ngIf="produit.en_promotion">
+                  -{{ produit.pourcentage_reduction }}%
+                </span>
+                <span class="badge badge-closed" *ngIf="!estOuverte()">
+                  Boutique fermée
+                </span>
+                <span class="badge badge-rupture" *ngIf="produit.en_rupture">
+                  Rupture
+                </span>
+              </div>
+            </div>
+
+            <div class="product-content">
+              <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
+              <h3 class="product-name">{{ produit.nom }}</h3>
+              
+              <div class="product-price">
+                <span class="price-current" [class.price-promo]="produit.en_promotion">
+                  {{ formatPrix(produit.prix_final || produit.prix) }}
+                </span>
+                <span class="price-original" *ngIf="produit.en_promotion">
+                  {{ formatPrix(produit.prix) }}
+                </span>
+              </div>
+
+              <div class="product-rating" *ngIf="produit.note_moyenne > 0">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>{{ produit.note_moyenne.toFixed(1) }}</span>
+              </div>
+            </div>
+          </a>
+
+          <button 
+            class="btn-add-cart" 
+            [disabled]="!peutAcheter(produit)"
+            [class.disabled]="!peutAcheter(produit)"
+          >
+            <span>{{ getMessageAchat(produit) }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Aucun produit -->
+      <div class="empty-state" *ngIf="!loadingProduits && produits.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <h3>Aucun produit disponible</h3>
+        <p>Cette boutique n'a pas encore de produits en ligne.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="!loadingProduits && totalPages > 1">
+        <button class="pagination-btn" [disabled]="page === 1" (click)="changerPage(page - 1)">‹</button>
+        <button *ngFor="let p of getPagesArray()" class="pagination-btn" [class.active]="p === page" (click)="changerPage(p)">{{ p }}</button>
+        <button class="pagination-btn" [disabled]="page === totalPages" (click)="changerPage(page + 1)">›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET À PROPOS -->
+  <div class="apropos-section" *ngIf="ongletActif === 'apropos'">
+    <div class="container">
+      <div class="apropos-card">
+        <h2>À propos de {{ boutique.nom }}</h2>
+        
+        <div class="apropos-content">
+          <div class="info-block">
+            <h3>Description</h3>
+            <p>{{ boutique.description || 'Aucune description disponible.' }}</p>
+          </div>
+
+          <div class="info-block" *ngIf="boutique.contact">
+            <h3>Contact</h3>
+            <div class="contact-list">
+              <div class="contact-item" *ngIf="boutique.contact.telephone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                </svg>
+                <span>{{ boutique.contact.telephone }}</span>
+              </div>
+              <div class="contact-item" *ngIf="boutique.contact.email">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+                <span>{{ boutique.contact.email }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-block" *ngIf="boutique.localisation">
+            <h3>Localisation</h3>
+            <div class="localisation-info">
+              <div class="local-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                  <circle cx="12" cy="10" r="3"></circle>
+                </svg>
+                <div>
+                  <strong>Adresse</strong>
+                  <p>{{ boutique.localisation.adresse_complete || 'Non renseignée' }}</p>
+                </div>
+              </div>
+              <div class="local-item" *ngIf="boutique.localisation.zone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 11a3 3 0 106 0 3 3 0 00-6 0z"></path>
+                  <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                </svg>
+                <div>
+                  <strong>Zone</strong>
+                  <p>{{ getZoneNom() }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ONGLET HORAIRES -->
+  <div class="horaires-section" *ngIf="ongletActif === 'horaires'">
+    <div class="container">
+      <div class="horaires-card">
+        <h2>Horaires d'ouverture</h2>
+        
+        <div class="horaires-list">
+          <div class="horaire-item" *ngFor="let jour of joursOrdre" [class.today]="estAujourdhui(jour)" [class.closed]="!boutique.horaires[jour].ouvert">
+            <div class="jour-label">
+              <span class="jour-nom">{{ jour | titlecase }}</span>
+              <span class="today-badge" *ngIf="estAujourdhui(jour)">Aujourd'hui</span>
+            </div>
+            <div class="horaire-value">
+              <span *ngIf="boutique.horaires[jour]?.ouvert">
+                {{ boutique.horaires[jour].debut }} - {{ boutique.horaires[jour].fin }}
+              </span>
+              <span class="ferme" *ngIf="!boutique.horaires[jour].ouvert">Fermé</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="horaires-note">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p>Les horaires peuvent varier selon les jours fériés et événements spéciaux.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading initial -->
+<div class="loading-state" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Chargement de la boutique...</p>
+</div>
+
+<!-- Erreur -->
+<div class="error-state" *ngIf="error && !loading">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>
+  <h2>{{ error }}</h2>
+  <button class="btn-back" routerLink="/">Retour à l'accueil</button>
+</div>
