@@ -374,11 +374,15 @@ exports.getMesProduits = async (req, res) => {
       const produits = await Produit.find({
         boutique: req.user.boutiqueId,
         supprime: false,
-        statut: { $in: ['ACTIF', 'BROUILLON', 'RUPTURE'] } // Exclure ARCHIVE
+        statut: { $in: ['ACTIF', 'BROUILLON', 'RUPTURE'] }
       })
         .populate('categorie', 'nom')
         .populate('sous_categorie', 'nom')
-        .sort({ date_creation: -1 });
+        .populate({
+          path: 'promotion_active',
+          select: 'type valeur date_debut date_fin actif'
+        })
+        .sort({ date_creation: -1 });      
   
       res.json(produits);
   

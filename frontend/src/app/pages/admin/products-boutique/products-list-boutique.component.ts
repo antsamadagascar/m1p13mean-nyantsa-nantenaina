@@ -7,7 +7,7 @@ import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { AlertService } from '../../../services/alert.service';
 import { environment } from '../../../../environments/environment';
-
+import { PromotionService } from '../../../services/promotion.service';
 @Component({
   selector: 'app-produit',
   standalone: true,
@@ -80,12 +80,33 @@ export class ProduitComponent implements OnInit {
   deleteMotif: string = '';
 
   private apiBaseUrl = `${environment.apiUrl}`;
-  
+
+    // Propriétés pour la modal promotion
+    showPromotionModal = false;
+    isEditingPromotion = false;
+    promotionData: any = {
+      nom: '',
+      description: '',
+      type: 'POURCENTAGE',
+      valeur: null,
+      prix_fixe: null,
+      date_debut: null,
+      date_fin: null,
+      actif: true,
+      priorite: 0,
+      afficher_badge: true,
+      badge_couleur: '#ff6b6b',
+      badge_texte: null
+    };
+    previewPrixPromo: number | null = null;
+    calculatedReduction: number = 0;
+    currentPromotionId: string | null = null;
 
   constructor(
     private produitService: ProductService,
     private categoryService: CategoryService,
     private sousCategorieService: SousCategorieService,
+    private promotionService: PromotionService,
     private alertService: AlertService
   ) {}
 
@@ -481,14 +502,14 @@ export class ProduitComponent implements OnInit {
     this.selectedProduit.categorie = categorieId;
 
 
-    this.selectedProduit.caracteristiques = produit.caracteristiques 
-      ? produit.caracteristiques.map((c: any) => ({ ...c })) 
+    this.selectedProduit.caracteristiques = produit.caracteristiques
+      ? produit.caracteristiques.map((c: any) => ({ ...c }))
       : [];
-    this.selectedProduit.variantes = produit.variantes 
-      ? produit.variantes.map((v: any) => ({ 
-          ...v, 
-          attributs: v.attributs ? [...v.attributs] : [] 
-        })) 
+    this.selectedProduit.variantes = produit.variantes
+      ? produit.variantes.map((v: any) => ({
+          ...v,
+          attributs: v.attributs ? [...v.attributs] : []
+        }))
       : [];
     this.selectedProduit.gestion_stock = produit.gestion_stock || 'SIMPLE';
 
@@ -561,7 +582,7 @@ export class ProduitComponent implements OnInit {
         unite:  c.unite?.trim() || '',
         ordre:  index
       }));
-    
+
     // Envoyer même si vide pour remplacer l'ancien contenu
     formData.append('caracteristiques', JSON.stringify(caracsFiltrees));
 
@@ -647,12 +668,12 @@ export class ProduitComponent implements OnInit {
     this.produitService.deleteImage(this.selectedProduit._id, imageId).subscribe({
       next: (response) => {
         this.alertService.success('Image supprimée avec succès');
-        
+
         // Mettre à jour l'affichage sans recharger
         this.selectedProduit.images = this.selectedProduit.images.filter(
           (img: any) => img._id !== imageId
         );
-        
+
         // Optionnel : recharger tous les produits
         this.loadProduits();
       },
@@ -752,4 +773,236 @@ export class ProduitComponent implements OnInit {
     target.variantes[varianteIndex].attributs.splice(attributIndex, 1);
   }
 
+  // ================================
+  // GESTION PROMOTION
+  // ================================
+
+  openPromotionModal(produit: any) {
+    this.selectedProduit = produit;
+    this.isEditingPromotion = false;
+    this.currentPromotionId = null;
+
+    // Si le produit a déjà une promotion, la charger
+    if (produit.promotion_active) {
+      this.loadPromotionForEdit(produit._id);
+    } else {
+      this.resetPromotionForm();
+    }
+
+    this.showPromotionModal = true;
+  }
+
+  loadPromotionForEdit(produitId: string) {
+    this.promotionService.getPromotionProduit(produitId).subscribe({
+      next: (promotion) => {
+        this.isEditingPromotion = true;
+        this.currentPromotionId = promotion._id;
+        this.promotionData = {
+          nom: promotion.nom,
+          description: promotion.description || '',
+          type: promotion.type,
+          valeur: promotion.valeur,
+          prix_fixe: promotion.prix_fixe,
+          date_debut: this.formatDateForInput(promotion.date_debut),
+          date_fin: this.formatDateForInput(promotion.date_fin),
+          actif: promotion.actif,
+          priorite: promotion.priorite || 0,
+          afficher_badge: promotion.afficher_badge,
+          badge_couleur: promotion.badge_couleur || '#ff6b6b',
+          badge_texte: promotion.badge_texte
+        };
+        this.calculatePreview();
+      },
+      error: (err) => {
+        console.log('Aucune promotion active');
+        this.resetPromotionForm();
+      }
+    });
+  }
+
+  formatDateForInput(date: string): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  resetPromotionForm() {
+    const now = new Date();
+    const nextWeek = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+    this.promotionData = {
+      nom: '',
+      description: '',
+      type: 'POURCENTAGE',
+      valeur: null,
+      prix_fixe: null,
+      date_debut: this.formatDateForInput(now.toISOString()),
+      date_fin: this.formatDateForInput(nextWeek.toISOString()),
+      actif: true,
+      priorite: 0,
+      afficher_badge: true,
+      badge_couleur: '#ff6b6b',
+      badge_texte: null
+    };
+    this.previewPrixPromo = null;
+    this.calculatedReduction = 0;
+  }
+
+  closePromotionModal() {
+    this.showPromotionModal = false;
+    this.selectedProduit = null;
+    this.isEditingPromotion = false;
+    this.currentPromotionId = null;
+    this.resetPromotionForm();
+  }
+
+  calculatePreview() {
+    if (!this.selectedProduit) return;
+
+    const prixOriginal = this.selectedProduit.prix;
+    let prixPromo = prixOriginal;
+
+    switch (this.promotionData.type) {
+      case 'POURCENTAGE':
+        if (this.promotionData.valeur) {
+          prixPromo = prixOriginal * (1 - this.promotionData.valeur / 100);
+        }
+        break;
+
+      case 'MONTANT_FIXE':
+        if (this.promotionData.valeur) {
+          prixPromo = Math.max(0, prixOriginal - this.promotionData.valeur);
+        }
+        break;
+
+      case 'PRIX_FIXE':
+        if (this.promotionData.prix_fixe) {
+          prixPromo = this.promotionData.prix_fixe;
+        }
+        break;
+    }
+
+    this.previewPrixPromo = Math.round(prixPromo);
+
+    if (prixPromo < prixOriginal) {
+      this.calculatedReduction = Math.round(
+        ((prixOriginal - prixPromo) / prixOriginal) * 100
+      );
+    } else {
+      this.calculatedReduction = 0;
+    }
+  }
+
+  isValidPromotion(): boolean {
+    if (!this.selectedProduit) return false;
+
+    const prixOriginal = this.selectedProduit.prix;
+
+    switch (this.promotionData.type) {
+      case 'POURCENTAGE':
+        return this.promotionData.valeur > 0 &&
+               this.promotionData.valeur <= 100;
+
+      case 'MONTANT_FIXE':
+        return this.promotionData.valeur > 0 &&
+               this.promotionData.valeur < prixOriginal;
+
+      case 'PRIX_FIXE':
+        return this.promotionData.prix_fixe > 0 &&
+               this.promotionData.prix_fixe < prixOriginal;
+
+      default:
+        return false;
+    }
+  }
+
+  getValidationError(): string {
+    if (!this.selectedProduit) return '';
+
+    const prixOriginal = this.selectedProduit.prix;
+
+    switch (this.promotionData.type) {
+      case 'POURCENTAGE':
+        if (!this.promotionData.valeur || this.promotionData.valeur <= 0) {
+          return 'Le pourcentage doit être supérieur à 0';
+        }
+        if (this.promotionData.valeur > 100) {
+          return 'Le pourcentage ne peut pas dépasser 100%';
+        }
+        break;
+
+      case 'MONTANT_FIXE':
+        if (!this.promotionData.valeur || this.promotionData.valeur <= 0) {
+          return 'Le montant doit être supérieur à 0';
+        }
+        if (this.promotionData.valeur >= prixOriginal) {
+          return `Le montant doit être inférieur au prix actuel (${prixOriginal} Ar)`;
+        }
+        break;
+
+      case 'PRIX_FIXE':
+        if (!this.promotionData.prix_fixe || this.promotionData.prix_fixe <= 0) {
+          return 'Le prix doit être supérieur à 0';
+        }
+        if (this.promotionData.prix_fixe >= prixOriginal) {
+          return `Le prix promotionnel doit être inférieur au prix actuel (${prixOriginal} Ar)`;
+        }
+        break;
+    }
+
+    return '';
+  }
+
+  savePromotion() {
+    if (!this.selectedProduit || !this.isValidPromotion()) {
+      this.alertService.error('Veuillez remplir correctement tous les champs');
+      return;
+    }
+
+    const data = { ...this.promotionData };
+
+    // Conversion des dates
+    data.date_debut = new Date(data.date_debut).toISOString();
+    data.date_fin = new Date(data.date_fin).toISOString();
+      // Création
+      this.promotionService.createPromotionProduit(
+        this.selectedProduit._id,
+        data
+      ).subscribe({
+        next: () => {
+          this.alertService.success('Promotion créée avec succès !');
+          this.loadProduits();
+          this.closePromotionModal();
+        },
+        error: (error) => {
+          console.error('Erreur création promotion:', error);
+          this.alertService.error('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
+        }
+      });
+  }
+
+  deletePromotion() {
+    if (!this.selectedProduit || !this.currentPromotionId) return;
+
+    if (confirm('Voulez-vous vraiment supprimer cette promotion ?')) {
+      this.promotionService.deletePromotionProduit(
+        this.selectedProduit._id,
+        this.currentPromotionId
+      ).subscribe({
+        next: () => {
+          this.alertService.success('Promotion supprimée avec succès !');
+          this.loadProduits();
+          this.closePromotionModal();
+        },
+        error: (error) => {
+          console.error('Erreur suppression promotion:', error);
+          this.alertService.error('Erreur: ' + (error.error?.message || 'Erreur inconnue'));
+        }
+      });
+    }
+  }
 }
