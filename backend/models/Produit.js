@@ -277,13 +277,19 @@ produitSchema.virtual('promotion_active_valide').get(function () {
 
     const maintenant = new Date();
 
+    // return (
+    //     this.promotion_active.actif &&
+    //     !this.promotion_active.supprime &&             // ✅ prendre en compte soft delete
+    //     !this.promotion_active.date_suppression &&   // ✅ ou date_suppression définie
+    //     maintenant >= this.promotion_active.date_debut &&
+    //     maintenant <= this.promotion_active.date_fin
+    // );
     return (
         this.promotion_active.actif &&
-        !this.promotion_active.supprime &&             // ✅ prendre en compte soft delete
-        !this.promotion_active.date_suppression &&   // ✅ ou date_suppression définie
-        maintenant >= this.promotion_active.date_debut &&
-        maintenant <= this.promotion_active.date_fin
-    );
+        !this.promotion_active.supprime &&               // ✅ soft delete
+        !this.promotion_active.date_suppression &&      // ✅ suppression future
+        maintenant <= this.promotion_active.date_fin    // ✅ ne pas afficher les promos expirées
+      );
 });
   
 
