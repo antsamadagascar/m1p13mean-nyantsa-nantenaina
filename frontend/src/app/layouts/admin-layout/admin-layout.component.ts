@@ -79,15 +79,21 @@ export class AdminLayoutComponent implements OnInit {
 
     //  BOUTIQUE
     if (this.authService.isBoutique()) {
+     // Récupére l'ID boutique depuis localStorage
+      let boutiqueId = '';
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        boutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
+      } catch {}
 
       this.mainMenuItems = [
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true }
       ];
 
       this.managementMenuItems = [
+        { path: `/backoffice/boutiques/details/${boutiqueId}`, label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false },
         { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
-        { path: '/backoffice/boutiques', label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false }
       ];
 
       this.configMenuItems = [

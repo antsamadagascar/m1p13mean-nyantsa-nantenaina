@@ -10,7 +10,7 @@
     <!-- Header -->
     <div class="mb-6 flex items-center justify-between">
       <div>
-        <a routerLink="/backoffice/boutiques" class="text-blue-600 hover:underline mb-2 inline-block">
+        <a routerLink="/backoffice/boutiques" class="text-blue-600 hover:underline mb-2 inline-block" *ngIf="isAdmin()">
           <i class="fa-solid fa-arrow-left mr-2"></i> Retour à la liste
         </a>
         <h1 class="text-2xl font-bold text-gray-800">{{ boutique.nom }}</h1>
@@ -19,19 +19,19 @@
       <!-- Actions rapides -->
       <div class="flex gap-2">
         <button
-          *ngIf="boutique.statut.suspendu"
+          *ngIf="boutique.statut.suspendu && isAdmin()"
           (click)="reactiver()"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
         >
           <i class="fa-solid fa-rotate-right mr-2"></i> Réactiver
         </button>
         <button
-          *ngIf="!boutique.statut.suspendu"
+          *ngIf="!boutique.statut.suspendu && isAdmin()"
           (click)="suspendre()"
           class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
         >
           <i class="fa-solid fa-ban mr-2"></i> Suspendre
-        </button>
+        </button>   
       </div>
     </div>
 

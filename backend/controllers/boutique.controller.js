@@ -200,19 +200,28 @@ const getBoutiques = async (req, res) => {
 // Obtenir UNE boutique par ID
 const getBoutiqueDetailsById = async (req, res) => {
   try {
+    // Si l'utilisateur est BOUTIQUE, on vérifie qu'il accède à SA boutique
+    if (req.user && req.user.role === 'BOUTIQUE') {
+      if (req.user.boutiqueId !== req.params.id) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Accès refusé' 
+        });
+      }
+    }
+
     const boutique = await Boutique.findById(req.params.id)
       .populate('categorie')
       .populate('sous_categories')
-      .populate('localisation.zone'); 
+      .populate('localisation.zone');
 
     if (!boutique) {
       return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
-    // UTILISATION DE L'UTILITAIRE pour ajouter le statut
     const boutiqueAvecStatut = HorairesUtils.ajouterStatutOuverture(boutique);
-
     res.json(boutiqueAvecStatut);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

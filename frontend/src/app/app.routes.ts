@@ -61,7 +61,7 @@ export const routes: Routes = [
         path: 'boutiques/details/:id',
         component: BoutiqueDetailComponent,
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN'] }
+        data: { roles: ['ADMIN','BOUTIQUE'] }
       },
 
       {
