@@ -5,143 +5,131 @@ const MouvementStock = require('../models/MouvementStock');
  * Récupère la liste des produits avec filtres et pagination
  */
 exports.getProduits = async (req, res) => {
-  try {
-    const {
-      recherche,
-      categorie,
-      sous_categorie,
-      boutique,
-      statut,
-      prix_min,
-      prix_max,
-      marque,
-      condition,
-      en_promotion,
-      en_stock,
-      tags,
-      tri = 'nouveaute',
-      page = 1,
-      limite = 12,
-      admin = 'false'  //  if admin
-    } = req.query;
-
-    // Construction du filtre
-    const filtre = {};
-
-    // Si admin=true, on affiche tous les statuts (sauf si statut spécifique demandé)
-    // Sinon, uniquement ACTIF
-    if (admin === 'true') {
-      if (statut) {
-        filtre.statut = statut;
+    try {
+      const {
+        recherche,
+        categorie,
+        sous_categorie,
+        boutique,
+        statut,
+        prix_min,
+        prix_max,
+        marque,
+        condition,
+        en_promotion,
+        en_stock,
+        tags,
+        tri = 'nouveaute',
+        page = 1,
+        limite = 12,
+        admin = 'false'
+      } = req.query;
+  
+      const filtre = {};
+  
+      // Statut
+      if (admin === 'true') {
+        if (statut) filtre.statut = statut;
+      } else {
+        filtre.statut = 'ACTIF';
       }
-      // Si admin et pas de filtre statut, on affiche tout
-    } else {
-      // Public : uniquement ACTIF
-      filtre.statut = 'ACTIF';
+  
+      // Recherche
+      if (recherche) {
+        filtre.$or = [
+          { nom: { $regex: recherche, $options: 'i' } },
+          { description: { $regex: recherche, $options: 'i' } },
+          { reference: { $regex: recherche, $options: 'i' } },
+          { tags: { $in: [new RegExp(recherche, 'i')] } }
+        ];
+      }
+  
+      if (categorie) filtre.categorie = categorie;
+      if (sous_categorie) filtre.sous_categorie = sous_categorie;
+      if (boutique) filtre.boutique = boutique;
+  
+      if (marque) filtre.marque = { $in: marque.split(',') };
+      if (condition) filtre.condition = { $in: condition.split(',') };
+      if (tags) filtre.tags = { $in: tags.split(',') };
+  
+      if (prix_min || prix_max) {
+        filtre.prix = {};
+        if (prix_min) filtre.prix.$gte = parseFloat(prix_min);
+        if (prix_max) filtre.prix.$lte = parseFloat(prix_max);
+      }
+  
+      // Promotion
+      if (en_promotion === 'true') {
+        // Utiliser la virtual côté serveur pour filtrer
+        filtre.$expr = {
+          $and: [
+            { $lt: ['$prix_promo', '$prix'] },
+            { $ne: ['$prix_promo', null] }
+          ]
+        };
+      }
+  
+      // Stock
+      if (en_stock === 'true') {
+        filtre.$or = [
+          { quantite: { $gt: 0 } },
+          { 'variantes.quantite': { $gt: 0 } }
+        ];
+      }
+  
+      // Tri
+      let sortOptions = {};
+      switch (tri) {
+        case 'prix_asc':
+          sortOptions = { prix: 1 };
+          break;
+        case 'prix_desc':
+          sortOptions = { prix: -1 };
+          break;
+        case 'populaire':
+          sortOptions = { ventes: -1, vues: -1 };
+          break;
+        case 'meilleures_notes':
+          sortOptions = { note_moyenne: -1, nombre_avis: -1 };
+          break;
+        case 'nouveaute':
+        default:
+          sortOptions = { date_creation: -1 };
+      }
+  
+      const skip = (parseInt(page) - 1) * parseInt(limite);
+  
+      // Query principale
+      const query = Produit.find(filtre)
+        .populate('boutique', 'nom slug')
+        .populate('categorie', 'nom')
+        .populate('sous_categorie', 'nom')
+        .populate('promotion_active') // ✅ populate la promotion pour utiliser promotion_active_valide
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(parseInt(limite));
+  
+      const [produits, total] = await Promise.all([
+        query.exec(),
+        Produit.countDocuments(filtre)
+      ]);
+  
+      res.json({
+        produits,
+        total,
+        page: parseInt(page),
+        pages: Math.ceil(total / parseInt(limite)),
+        limite: parseInt(limite)
+      });
+  
+    } catch (error) {
+      console.error('Erreur getProduits:', error);
+      res.status(500).json({
+        message: 'Erreur lors de la récupération des produits',
+        error: error.message
+      });
     }
-
-    // Recherche textuelle
-    if (recherche) {
-      filtre.$or = [
-        { nom: { $regex: recherche, $options: 'i' } },
-        { description: { $regex: recherche, $options: 'i' } },
-        { reference: { $regex: recherche, $options: 'i' } },
-        { tags: { $in: [new RegExp(recherche, 'i')] } }
-      ];
-    }
-
-    if (categorie) filtre.categorie = categorie;
-    if (sous_categorie) filtre.sous_categorie = sous_categorie;
-    if (boutique) filtre.boutique = boutique;
-
-    if (marque) {
-      const marques = marque.split(',');
-      filtre.marque = { $in: marques };
-    }
-
-    if (prix_min || prix_max) {
-      filtre.prix = {};
-      if (prix_min) filtre.prix.$gte = parseFloat(prix_min);
-      if (prix_max) filtre.prix.$lte = parseFloat(prix_max);
-    }
-
-    if (condition) {
-      const conditions = condition.split(',');
-      filtre.condition = { $in: conditions };
-    }
-
-    if (en_promotion === 'true') {
-      filtre.prix_promo = { $exists: true, $ne: null };
-      filtre.$expr = {
-        $and: [
-          { $ne: ['$prix_promo', null] },
-          { $lt: ['$prix_promo', '$prix'] }
-        ]
-      };
-    }
-
-    if (tags) {
-      const tagsList = tags.split(',');
-      filtre.tags = { $in: tagsList };
-    }
-
-    // Options de tri
-    let sortOptions = {};
-    switch (tri) {
-      case 'prix_asc':
-        sortOptions = { prix: 1 };
-        break;
-      case 'prix_desc':
-        sortOptions = { prix: -1 };
-        break;
-      case 'populaire':
-        sortOptions = { ventes: -1, vues: -1 };
-        break;
-      case 'meilleures_notes':
-        sortOptions = { note_moyenne: -1, nombre_avis: -1 };
-        break;
-      case 'nouveaute':
-      default:
-        sortOptions = { date_creation: -1 };
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limite);
-
-    let query = Produit.find(filtre)
-      .populate('boutique', 'nom slug')
-      .populate('categorie', 'nom')
-      .populate('sous_categorie', 'nom')
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(parseInt(limite));
-
-    if (en_stock === 'true') {
-      query = query.where('quantite').gt(0);
-    }
-
-    const [produits, total] = await Promise.all([
-      query.exec(),
-      Produit.countDocuments(filtre)
-    ]);
-
-    const pages = Math.ceil(total / parseInt(limite));
-
-    res.json({
-      produits,
-      total,
-      page: parseInt(page),
-      pages,
-      limite: parseInt(limite)
-    });
-
-  } catch (error) {
-    console.error('Erreur getProduits:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération des produits',
-      error: error.message
-    });
-  }
-};
+  };
 
 /**
  * Récupère les filtres disponibles
