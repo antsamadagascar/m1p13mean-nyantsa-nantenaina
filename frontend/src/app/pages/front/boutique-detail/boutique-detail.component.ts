@@ -7,8 +7,11 @@ import { BoutiqueService } from '../../../services/boutique.service';
 import { ProductService } from '../../../services/produit.service';
 import { Boutique } from '../../../models/boutique.model';
 import { Produit } from '../../../models/produit.model';
+import * as L from 'leaflet';
+
 // Import des utilitaires
 import * as HorairesUtils from '../../../utils/boutique-horaires.util';
+
 
 @Component({
   selector: 'app-boutique-detail',
@@ -17,6 +20,7 @@ import * as HorairesUtils from '../../../utils/boutique-horaires.util';
   templateUrl: './boutique-detail.component.html',
   styleUrls: ['./boutique-detail.component.css']
 })
+
 export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   boutique: Boutique | null = null;
   produits: Produit[] = [];
@@ -35,7 +39,8 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   
   // Utiliser l'utilitaire pour l'ordre des jours
   joursOrdre = HorairesUtils.getJoursOrdre();
-  
+  private map: L.Map | null = null;
+
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -43,6 +48,7 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private route: ActivatedRoute,
     private router: Router
+
   ) {}
 
   ngOnInit(): void {
@@ -58,11 +64,19 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.map) { this.map.remove(); this.map = null; }
   }
 
+
+  // Modifie changerOnglet
   changerOnglet(onglet: 'produits' | 'apropos' | 'horaires'): void {
     this.ongletActif = onglet;
+    if (onglet === 'apropos') {
+      setTimeout(() => this.initMap(), 300);
+    }
   }
+
+
 
   /**
    * Vérifie si c'est aujourd'hui - utilise l'utilitaire
@@ -230,4 +244,39 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
 
     return pages;
   }
+
+
+    // Ajouter initMap
+  initMap(): void {
+    if (!this.boutique?.localisation?.latitude || !this.boutique?.localisation?.longitude) return;
+
+    const mapEl = document.getElementById('map-front');
+    if (!mapEl || this.map) return;
+
+    const lat = this.boutique.localisation.latitude;
+    const lng = this.boutique.localisation.longitude;
+
+    this.map = L.map(mapEl, { center: [lat, lng], zoom: 16, scrollWheelZoom: false });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap'
+    }).addTo(this.map);
+
+    const icon = L.icon({
+      iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+
+    L.marker([lat, lng], { icon })
+      .addTo(this.map)
+      .bindPopup(`<strong>${this.boutique.nom}</strong>`)
+      .openPopup();
+
+    setTimeout(() => this.map?.invalidateSize(), 200);
+  }
+
 }

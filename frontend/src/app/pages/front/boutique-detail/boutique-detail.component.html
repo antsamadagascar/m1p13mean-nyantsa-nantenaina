@@ -258,6 +258,20 @@
               </div>
             </div>
           </div>
+         <div class="info-block"
+            *ngIf="boutique.localisation?.latitude && boutique.localisation?.longitude">
+            <h3>Localisation sur la carte</h3>
+            <div style="position: relative; width: 100%; height: 280px; overflow: hidden; border-radius: 10px;">
+              <div id="map-front" style="width: 100%; height: 100%;"></div>
+            </div>
+            <a
+              [href]="'https://www.google.com/maps?q=' + boutique.localisation.latitude + ',' + boutique.localisation.longitude"
+              target="_blank"
+              style="font-size: 0.82rem; color: #6366f1; margin-top: 8px; display: inline-block;"
+            >
+              <i class="fa-solid fa-external-link-alt mr-1"></i> Ouvrir dans Google Maps
+            </a>
+          </div>
         </div>
       </div>
     </div>
