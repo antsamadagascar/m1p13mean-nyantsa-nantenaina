@@ -315,6 +315,34 @@ const getAllBoutiques = async (req, res) => {
   }
 };
 
+// get horaires ByBoutiqueId
+const getMesHoraires = async (req, res) => 
+{
+  try {
+    const boutique = await Boutique.findById(req.params.id).select('nom horaires');
+    if (!boutique) return res.status(404).json({ message: 'Boutique non trouvée' });
+    res.json({ success: true, data: boutique });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//config horaires by role boutique
+const updateHoraires = async (req, res) => {
+  try {
+    const { horaires } = req.body;
+    const boutique = await Boutique.findByIdAndUpdate(
+      req.params.id,
+      { horaires },
+      { new: true }
+    );
+    if (!boutique) return res.status(404).json({ message: 'Boutique non trouvée' });
+    res.json({ success: true, data: boutique.horaires });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports = {
   createBoutique,
@@ -324,5 +352,7 @@ module.exports = {
   suspendreBoutique,   
   reactiverBoutique,
   getBoutiquesPublic,
-  getAllBoutiques
+  getAllBoutiques,
+  getMesHoraires,
+  updateHoraires
 };

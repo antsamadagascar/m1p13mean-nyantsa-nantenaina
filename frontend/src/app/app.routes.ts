@@ -63,7 +63,16 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
-      // Dans la section backoffice/children, ajoutez :
+
+      {
+        path: 'boutiques/config',
+        loadComponent: () => import('./pages/admin/boutique-horaires-config/boutique-horaires-config.component')
+          .then(m => m.BoutiqueHorairesConfigComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['BOUTIQUE'] }
+      },
+
+      //routes pour la gestion products
       {
         path: 'products',
         loadComponent: () => import('./pages/admin/products-admin/products-list-admin.component')
@@ -132,6 +141,7 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/front/boutique-detail/boutique-detail.component')
           .then(m => m.BoutiqueDetailComponent)
       },
+      
     ]
   },
   // Redirection 404

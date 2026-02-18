@@ -91,7 +91,7 @@ export class AdminLayoutComponent implements OnInit {
       ];
 
       this.configMenuItems = [
-        { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
+        { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
       ];
 
       return;
