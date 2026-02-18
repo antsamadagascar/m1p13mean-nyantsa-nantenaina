@@ -29,8 +29,20 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef
   ) {}
 
-  ngOnInit() {
+ ngOnInit() {
     this.boutiqueId = this.route.snapshot.paramMap.get('id') || '';
+
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const role = user.role || '';
+      const monBoutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
+
+      if (role === 'BOUTIQUE' && monBoutiqueId && monBoutiqueId !== this.boutiqueId) {
+        this.alertService.error('Accès refusé');
+        return; 
+      }
+    } catch {}
+
     this.loadBoutique();
   }
 
@@ -220,5 +232,11 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     ? this.boutique.localisation.zone.nom
     : this.boutique.localisation.zone;
 }
+  isAdmin(): boolean {
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      return user.role === 'ADMIN';
+    } catch { return false; }
+  }
 
 }

@@ -1,0 +1,86 @@
+<div class="horaires-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <div class="icon-badge">
+        <i class="fa-solid fa-clock"></i>
+      </div>
+      <div>
+        <h2>Horaires d'ouverture</h2>
+        <p class="subtitle">{{ boutiqueName || '...' }}</p>
+      </div>
+    </div>
+    <button class="btn-save" (click)="sauvegarder()" [disabled]="saving || fetchLoading">
+      <i class="fa-solid fa-floppy-disk" *ngIf="!saving"></i>
+      <i class="fa-solid fa-spinner fa-spin" *ngIf="saving"></i>
+      {{ saving ? 'Sauvegarde...' : 'Sauvegarder' }}
+    </button>
+  </div>
+
+  <!-- Actions rapides -->
+  <div class="quick-actions" *ngIf="!fetchLoading">
+    <span class="quick-label">Actions rapides :</span>
+    <button class="btn-quick green" (click)="toutOuvrir()">
+      <i class="fa-solid fa-circle-check"></i> Tout ouvrir
+    </button>
+    <button class="btn-quick red" (click)="toutFermer()">
+      <i class="fa-solid fa-circle-xmark"></i> Tout fermer
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="fetchLoading">
+    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+    <span>Chargement des horaires...</span>
+  </div>
+
+  <!-- Grille des jours -->
+  <div class="jours-grid" *ngIf="!fetchLoading">
+    <div
+      class="jour-card"
+      *ngFor="let jour of joursKeys"
+      [class.ferme]="!horaires[jour].ouvert"
+      [class.weekend]="isWeekend(jour)"
+    >
+      <!-- Header jour -->
+      <div class="jour-header">
+        <span class="jour-nom" [class.weekend-label]="isWeekend(jour)">
+          {{ joursLabels[jour] }}
+        </span>
+        <label class="toggle">
+          <input type="checkbox" [(ngModel)]="horaires[jour].ouvert" />
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <!-- Inputs horaires -->
+      <div class="jour-body" [class.disabled]="!horaires[jour].ouvert">
+        <div class="time-group">
+          <label>Ouverture</label>
+          <input
+            type="time"
+            [(ngModel)]="horaires[jour].debut"
+            [disabled]="!horaires[jour].ouvert"
+          />
+        </div>
+        <span class="sep">—</span>
+        <div class="time-group">
+          <label>Fermeture</label>
+          <input
+            type="time"
+            [(ngModel)]="horaires[jour].fin"
+            [disabled]="!horaires[jour].ouvert"
+          />
+        </div>
+      </div>
+
+      <!-- Badge statut -->
+      <div class="jour-badge" [class.open]="horaires[jour].ouvert">
+        <i class="fa-solid" [class.fa-door-open]="horaires[jour].ouvert" [class.fa-door-closed]="!horaires[jour].ouvert"></i>
+        {{ horaires[jour].ouvert ? (horaires[jour].debut + ' – ' + horaires[jour].fin) : 'Fermé' }}
+      </div>
+    </div>
+  </div>
+
+</div>

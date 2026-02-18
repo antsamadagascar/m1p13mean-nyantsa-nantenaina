@@ -54,7 +54,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
-app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/zones', zoneRoutes);
 app.use('/api/produits',produitRoutes);
 
