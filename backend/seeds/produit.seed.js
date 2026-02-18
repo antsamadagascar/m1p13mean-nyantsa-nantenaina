@@ -45,7 +45,6 @@ async function seedProduitsComplet() {
         reference: 'ELEC-IPHONE-15-PM',
         marque: 'Apple',
         prix: 5200000,
-        prix_promo: 4950000,
         categorieNom: 'Électronique',
         sousCategorieNom: 'Smartphones',
         quantite: 12,
@@ -85,7 +84,6 @@ async function seedProduitsComplet() {
         reference: 'ELEC-MBP-M3-MAX',
         marque: 'Apple',
         prix: 12500000,
-        prix_promo: 11800000,
         categorieNom: 'Électronique',
         sousCategorieNom: 'Ordinateurs',
         quantite: 5,
@@ -125,7 +123,6 @@ async function seedProduitsComplet() {
         reference: 'ELEC-PS5-SLIM',
         marque: 'Sony',
         prix: 2800000,
-        prix_promo: 2650000,
         categorieNom: 'Électronique',
         sousCategorieNom: 'Consoles',
         quantite: 10,
@@ -147,7 +144,6 @@ async function seedProduitsComplet() {
         reference: 'VET-NIKE-TSHIRT-01',
         marque: 'Nike',
         prix: 85000,
-        prix_promo: 68000,
         categorieNom: 'Vêtements',
         sousCategorieNom: 'T-shirts',
         quantite: 50,
@@ -199,7 +195,6 @@ async function seedProduitsComplet() {
         reference: 'VET-LEVIS-501',
         marque: 'Levi\'s',
         prix: 280000,
-        prix_promo: 238000,
         categorieNom: 'Vêtements',
         sousCategorieNom: 'Pantalons',
         quantite: 30,
@@ -228,7 +223,6 @@ async function seedProduitsComplet() {
         reference: 'DECO-CANAPE-SCANDI',
         marque: 'NordicHome',
         prix: 1850000,
-        prix_promo: 1665000,
         categorieNom: 'Maison et Déco',
         sousCategorieNom: 'Meubles',
         quantite: 4,
@@ -268,7 +262,6 @@ async function seedProduitsComplet() {
         reference: 'DECO-LAMPE-ARC',
         marque: 'LuxLight',
         prix: 320000,
-        prix_promo: 272000,
         categorieNom: 'Maison et Déco',
         sousCategorieNom: 'Décoration',
         quantite: 12,
@@ -285,7 +278,6 @@ async function seedProduitsComplet() {
         reference: 'DECO-TAPIS-BERB',
         marque: 'Atlas Carpet',
         prix: 680000,
-        prix_promo: 612000,
         categorieNom: 'Maison et Déco',
         sousCategorieNom: 'Décoration',
         quantite: 6,
@@ -338,7 +330,6 @@ async function seedProduitsComplet() {
           reference: data.reference,
           marque: data.marque,
           prix: data.prix,
-          prix_promo: data.prix_promo,
           boutique: boutique._id,
           categorie: categorie._id,
           sous_categorie: sousCategorie?._id,
@@ -372,7 +363,7 @@ async function seedProduitsComplet() {
                      data.categorieNom === 'Maison et Déco' ? '🛋️' : '🥤';
         
         console.log(`   ${emoji} ${produit.nom} (${produit.reference})`);
-        console.log(`      💰 Prix: ${produit.prix.toLocaleString()} Ar ${produit.prix_promo ? `→ ${produit.prix_promo.toLocaleString()} Ar` : ''}`);
+        console.log(`      💰 Prix: ${produit.prix.toLocaleString()} Ar }`);
         console.log(`      📦 Stock: ${produit.quantite} unités`);
         if (produit.variantes && produit.variantes.length > 0) {
           console.log(`      🎨 Variantes: ${produit.variantes.length}`);

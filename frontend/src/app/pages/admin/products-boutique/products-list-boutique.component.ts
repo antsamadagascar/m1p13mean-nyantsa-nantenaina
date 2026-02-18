@@ -920,6 +920,11 @@ export class ProduitComponent implements OnInit {
     }
   }
 
+  isPromotionExpiree(): boolean {
+  if (!this.promotionData.date_fin) return false;
+  return new Date(this.promotionData.date_fin) < new Date();
+}
+
   getValidationError(): string {
     if (!this.selectedProduit) return '';
 

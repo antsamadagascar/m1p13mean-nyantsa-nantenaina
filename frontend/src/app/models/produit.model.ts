@@ -82,9 +82,12 @@ export interface Produit {
   // Promotion active
   promotion_active?: {
     _id: string;
+    nom: string;           
+    description?: string;  
     actif: boolean;
     type?: 'POURCENTAGE' | 'MONTANT_FIXE' | 'PRIX_FIXE';
     valeur?: number;
+    prix_fixe?: number;   
     date_debut: Date;
     date_fin: Date;
     supprime?: boolean;

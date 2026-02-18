@@ -25,8 +25,9 @@
           
           <!-- Badges -->
           <div class="image-badges">
-            <span class="badge badge-promo" *ngIf="produit.en_promotion">
-              -{{ produit.pourcentage_reduction }}%
+           <!-- Badges -->
+            <span class="badge badge-promo" *ngIf="produit.promotion_active_valide">
+                -{{ produit.promotion_active?.valeur }}%
             </span>
             <span class="badge badge-new" *ngIf="produit.condition === 'NEUF'">
               Neuf
@@ -70,8 +71,9 @@
         </div>
       </div>
 
-      <!-- Informations produit -->
+        <!-- Informations produit -->
       <div class="product-info">
+
         <!-- En-tête -->
         <div class="product-header">
           <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
@@ -82,13 +84,12 @@
         <!-- Note et avis -->
         <div class="product-rating" *ngIf="produit.nombre_avis > 0">
           <div class="stars">
-            <svg 
-              *ngFor="let filled of getEtoiles()" 
-              viewBox="0 0 24 24" 
+            <svg
+              *ngFor="let filled of getEtoiles()"
+              viewBox="0 0 24 24"
               [attr.fill]="filled ? 'currentColor' : 'none'"
               stroke="currentColor"
-              stroke-width="2"
-            >
+              stroke-width="2">
               <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
             </svg>
           </div>
@@ -99,17 +100,40 @@
 
         <!-- Prix -->
         <div class="product-pricing">
+
+          <!-- Badge + description promotion -->
+          <ng-container *ngIf="produit.promotion_active_valide">
+            <div class="promo-badge">
+              <i class="fa-solid fa-tag"></i>
+              {{ produit.promotion_active?.nom }}
+            </div>
+            <p class="promo-description" *ngIf="produit.promotion_active?.description">
+              {{ produit.promotion_active?.description }}
+            </p>
+          </ng-container>
+
+          <!-- Affichage prix -->
           <div class="price-main">
-            <span class="price-current" [class.has-promo]="produit.en_promotion">
+            <span class="price-current" [class.has-promo]="produit.promotion_active_valide">
               {{ formatPrix(getPrixFinal()) }}
             </span>
-            <span class="price-original" *ngIf="produit.en_promotion">
+            <span class="price-original" *ngIf="produit.promotion_active_valide">
               {{ formatPrix(produit.prix) }}
             </span>
           </div>
-          <p class="price-info" *ngIf="produit.en_promotion">
-            Vous économisez {{ formatPrix(produit.prix - (produit.prix_promo || 0)) }}
-          </p>
+
+          <!-- Économie + date fin -->
+          <div class="promo-details" *ngIf="produit.promotion_active_valide">
+            <p class="price-info">
+              <i class="fa-solid fa-piggy-bank"></i>
+              Vous économisez {{ formatPrix(produit.prix - getPrixFinal()) }}
+            </p>
+            <p class="promo-dates">
+              <i class="fa-solid fa-clock"></i>
+              Offre valable jusqu'au {{ produit.promotion_active?.date_fin | date:'dd/MM/yyyy à HH:mm' }}
+            </p>
+          </div>
+
         </div>
 
         <!-- Description courte -->
@@ -323,18 +347,18 @@
           <a [routerLink]="['/produits', similaire.slug]" class="product-link">
             <div class="product-image">
               <img [src]="similaire.images[0].url" [alt]="similaire.nom" />
-              <span class="badge-promo" *ngIf="similaire.en_promotion">
-                -{{ similaire.pourcentage_reduction }}%
-              </span>
+              <span class="badge-promo" *ngIf="similaire.promotion_active_valide">
+              -{{ similaire.promotion_active?.valeur }}%
+            </span>
             </div>
             <div class="product-content">
               <span class="product-brand" *ngIf="similaire.marque">{{ similaire.marque }}</span>
               <h3 class="product-name">{{ similaire.nom }}</h3>
               <div class="product-price">
-                <span class="price-current" [class.has-promo]="similaire.en_promotion">
-                  {{ formatPrix(similaire.prix_final || similaire.prix) }}
+                <span class="price-current" [class.has-promo]="similaire.promotion_active_valide">
+                 {{ formatPrix(similaire.promotion_active_valide ? (similaire.prix_promo ?? similaire.prix) : similaire.prix) }}
                 </span>
-                <span class="price-original" *ngIf="similaire.en_promotion">
+                <span class="price-original" *ngIf="similaire.promotion_active_valide">
                   {{ formatPrix(similaire.prix) }}
                 </span>
               </div>

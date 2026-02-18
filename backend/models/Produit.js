@@ -232,27 +232,27 @@ produitSchema.pre('save', function(next) {
 // ============================================
 // VIRTUALS
 // ============================================
-produitSchema.virtual('en_promotion').get(function() {
-  return !!(this.prix_promo && this.prix_promo < this.prix);
-});
+   produitSchema.virtual('en_promotion').get(function() {
+      return this.promotion_active_valide === true;
+    });
 
-produitSchema.virtual('prix_final').get(function() {
-  return this.en_promotion ? this.prix_promo : this.prix;
-});
+    produitSchema.virtual('prix_final').get(function() {
+      return this.promotion_active_valide ? this.prix_promo : this.prix;
+    });
 
-produitSchema.virtual('en_rupture').get(function () {
+  produitSchema.virtual('en_rupture').get(function () {
 
-    if (this.gestion_stock === 'SIMPLE') {
-      return (this.quantite ?? 0) === 0;
-    }
-  
-    // Sécurisation absolue
-    if (!Array.isArray(this.variantes) || this.variantes.length === 0) {
-      return false;
-    }
-  
-    return this.variantes.every(v => (v.quantite ?? 0) === 0);
-  });
+      if (this.gestion_stock === 'SIMPLE') {
+        return (this.quantite ?? 0) === 0;
+      }
+    
+      // Sécurisation absolue
+      if (!Array.isArray(this.variantes) || this.variantes.length === 0) {
+        return false;
+      }
+    
+      return this.variantes.every(v => (v.quantite ?? 0) === 0);
+    });
   
 
   produitSchema.virtual('stock_total').get(function () {

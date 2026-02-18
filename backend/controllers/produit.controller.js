@@ -59,15 +59,22 @@ exports.getProduits = async (req, res) => {
       }
   
       // Promotion
-      if (en_promotion === 'true') {
-        // Utiliser la virtual côté serveur pour filtrer
-        filtre.$expr = {
-          $and: [
-            { $lt: ['$prix_promo', '$prix'] },
-            { $ne: ['$prix_promo', null] }
-          ]
-        };
-      }
+      //  basé sur promotion_active avec date valide
+        if (en_promotion === 'true') {
+          const maintenant = new Date();
+          
+          // D'abord trouver les IDs des promotions actives et non expirées
+          const Promotion = require('../models/Promotion');
+          const promosActives = await Promotion.find({
+            actif: true,
+            supprime: { $ne: true },
+            date_suppression: null,
+            date_fin: { $gte: maintenant }
+          }).select('_id');
+          
+          const promoIds = promosActives.map(p => p._id);
+          filtre.promotion_active = { $in: promoIds };
+        }
   
       // Stock
       if (en_stock === 'true') {
@@ -247,9 +254,17 @@ exports.getProduit = async (req, res) => {
       : { slug: idOrSlug, statut: 'ACTIF' };
 
     const produit = await Produit.findOne(query)
-      .populate('boutique', 'nom slug logo contact horaires')
-      .populate('categorie', 'nom slug')
-      .populate('sous_categorie', 'nom slug');
+        .populate('boutique', 'nom slug logo contact horaires')
+        .populate('categorie', 'nom slug')
+        .populate('sous_categorie', 'nom slug')
+        .populate({                         
+          path: 'promotion_active',
+          match: {
+            actif: true,
+            supprime: { $ne: true },
+            date_fin: { $gte: new Date() }
+          }
+        });
 
     if (!produit) {
       return res.status(404).json({ message: 'Produit non trouvé' });
@@ -291,6 +306,14 @@ exports.getProduitsSimilaires = async (req, res) => {
     })
       .populate('boutique', 'nom slug')
       .populate('categorie', 'nom')
+      .populate({                         
+        path: 'promotion_active',
+        match: {
+          actif: true,
+          supprime: { $ne: true },
+          date_fin: { $gte: new Date() }
+        }
+        })
       .limit(parseInt(limite))
       .sort({ ventes: -1, note_moyenne: -1 });
 

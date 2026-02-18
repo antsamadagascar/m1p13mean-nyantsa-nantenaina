@@ -211,12 +211,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   /**
    * Obtient le prix final (avec variante si applicable)
    */
-  getPrixFinal(): number {
+   getPrixFinal(): number {
     if (!this.produit) return 0;
     
-    let prix = this.produit.prix_final || this.produit.prix;
+    //  Utilise promotion_active_valide au lieu de prix_final
+    let prix = this.produit.promotion_active_valide 
+      ? (this.produit.prix_promo || this.produit.prix) 
+      : this.produit.prix;
     
-    if (this.varianteSelectionnee && this.varianteSelectionnee.prix_supplement) {
+    if (this.varianteSelectionnee?.prix_supplement) {
       prix += this.varianteSelectionnee.prix_supplement;
     }
     
