@@ -139,12 +139,24 @@ export class ProductListComponent implements OnInit, OnDestroy {
 
     this.productService.getProduits(this.filtres).subscribe({
       next: (resultats: ResultatsProduits) => {
+        // Calculer promotion_active_valide pour chaque produit
+        resultats.produits.forEach(produit => {
+          produit.promotion_active_valide = !!(
+            produit.promotion_active &&
+            produit.promotion_active.actif &&
+            !produit.promotion_active.supprime &&
+            !produit.promotion_active.date_suppression &&
+            new Date() <= new Date(produit.promotion_active.date_fin)
+          );
+        });
+    
+        // Stocker les produits et infos pour le template
         this.produits = resultats.produits;
         this.totalProduits = resultats.total;
         this.totalPages = resultats.pages;
         this.page = resultats.page;
         this.loading = false;
-        
+    
         // Scroll vers le haut
         window.scrollTo({ top: 0, behavior: 'smooth' });
       },
@@ -153,7 +165,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
         this.error = 'Impossible de charger les produits. Veuillez réessayer.';
         this.loading = false;
       }
-    });
+    });    
   }
 
   /**

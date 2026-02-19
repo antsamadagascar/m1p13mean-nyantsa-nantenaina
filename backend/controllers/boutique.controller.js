@@ -200,19 +200,28 @@ const getBoutiques = async (req, res) => {
 // Obtenir UNE boutique par ID
 const getBoutiqueDetailsById = async (req, res) => {
   try {
+    // Si l'utilisateur est BOUTIQUE, on vérifie qu'il accède à SA boutique
+    if (req.user && req.user.role === 'BOUTIQUE') {
+      if (req.user.boutiqueId !== req.params.id) {
+        return res.status(403).json({ 
+          success: false, 
+          message: 'Accès refusé' 
+        });
+      }
+    }
+
     const boutique = await Boutique.findById(req.params.id)
       .populate('categorie')
       .populate('sous_categories')
-      .populate('localisation.zone'); 
+      .populate('localisation.zone');
 
     if (!boutique) {
       return res.status(404).json({ message: 'Boutique non trouvée' });
     }
 
-    // UTILISATION DE L'UTILITAIRE pour ajouter le statut
     const boutiqueAvecStatut = HorairesUtils.ajouterStatutOuverture(boutique);
-
     res.json(boutiqueAvecStatut);
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -315,6 +324,34 @@ const getAllBoutiques = async (req, res) => {
   }
 };
 
+// get horaires ByBoutiqueId
+const getMesHoraires = async (req, res) => 
+{
+  try {
+    const boutique = await Boutique.findById(req.params.id).select('nom horaires');
+    if (!boutique) return res.status(404).json({ message: 'Boutique non trouvée' });
+    res.json({ success: true, data: boutique });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//config horaires by role boutique
+const updateHoraires = async (req, res) => {
+  try {
+    const { horaires } = req.body;
+    const boutique = await Boutique.findByIdAndUpdate(
+      req.params.id,
+      { horaires },
+      { new: true }
+    );
+    if (!boutique) return res.status(404).json({ message: 'Boutique non trouvée' });
+    res.json({ success: true, data: boutique.horaires });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 module.exports = {
   createBoutique,
@@ -324,5 +361,7 @@ module.exports = {
   suspendreBoutique,   
   reactiverBoutique,
   getBoutiquesPublic,
-  getAllBoutiques
+  getAllBoutiques,
+  getMesHoraires,
+  updateHoraires
 };

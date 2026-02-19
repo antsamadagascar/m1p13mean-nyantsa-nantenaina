@@ -12,40 +12,47 @@ export interface Produit {
   prix: number;
   prix_promo?: number;
   pourcentage_reduction?: number;
+
   images: Array<{
     url: string;
     principale: boolean;
     alt?: string;
     ordre: number;
   }>;
+
   boutique: {
     _id: string;
     nom: string;
     slug: string;
     horaires?: HorairesBoutique; 
   };
+
   categorie: {
     _id: string;
     nom: string;
   };
+
   sous_categorie?: {
     _id: string;
     nom: string;
   };
+
   gestion_stock: 'SIMPLE' | 'VARIANTES';
   quantite: number;
+
   variantes?: Array<{
-    _id: string;
+    _id?: string;
     nom: string;
     sku: string;
     quantite: number;
     prix_supplement: number;
+    image?: string;
     attributs?: Array<{   
       nom: string;
       valeur: string;
     }>;
-  
   }>;
+
   caracteristiques?: Array<{  
     _id?: string;
     nom: string;
@@ -57,17 +64,38 @@ export interface Produit {
   tags?: string[];
   statut: 'BROUILLON' | 'ACTIF' | 'RUPTURE' | 'ARCHIVE';
   condition: 'NEUF' | 'OCCASION' | 'RECONDITIONNE';
+
   vues: number;
   ventes: number;
   note_moyenne: number;
   nombre_avis: number;
+
   date_creation: Date;
   date_modification: Date;
+
   // Virtuals
   en_promotion?: boolean;
   prix_final?: number;
   en_rupture?: boolean;
   stock_total?: number;
+
+  // Promotion active
+  promotion_active?: {
+    _id: string;
+    nom: string;           
+    description?: string;  
+    actif: boolean;
+    type?: 'POURCENTAGE' | 'MONTANT_FIXE' | 'PRIX_FIXE';
+    valeur?: number;
+    prix_fixe?: number;   
+    date_debut: Date;
+    date_fin: Date;
+    supprime?: boolean;
+    date_suppression?: Date;
+  };
+
+  // Virtuals calculés côté front
+  promotion_active_valide?: boolean;
 }
 
 export interface FiltresProduits {

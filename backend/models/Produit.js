@@ -196,6 +196,14 @@ const produitSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+    // ============================================
+    // PROMOTION ACTIVE
+    // ============================================
+    promotion_active: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Promotion',
+        default: null
+    },
 }, {
   // new - updated
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' },
@@ -224,26 +232,65 @@ produitSchema.pre('save', function(next) {
 // ============================================
 // VIRTUALS
 // ============================================
-produitSchema.virtual('en_promotion').get(function() {
-  return !!(this.prix_promo && this.prix_promo < this.prix);
-});
+   produitSchema.virtual('en_promotion').get(function() {
+      return this.promotion_active_valide === true;
+    });
 
-produitSchema.virtual('prix_final').get(function() {
-  return this.en_promotion ? this.prix_promo : this.prix;
-});
+    produitSchema.virtual('prix_final').get(function() {
+      return this.promotion_active_valide ? this.prix_promo : this.prix;
+    });
 
-produitSchema.virtual('en_rupture').get(function() {
-  if (this.gestion_stock === 'SIMPLE') 
-  {   return this.quantite === 0; }
-  return this.variantes.every(v => v.quantite === 0);
-});
+  produitSchema.virtual('en_rupture').get(function () {
 
-produitSchema.virtual('stock_total').get(function() {
-  if (this.gestion_stock === 'SIMPLE') 
-  {  return this.quantite; 
+      if (this.gestion_stock === 'SIMPLE') {
+        return (this.quantite ?? 0) === 0;
+      }
+    
+      // Sécurisation absolue
+      if (!Array.isArray(this.variantes) || this.variantes.length === 0) {
+        return false;
+      }
+    
+      return this.variantes.every(v => (v.quantite ?? 0) === 0);
+    });
+  
 
-  }
-  return this.variantes.reduce((total, v) => total + v.quantite, 0);
+  produitSchema.virtual('stock_total').get(function () {
+
+    if (this.gestion_stock === 'SIMPLE') {
+      return this.quantite ?? 0;
+    }
+  
+    if (!Array.isArray(this.variantes) || this.variantes.length === 0) {
+      return 0;
+    }
+  
+    return this.variantes.reduce(
+      (total, v) => total + (v.quantite ?? 0),
+      0
+    );
+  });
+  
+
+produitSchema.virtual('promotion_active_valide').get(function () {
+    if (!this.promotion_active) return false;
+
+    const maintenant = new Date();
+
+    // return (
+    //     this.promotion_active.actif &&
+    //     !this.promotion_active.supprime &&             // ✅ prendre en compte soft delete
+    //     !this.promotion_active.date_suppression &&   // ✅ ou date_suppression définie
+    //     maintenant >= this.promotion_active.date_debut &&
+    //     maintenant <= this.promotion_active.date_fin
+    // );
+    return (
+        this.promotion_active.actif &&
+        !this.promotion_active.supprime &&               // ✅ soft delete
+        !this.promotion_active.date_suppression &&      // ✅ suppression future
+        maintenant <= this.promotion_active.date_fin    // ✅ ne pas afficher les promos expirées
+      );
 });
+  
 
 module.exports = mongoose.model('Produit', produitSchema);
