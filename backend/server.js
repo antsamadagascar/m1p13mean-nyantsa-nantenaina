@@ -39,6 +39,7 @@ require('./models/Categorie');
 require('./models/SousCategorie');
 require('./models/Zone'); 
 require('./models/Produit');
+require('./models/Promotion');
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -47,7 +48,8 @@ const boutiqueRoutes = require('./routes/boutique.routes');
 const categorieRoutes = require('./routes/categorieRoutes');
 const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 const zoneRoutes = require('./routes/zone.routes'); 
-const produitRoutes = require('./routes/produit.routes')
+const produitRoutes = require('./routes/produit.routes');
+const promotionRoutes = require('./routes/promotion.routes');
 
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/users', userRoutes);
@@ -56,6 +58,7 @@ app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
 app.use('/api/zones', zoneRoutes);
 app.use('/api/produits',produitRoutes);
+app.use('/api', promotionRoutes);
 
 app.use('/uploads', express.static('uploads'));
 

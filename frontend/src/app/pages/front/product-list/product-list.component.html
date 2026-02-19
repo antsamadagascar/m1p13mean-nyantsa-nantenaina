@@ -255,6 +255,24 @@
                   <span class="badge badge-rupture" *ngIf="produit.en_rupture">
                     Rupture
                   </span>
+                  <div class="mt-1" *ngIf="produit.promotion_active_valide">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                      <i class="fa-solid fa-tag mr-1"></i>
+                  
+                      <ng-container [ngSwitch]="produit.promotion_active?.type">
+                        <span *ngSwitchCase="'POURCENTAGE'">
+                          -{{ produit.promotion_active?.valeur }}%
+                        </span>
+                        <span *ngSwitchCase="'MONTANT_FIXE'">
+                          -{{ produit.promotion_active?.valeur }} Ar
+                        </span>
+                        <span *ngSwitchCase="'PRIX_FIXE'">
+                          Prix spécial
+                        </span>
+                      </ng-container>
+                  
+                    </span>
+                  </div>                  
                 </div>
               </div>
 
