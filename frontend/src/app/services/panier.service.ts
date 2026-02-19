@@ -32,7 +32,9 @@ export interface Panier {
   total: number;
   nombre_articles: number;
   statut: string;
+  date_expiration?: Date;
   date_creation: Date;
+  expiry_minutes?: number; 
   date_modification: Date;
 }
 

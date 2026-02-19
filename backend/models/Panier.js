@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const CART_EXPIRY_MS = (parseInt(process.env.CART_EXPIRY_MINUTES)) * 60 * 1000;
 
 const panierSchema = new mongoose.Schema({
   // ============================================
@@ -79,6 +80,11 @@ const panierSchema = new mongoose.Schema({
     default: 'ACTIF'
   },
   
+  date_expiration: {
+    type: Date,
+    default: () => new Date(Date.now() + CART_EXPIRY_MS) 
+  },
+
   // Date de conversion en commande
   date_conversion: {
     type: Date,
@@ -97,6 +103,12 @@ const panierSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+
+panierSchema.index(
+  { date_expiration: 1 }, 
+  { expireAfterSeconds: 0, partialFilterExpression: { statut: 'ABANDONNE' } }
+);
 
 // ============================================
 // INDEX
@@ -163,6 +175,8 @@ panierSchema.methods.ajouterArticle = async function(produit, quantite = 1, vari
   }
   
   this.calculerTotaux();
+  this.date_expiration = new Date(Date.now() + CART_EXPIRY_MS);
+  
   return this.save();
 };
 

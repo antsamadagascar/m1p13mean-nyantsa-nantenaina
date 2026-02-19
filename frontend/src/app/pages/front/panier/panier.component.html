@@ -51,6 +51,35 @@
         Vider le panier
       </button>
     </div>
+    <!-- Panier expiré -->
+      <div class="banner-expire" *ngIf="panierExpire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="banner-text">
+          <strong>Votre panier a expiré !</strong>
+          <p>Les articles réservés ont été libérés. Veuillez recommencer votre sélection.</p>
+        </div>
+        <button class="btn-retry" (click)="chargerPanier()">Actualiser</button>
+      </div>
+
+      <!-- Timer actif -->
+      <div class="banner-timer" *ngIf="!panierExpire && tempsRestant" 
+          [class.urgent]="tempsRestant < '05:00'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <div class="banner-text">
+          <strong>Votre panier est réservé pendant</strong>
+          <p>Passez votre commande avant expiration, vos articles ne sont pas garantis après.</p>
+        </div>
+        <span class="countdown" [class.urgent]="tempsRestant < '05:00'">
+          {{ tempsRestant }}
+        </span>
+      </div>
 
     <div class="panier-grid">
       <!-- Liste des articles -->

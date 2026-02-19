@@ -1,12 +1,12 @@
 const Panier = require('../models/Panier');
 const Produit = require('../models/Produit');
-
+const CART_EXPIRY_MS = (parseInt(process.env.CART_EXPIRY_MINUTES)) * 60 * 1000;
 /**
  * Récupère le panier de l'utilisateur connecté
  */
 exports.getPanier = async (req, res) => {
   try {
-    const userId = req.user._id; // Depuis le middleware auth
+    const userId = req.user._id;
 
     let panier = await Panier.findOne({ 
       utilisateur: userId, 
@@ -16,22 +16,31 @@ exports.getPanier = async (req, res) => {
       select: 'nom slug prix prix_promo images quantite variantes'
     });
 
-    // Crée  un panier vide si n'existe pas
+    //  Si expiré ->  supprime et retourner null
+    if (panier && panier.date_expiration && new Date() > new Date(panier.date_expiration)) {
+      await Panier.deleteOne({ _id: panier._id });
+      panier = null;
+    }
+
+    // Retourne le panier vide sans sauvegarder en base
     if (!panier) {
-      panier = await Panier.create({
+      return res.json({
+        _id: null,
         utilisateur: userId,
         articles: [],
-        statut: 'ACTIF'
+        sous_total: 0,
+        total_remise: 0,
+        total: 0,
+        nombre_articles: 0,
+        statut: 'ACTIF',
+        date_expiration: null
       });
     }
 
     res.json(panier);
   } catch (error) {
     console.error('Erreur getPanier:', error);
-    res.status(500).json({
-      message: 'Erreur lors de la récupération du panier',
-      error: error.message
-    });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 };
 
@@ -43,7 +52,6 @@ exports.ajouterArticle = async (req, res) => {
     const userId = req.user._id;
     const { produit_id, quantite = 1, variante_id } = req.body;
 
-    // Valider les données
     if (!produit_id) {
       return res.status(400).json({ message: 'ID produit requis' });
     }
@@ -52,7 +60,6 @@ exports.ajouterArticle = async (req, res) => {
       return res.status(400).json({ message: 'Quantité invalide' });
     }
 
-    // Récupérer le produit
     const produit = await Produit.findById(produit_id);
     if (!produit) {
       return res.status(404).json({ message: 'Produit non trouvé' });
@@ -75,24 +82,28 @@ exports.ajouterArticle = async (req, res) => {
       });
     }
 
-    // Récupérer ou créer le panier
-    let panier = await Panier.findOne({ 
-      utilisateur: userId, 
-      statut: 'ACTIF' 
-    });
+    let panier = await Panier.findOne({ utilisateur: userId, statut: 'ACTIF' });
+
+    //  Vérification expiration à l'ajout aussi
+    if (panier && panier.date_expiration && new Date() > new Date(panier.date_expiration)) {
+      await Panier.deleteOne({ _id: panier._id });
+      panier = null;
+    }
 
     if (!panier) {
       panier = new Panier({
         utilisateur: userId,
         articles: [],
-        statut: 'ACTIF'
+        statut: 'ACTIF',
+        date_expiration: new Date(Date.now() + CART_EXPIRY_MS)
       });
+    } else {
+      //  Réinitialise le timer à chaque ajout
+      panier.date_expiration = new Date(Date.now() + CART_EXPIRY_MS);
     }
 
-    // Ajoute l'article
     await panier.ajouterArticle(produit, quantite, variante_id);
 
-    // Recharge avec populate
     panier = await Panier.findById(panier._id).populate({
       path: 'articles.produit',
       select: 'nom slug prix prix_promo images quantite variantes'
@@ -121,16 +132,18 @@ exports.mettreAJourQuantite = async (req, res) => {
       return res.status(400).json({ message: 'Quantité invalide' });
     }
 
-    let panier = await Panier.findOne({ 
-      utilisateur: userId, 
-      statut: 'ACTIF' 
-    });
+    let panier = await Panier.findOne({ utilisateur: userId, statut: 'ACTIF' });
 
     if (!panier) {
       return res.status(404).json({ message: 'Panier non trouvé' });
     }
 
-    // Vérifier le stock
+    //  Vérification expiration
+    if (panier.date_expiration && new Date() > new Date(panier.date_expiration)) {
+      await Panier.deleteOne({ _id: panier._id });
+      return res.status(400).json({ message: 'Panier expiré, veuillez recommencer' });
+    }
+
     const article = panier.articles.id(articleId);
     if (!article) {
       return res.status(404).json({ message: 'Article non trouvé' });
@@ -144,9 +157,7 @@ exports.mettreAJourQuantite = async (req, res) => {
     let stockDisponible = produit.quantite;
     if (article.variante && produit.gestion_stock === 'VARIANTES') {
       const variante = produit.variantes.id(article.variante);
-      if (variante) {
-        stockDisponible = variante.quantite;
-      }
+      if (variante) stockDisponible = variante.quantite;
     }
 
     if (quantite > stockDisponible) {
@@ -156,10 +167,10 @@ exports.mettreAJourQuantite = async (req, res) => {
       });
     }
 
-    // Mettre à jour
+    //  Réinitialise le timer à chaque activité
+    panier.date_expiration = new Date(Date.now() + CART_EXPIRY_MS);
     await panier.mettreAJourQuantite(articleId, quantite);
 
-    // Recharger avec populate
     panier = await Panier.findById(panier._id).populate({
       path: 'articles.produit',
       select: 'nom slug prix prix_promo images quantite variantes'
@@ -183,10 +194,7 @@ exports.supprimerArticle = async (req, res) => {
     const userId = req.user._id;
     const { articleId } = req.params;
 
-    let panier = await Panier.findOne({ 
-      utilisateur: userId, 
-      statut: 'ACTIF' 
-    });
+    let panier = await Panier.findOne({ utilisateur: userId, statut: 'ACTIF' });
 
     if (!panier) {
       return res.status(404).json({ message: 'Panier non trouvé' });
@@ -194,7 +202,6 @@ exports.supprimerArticle = async (req, res) => {
 
     await panier.supprimerArticle(articleId);
 
-    // Recharger avec populate
     panier = await Panier.findById(panier._id).populate({
       path: 'articles.produit',
       select: 'nom slug prix prix_promo images quantite variantes'
@@ -217,10 +224,7 @@ exports.viderPanier = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    let panier = await Panier.findOne({ 
-      utilisateur: userId, 
-      statut: 'ACTIF' 
-    });
+    let panier = await Panier.findOne({ utilisateur: userId, statut: 'ACTIF' });
 
     if (!panier) {
       return res.status(404).json({ message: 'Panier non trouvé' });

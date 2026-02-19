@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PanierService, Panier, ArticlePanier } from '../../../services/panier.service';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-panier',
@@ -10,41 +11,108 @@ import { PanierService, Panier, ArticlePanier } from '../../../services/panier.s
   templateUrl: './panier.component.html',
   styleUrls: ['./panier.component.css']
 })
-export class PanierComponent implements OnInit {
+
+export class PanierComponent implements OnInit, OnDestroy {
   panier: Panier | null = null;
   loading = true;
   error: string | null = null;
   processingItems: Set<string> = new Set();
 
+  tempsRestant: string = '';
+  panierExpire: boolean = false;
+  private timerSubscription?: Subscription;
+
   constructor(private panierService: PanierService) {}
+
+  // ============================================
+  // LIFECYCLE
+  // ============================================
 
   ngOnInit(): void {
     this.chargerPanier();
   }
 
+  ngOnDestroy(): void {
+    this.timerSubscription?.unsubscribe();
+  }
+
+  // ============================================
+  // TIMER
+  // ============================================
+
+  /**
+   * Démarre le countdown après chargement du panier
+   */
+  demarrerTimer(dateExpiration: Date): void {
+    this.timerSubscription?.unsubscribe();
+    this.panierExpire = false;
+
+    this.timerSubscription = interval(1000).subscribe(() => {
+      const maintenant = new Date().getTime();
+      const expiration = new Date(dateExpiration).getTime();
+      const diff = expiration - maintenant;
+
+      if (diff <= 0) {
+        this.tempsRestant = '00:00';
+        this.panierExpire = true;
+        this.timerSubscription?.unsubscribe();
+
+        setTimeout(() => {
+          this.chargerPanier();
+        }, 2000); 
+
+      } else {
+        const minutes = Math.floor(diff / 60000);
+        const secondes = Math.floor((diff % 60000) / 1000);
+        this.tempsRestant = `${String(minutes).padStart(2, '0')}:${String(secondes).padStart(2, '0')}`;
+      }
+    });
+  }
+
+  /**
+   * Vérifie si le temps restant est inférieur à 5 minutes (urgence)
+   */
+  get estUrgent(): boolean {
+    if (!this.tempsRestant) return false;
+    const [minutes] = this.tempsRestant.split(':').map(Number);
+    return minutes < 5;
+  }
+
+  // ============================================
+  // CHARGEMENT
+  // ============================================
+
   chargerPanier(): void {
     this.loading = true;
     this.error = null;
-    
+
     this.panierService.getPanier().subscribe({
       next: (panier) => {
         this.panier = panier;
         this.loading = false;
+        // Démarre le timer si le panier a une date d'expiration
+        if (panier.date_expiration) {
+          this.demarrerTimer(panier.date_expiration);
+        }
       },
       error: (err) => {
         this.error = 'Impossible de charger le panier';
         this.loading = false;
-        console.error('Erreur:', err);
+        console.error('Erreur chargement panier:', err);
       }
     });
   }
+
+  // ============================================
+  // ACTIONS PANIER
+  // ============================================
 
   /**
    * Augmente la quantité d'un article
    */
   augmenterQuantite(article: ArticlePanier): void {
     if (this.processingItems.has(article._id)) return;
-    
+
     const stockDisponible = this.getStockDisponible(article);
     if (article.quantite >= stockDisponible) {
       alert('Stock insuffisant');
@@ -56,9 +124,13 @@ export class PanierComponent implements OnInit {
       next: (panier) => {
         this.panier = panier;
         this.processingItems.delete(article._id);
+        // Réinitialise le timer à chaque activité
+        if (panier.date_expiration) {
+          this.demarrerTimer(panier.date_expiration);
+        }
       },
       error: (err) => {
-        console.error('Erreur:', err);
+        console.error('Erreur augmentation quantité:', err);
         this.processingItems.delete(article._id);
         alert('Erreur lors de la mise à jour');
       }
@@ -77,9 +149,13 @@ export class PanierComponent implements OnInit {
       next: (panier) => {
         this.panier = panier;
         this.processingItems.delete(article._id);
+        // Réinitialise le timer à chaque activité
+        if (panier.date_expiration) {
+          this.demarrerTimer(panier.date_expiration);
+        }
       },
       error: (err) => {
-        console.error('Erreur:', err);
+        console.error('Erreur diminution quantité:', err);
         this.processingItems.delete(article._id);
         alert('Erreur lors de la mise à jour');
       }
@@ -91,7 +167,6 @@ export class PanierComponent implements OnInit {
    */
   supprimerArticle(article: ArticlePanier): void {
     if (!confirm('Voulez-vous vraiment retirer cet article du panier ?')) return;
-    
     if (this.processingItems.has(article._id)) return;
 
     this.processingItems.add(article._id);
@@ -101,7 +176,7 @@ export class PanierComponent implements OnInit {
         this.processingItems.delete(article._id);
       },
       error: (err) => {
-        console.error('Erreur:', err);
+        console.error('Erreur suppression article:', err);
         this.processingItems.delete(article._id);
         alert('Erreur lors de la suppression');
       }
@@ -117,13 +192,21 @@ export class PanierComponent implements OnInit {
     this.panierService.viderPanier().subscribe({
       next: (panier) => {
         this.panier = panier;
+        // Arrête le timer si le panier est vidé
+        this.timerSubscription?.unsubscribe();
+        this.tempsRestant = '';
+        this.panierExpire = false;
       },
       error: (err) => {
-        console.error('Erreur:', err);
+        console.error('Erreur vidage panier:', err);
         alert('Erreur lors du vidage du panier');
       }
     });
   }
+
+  // ============================================
+  // HELPERS
+  // ============================================
 
   /**
    * Récupère le stock disponible pour un article
@@ -168,7 +251,7 @@ export class PanierComponent implements OnInit {
   }
 
   /**
-   * Formate un prix
+   * Formate un prix en Ariary malgache
    */
   formatPrix(prix: number): string {
     return new Intl.NumberFormat('fr-MG', {
@@ -192,7 +275,12 @@ export class PanierComponent implements OnInit {
    * Procède au paiement
    */
   procederAuPaiement(): void {
-    // TODO: Implémentation de la redirection vers le checkout
+    if (this.panierExpire) {
+      alert('Votre panier a expiré. Veuillez actualiser et recommencer.');
+      this.chargerPanier();
+      return;
+    }
+    // TODO: Redirection vers le checkout
     alert('Redirection vers le paiement...');
   }
 }

@@ -474,6 +474,78 @@
   margin-right: 0.5rem;
 }
 
+/* Bannière timer */
+.banner-timer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff8e1;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.banner-timer svg {
+  width: 24px;
+  height: 24px;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.banner-timer.urgent {
+  background: #fff1f1;
+  border-color: #ef4444;
+}
+
+.banner-timer.urgent svg {
+  color: #ef4444;
+}
+
+/* Countdown */
+.countdown {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f59e0b;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown.urgent {
+  color: #ef4444;
+  animation: pulse 1s infinite;
+}
+
+/* Bannière expirée */
+.banner-expire {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff1f1;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.banner-expire svg {
+  width: 24px;
+  height: 24px;
+  color: #ef4444;
+  flex-shrink: 0;
+}
+
+.banner-text p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Animation pulse quand urgent */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
 /* Responsive */
 @media (max-width: 1024px) {
   .panier-grid {
