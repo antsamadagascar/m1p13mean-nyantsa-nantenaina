@@ -101,9 +101,32 @@
               {{ article.produit.nom }}
             </a>
             
-            <p class="article-variante" *ngIf="article.variante">
-              Variante sélectionnée
-            </p>
+            <div class="article-variante" *ngIf="article.variante">
+                <ng-container *ngIf="getVariante(article) as variante">
+                  
+                  <!-- Nom de la variante ex: "Taille S" -->
+                  <span class="variante-nom">{{ variante.nom }}</span>
+
+                  <!-- Attributs ex: Taille: S, Couleur: Rouge -->
+                  <span class="variante-tag" *ngFor="let attribut of variante.attributs">
+                    {{ attribut.nom }} : <strong>{{ attribut.valeur }}</strong>
+                  </span>
+
+                  <!-- Prix supplément si existe -->
+                  <span class="variante-supplement" *ngIf="variante.prix_supplement > 0">
+                    +{{ formatPrix(variante.prix_supplement) }}
+                  </span>
+
+                  <!-- SKU -->
+                  <span class="variante-sku">Réf: {{ variante.sku }}</span>
+
+                  <!-- Stock de la variante -->
+                  <span class="variante-stock" [class.stock-faible]="variante.quantite <= 3">
+                    {{ variante.quantite }} en stock
+                  </span>
+
+                </ng-container>
+              </div>
 
             <div class="article-prix">
               <span class="prix-actuel" [class.has-promo]="enPromotion(article)">
@@ -195,12 +218,6 @@
               Continuer mes achats
             </a>
           </div>
-
-          <!-- <div class="resume-info">
-            <div class="info-item">Paiement sécurisé</div>
-            <div class="info-item">Livraison rapide</div>
-            <div class="info-item">Retour gratuit 14 jours</div>
-          </div> -->
         </div>
       </div>
     </div>

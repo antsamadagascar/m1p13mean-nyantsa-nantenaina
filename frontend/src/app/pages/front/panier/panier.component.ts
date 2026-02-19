@@ -283,4 +283,15 @@ export class PanierComponent implements OnInit, OnDestroy {
     // TODO: Redirection vers le checkout
     alert('Redirection vers le paiement...');
   }
+
+  /**
+   * Récupère les infos de la variante sélectionnée
+   */
+  getVariante(article: ArticlePanier): any {
+    if (!article.variante || !article.produit.variantes) return null;
+    return article.produit.variantes.find((v: any) => 
+      v._id === article.variante || 
+      v._id?.toString() === article.variante?.toString()
+    );
+  }
 }

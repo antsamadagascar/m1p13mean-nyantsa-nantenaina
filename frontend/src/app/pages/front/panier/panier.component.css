@@ -206,14 +206,53 @@
 }
 
 .article-variante {
-  margin: 0;
-  font-size: 0.875rem;
-  color: #6b7280;
-  background: #f3f4f6;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
+
+.variante-nom {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.variante-tag {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  color: #475569;
+}
+
+.variante-supplement {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  color: #92400e;
+}
+
+.variante-sku {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.variante-stock {
+  font-size: 0.78rem;
+  color: #22c55e;
+}
+
+.variante-stock.stock-faible {
+  color: #ef4444;
+  font-weight: 600;
+}
+
 
 .article-prix {
   display: flex;
