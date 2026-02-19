@@ -134,6 +134,13 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/front/product-detail/product-detail.component')
           .then(m => m.ProductDetailComponent)
       },
+
+      // gestions panier utilisateurs (connecter without guest)
+       {
+        path: 'panier',
+        loadComponent: () => import('./pages/front/panier/panier.component')
+          .then(m => m.PanierComponent)
+      },
         
       // DÉTAIL BOUTIQUE PUBLIC(client)
       {

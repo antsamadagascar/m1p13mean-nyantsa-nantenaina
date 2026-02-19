@@ -199,6 +199,7 @@
             <button 
               class="btn-add-cart" 
               [disabled]="!peutAcheter()"
+              (click)="ajouterAuPanier()"
               [class.disabled]="!peutAcheter()"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -209,14 +210,6 @@
               <span>{{ getMessageAchat() }}</span>
             </button>
 
-            <button 
-              class="btn-buy-now" 
-              [disabled]="!peutAcheter()"
-              [class.disabled]="!peutAcheter()"
-              (click)="acheterMaintenant()"
-            >
-              Acheter maintenant
-            </button>
             <div> 
                    <span>{{ getStatutBoutique() }}</span>
             <p class="status-info">{{ getHorairesAujourdhui() }}</p>
