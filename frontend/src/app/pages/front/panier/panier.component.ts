@@ -124,10 +124,7 @@ export class PanierComponent implements OnInit, OnDestroy {
       next: (panier) => {
         this.panier = panier;
         this.processingItems.delete(article._id);
-        // Réinitialise le timer à chaque activité
-        if (panier.date_expiration) {
-          this.demarrerTimer(panier.date_expiration);
-        }
+
       },
       error: (err) => {
         console.error('Erreur augmentation quantité:', err);
@@ -149,10 +146,7 @@ export class PanierComponent implements OnInit, OnDestroy {
       next: (panier) => {
         this.panier = panier;
         this.processingItems.delete(article._id);
-        // Réinitialise le timer à chaque activité
-        if (panier.date_expiration) {
-          this.demarrerTimer(panier.date_expiration);
-        }
+
       },
       error: (err) => {
         console.error('Erreur diminution quantité:', err);
