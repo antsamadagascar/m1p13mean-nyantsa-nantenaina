@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink,Router } from '@angular/router';
 import { PanierService, Panier, ArticlePanier } from '../../../services/panier.service';
 import { interval, Subscription } from 'rxjs';
 
@@ -22,7 +22,7 @@ export class PanierComponent implements OnInit, OnDestroy {
   panierExpire: boolean = false;
   private timerSubscription?: Subscription;
 
-  constructor(private panierService: PanierService) {}
+  constructor(private panierService: PanierService,private router: Router) {}
 
   // ============================================
   // LIFECYCLE
@@ -270,12 +270,12 @@ export class PanierComponent implements OnInit, OnDestroy {
    */
   procederAuPaiement(): void {
     if (this.panierExpire) {
-      alert('Votre panier a expiré. Veuillez actualiser et recommencer.');
+      alert('Votre panier a expiré. Veuillez recommencer.');
       this.chargerPanier();
       return;
     }
-    // TODO: Redirection vers le checkout
-    alert('Redirection vers le paiement...');
+    // Redirige vers la page checkout
+    this.router.navigate(['/commande']);
   }
 
   /**

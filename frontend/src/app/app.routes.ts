@@ -148,7 +148,26 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/front/boutique-detail/boutique-detail.component')
           .then(m => m.BoutiqueDetailComponent)
       },
+
+      {
+        path: 'commande',
+        loadComponent: () => import('./pages/front/commande/commande.component')
+          .then(m => m.CommandeComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: 'commande/confirmation/:id',
+        loadComponent: () => import('./pages/front/commande/commande-confirmation.component')
+          .then(m => m.CommandeConfirmationComponent),
+        canActivate: [authGuard]
+      },
       
+      {
+      path: 'mes-commandes',
+        loadComponent: () => import('./pages/front/mes-commandes/mes-commandes.component')
+          .then(m => m.MesCommandesComponent),
+        canActivate: [authGuard]
+      },
     ]
   },
   // Redirection 404

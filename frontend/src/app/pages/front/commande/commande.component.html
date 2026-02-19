@@ -1,0 +1,160 @@
+<div class="commande-page">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <nav class="breadcrumb">
+      <a routerLink="/">Accueil</a>
+      <span class="separator">/</span>
+      <a routerLink="/panier">Panier</a>
+      <span class="separator">/</span>
+      <span class="current">Validation commande</span>
+    </nav>
+
+    <!-- Chargement -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Contenu -->
+    <div class="commande-grid" *ngIf="!loading && panier">
+
+      <!-- COLONNE GAUCHE : Formulaire adresse -->
+      <div class="commande-form">
+
+        <!-- Info utilisateur connecté -->
+        <div class="user-info-banner" *ngIf="utilisateur">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <div>
+            <span class="user-nom">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
+            <span class="user-email">{{ utilisateur.email }}</span>
+          </div>
+        </div>
+
+        <h2>Adresse de livraison</h2>
+        <p class="form-hint">Les champs marqués * sont obligatoires</p>
+
+        <!-- Erreur globale -->
+        <div class="alert-error" *ngIf="error">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          {{ error }}
+        </div>
+
+        <form [formGroup]="adresseForm">
+
+          <!-- Nom complet — pré-rempli -->
+          <div class="form-group">
+            <label>Nom complet *</label>
+            <input
+              type="text"
+              formControlName="nom"
+              placeholder="Ex: Jean Rakoto"
+              [class.error]="isFieldInvalid('nom')"
+              [class.prefilled]="adresseForm.get('nom')?.value" />
+            <span class="field-error" *ngIf="isFieldInvalid('nom')">
+              Nom requis (minimum 3 caractères)
+            </span>
+          </div>
+
+          <!-- Téléphone -->
+          <div class="form-group">
+            <label>Téléphone *</label>
+            <input
+              type="tel"
+              formControlName="telephone"
+              placeholder="Ex: 034 00 000 00"
+              [class.error]="isFieldInvalid('telephone')" />
+            <span class="field-error" *ngIf="isFieldInvalid('telephone')">
+              Téléphone requis (minimum 10 chiffres)
+            </span>
+          </div>
+
+          <!-- Adresse -->
+          <div class="form-group">
+            <label>Adresse *</label>
+            <input
+              type="text"
+              formControlName="adresse"
+              placeholder="Ex: Lot 123, Rue des Fleurs"
+              [class.error]="isFieldInvalid('adresse')" />
+            <span class="field-error" *ngIf="isFieldInvalid('adresse')">
+              Adresse requise
+            </span>
+          </div>
+
+          <!-- Ville -->
+          <div class="form-group">
+            <label>Ville *</label>
+            <input
+              type="text"
+              formControlName="ville"
+              placeholder="Ex: Antananarivo"
+              [class.error]="isFieldInvalid('ville')" />
+            <span class="field-error" *ngIf="isFieldInvalid('ville')">
+              Ville requise
+            </span>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- COLONNE DROITE : Récapitulatif -->
+      <div class="commande-recap">
+        <h2>Récapitulatif</h2>
+
+        <!-- Liste articles -->
+        <div class="recap-articles">
+          <div class="recap-article" *ngFor="let article of panier.articles">
+            <img [src]="getImageProduit(article)" [alt]="article.produit.nom" />
+            <div class="recap-article-info">
+              <span class="recap-nom">{{ article.produit.nom }}</span>
+              <span class="recap-qte">x{{ article.quantite }}</span>
+            </div>
+            <span class="recap-prix">{{ formatPrix(getSousTotal(article)) }}</span>
+          </div>
+        </div>
+
+        <div class="recap-separator"></div>
+
+        <!-- Totaux -->
+        <div class="recap-totaux">
+          <div class="recap-ligne">
+            <span>Sous-total</span>
+            <span>{{ formatPrix(panier.sous_total) }}</span>
+          </div>
+          <div class="recap-ligne remise" *ngIf="panier.total_remise > 0">
+            <span>Remise</span>
+            <span>- {{ formatPrix(panier.total_remise) }}</span>
+          </div>
+          <div class="recap-ligne">
+            <span>Livraison</span>
+            <span class="gratuit">Gratuite</span>
+          </div>
+          <div class="recap-separator"></div>
+          <div class="recap-ligne total">
+            <span>Total</span>
+            <strong>{{ formatPrix(panier.total) }}</strong>
+          </div>
+        </div>
+
+        <!-- Bouton valider -->
+        <button
+          class="btn-valider"
+          (click)="validerCommande()"
+          [disabled]="submitting">
+          <span *ngIf="!submitting">Confirmer la commande</span>
+          <span *ngIf="submitting">Traitement en cours...</span>
+        </button>
+
+        <a routerLink="/panier" class="btn-retour">Retour au panier</a>
+      </div>
+    </div>
+  </div>
+</div>
