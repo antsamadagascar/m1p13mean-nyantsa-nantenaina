@@ -196,17 +196,28 @@ exports.mettreAJourStatut = async (req, res) => {
     const commande = await Commande.findById(req.params.id);
     if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
 
+    //  Règle simple : impossible d'annuler si déjà payé
+    if (statut === 'ANNULEE' && commande.statut_paiement === 'PAYE') {
+      return res.status(400).json({ message: 'Impossible d\'annuler une commande déjà payée' });
+    }
+
+    //  Transitions normales restent bloquées
+    if (statut === 'LIVREE' && !['EN_ATTENTE', 'EN_COURS'].includes(commande.statut)) {
+      return res.status(400).json({ message: 'Transition invalide' });
+    }
+    if (statut === 'EN_COURS' && commande.statut !== 'EN_ATTENTE') {
+      return res.status(400).json({ message: 'Transition invalide' });
+    }
+
     commande.statut = statut;
 
     if (statut === 'LIVREE') {
-      // Colis livré → paiement toujours IMPAYE jusqu'à confirmation
       commande.date_livraison = new Date();
       commande.statut_paiement = 'IMPAYE';
     }
 
     if (statut === 'ANNULEE') {
       commande.date_annulation = new Date();
-      // Restituer le stock
       for (const article of commande.articles) {
         const produit = await Produit.findById(article.produit);
         if (!produit) continue;

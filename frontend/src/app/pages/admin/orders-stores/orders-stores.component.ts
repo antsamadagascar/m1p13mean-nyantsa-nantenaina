@@ -11,6 +11,7 @@ import { environment } from '../../../../environments/environment';
   templateUrl: './orders-stores.component.html',
   styleUrls: ['./orders-stores.component.css']
 })
+
 export class OrdersComponent implements OnInit, OnDestroy {
   commandes: any[] = [];
   commandesFiltrees: any[] = [];
@@ -34,11 +35,15 @@ export class OrdersComponent implements OnInit, OnDestroy {
       { label: 'Annuler la commande',  valeur: 'ANNULEE',  classe: 'btn-annuler'  }
     ],
     'EN_COURS': [
-      { label: 'Marquer comme livrée', valeur: 'LIVREE',   classe: 'btn-livree'   }
+      { label: 'Marquer comme livrée', valeur: 'LIVREE',   classe: 'btn-livree'   },
+      { label: 'Annuler la commande',  valeur: 'ANNULEE',  classe: 'btn-annuler'  }
     ],
-    'LIVREE':  [],
+    'LIVREE':  [
+      { label: 'Annuler la commande',  valeur: 'ANNULEE',  classe: 'btn-annuler'  }
+    ],
     'ANNULEE': []
   };
+  
 
   get totalCommandes(): number { return this.commandes.length; }
   get enAttente(): number { return this.commandes.filter(c => c.statut === 'EN_ATTENTE').length; }
@@ -165,27 +170,31 @@ export class OrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  getTransitions(commande: any): any[] { return this.transitions[commande?.statut] || []; }
+  
+  //  Règle simple : masquer annulation seulement si PAYE
+  getTransitions(commande: any): any[] {
+    if (!commande) return [];
+    const transitions = this.transitions[commande.statut] || [];
 
-  getStatutLivraisonClass(statut: string): string {
-    const map: { [k: string]: string } = {
-      'EN_ATTENTE': 'statut-attente', 'EN_COURS': 'statut-en-cours',
-      'LIVREE': 'statut-livree', 'ANNULEE': 'statut-annulee'
-    };
-    return map[statut] || '';
+    // Filtrer le bouton annuler si déjà payé
+    if (commande.statut_paiement === 'PAYE') {
+      return transitions.filter(t => t.valeur !== 'ANNULEE');
+    }
+
+    return transitions;
   }
 
-  getStatutLivraisonLabel(statut: string): string {
+  getStatutLivraisonLabel(statut: string): string
+ {
     const map: { [k: string]: string } = {
       'EN_ATTENTE': 'En attente', 'EN_COURS': 'En cours',
       'LIVREE': 'Livrée', 'ANNULEE': 'Annulée'
     };
     return map[statut] || statut;
   }
-
-  getStatutPaiementClass(statut_paiement: string): string {
-    return statut_paiement === 'PAYE' ? 'paiement-paid' : 'paiement-unpaid';
-  }
+  
+  getStatutPaiementClass(statut_paiement: string): string 
+  {   return statut_paiement === 'PAYE' ? 'paiement-paid' : 'paiement-unpaid'; }
 
   getStatutPaiementLabel(statut_paiement: string): string {
     return statut_paiement === 'PAYE' ? 'Payée' : 'Impayée';

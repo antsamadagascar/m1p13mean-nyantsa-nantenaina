@@ -99,7 +99,7 @@
                   <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
                   <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
                   <td>
-                    <span class="statut-badge" [ngClass]="getStatutLivraisonClass(commande.statut)">
+                    <span class="statut-badge" [ngClass]="getStatutLivraisonLabel(commande.statut)">
                       {{ getStatutLivraisonLabel(commande.statut) }}
                     </span>
                   </td>
@@ -212,7 +212,7 @@
       <p class="detail-date">{{ formatDateLong(commande.date_creation) }}</p>
     </div>
     <div class="detail-badges">
-      <span class="statut-badge" [ngClass]="getStatutLivraisonClass(commande.statut)">
+      <span class="statut-badge" [ngClass]="getStatutLivraisonLabel(commande.statut)">
         {{ getStatutLivraisonLabel(commande.statut) }}
       </span>
       <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
