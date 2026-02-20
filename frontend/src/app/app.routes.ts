@@ -159,13 +159,13 @@ export const routes: Routes = [
 
       {
         path: 'commande',
-        loadComponent: () => import('./pages/front/commande/commande.component')
+        loadComponent: () => import('./pages/front/customer-orders/customer-orders.component')
           .then(m => m.CommandeComponent),
         canActivate: [authGuard]
       },
       {
         path: 'commande/confirmation/:id',
-        loadComponent: () => import('./pages/front/commande/commande-confirmation.component')
+        loadComponent: () => import('./pages/front/customer-orders/customer-orders-confirmation.component')
           .then(m => m.CommandeConfirmationComponent),
         canActivate: [authGuard]
       },

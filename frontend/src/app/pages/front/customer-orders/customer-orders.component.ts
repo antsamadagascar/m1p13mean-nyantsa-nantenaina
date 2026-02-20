@@ -10,8 +10,8 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-commande',
   standalone: true,
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
-  templateUrl: './commande.component.html',
-  styleUrls: ['./commande.component.css']
+  templateUrl: './customer-orders.component.html',
+  styleUrls: ['./customer-orders.component.css']
 })
 export class CommandeComponent implements OnInit {
   panier: Panier | null = null;

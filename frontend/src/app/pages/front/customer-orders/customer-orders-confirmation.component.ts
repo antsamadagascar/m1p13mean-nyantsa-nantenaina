@@ -8,8 +8,8 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-commande-confirmation',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  templateUrl: './commande-confirmation.component.html',
-  styleUrls: ['./commande-confirmation.component.css']
+  templateUrl: './customer-orders-confirmation.component.html',
+  styleUrls: ['./customer-orders-confirmation.component.css']
 })
 export class CommandeConfirmationComponent implements OnInit {
   commande: any = null;
