@@ -9,8 +9,8 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-mes-commandes',
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
-  templateUrl: './mes-commandes.component.html',
-  styleUrls: ['./mes-commandes.component.css']
+  templateUrl: './my-orders.component.html',
+  styleUrls: ['./my-orders.component.css']
 })
 export class MesCommandesComponent implements OnInit {
   commandes: any[] = [];

@@ -172,7 +172,7 @@ export const routes: Routes = [
       
       {
       path: 'mes-commandes',
-        loadComponent: () => import('./pages/front/mes-commandes/mes-commandes.component')
+        loadComponent: () => import('./pages/front/my-orders/my-orders.component')
           .then(m => m.MesCommandesComponent),
         canActivate: [authGuard]
       },
