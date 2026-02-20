@@ -1,0 +1,297 @@
+<div class="orders-page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h1>Gestion des commandes</h1>
+      <p class="subtitle">Suivez et mettez à jour les commandes de votre boutique</p>
+    </div>
+    <button class="btn-refresh" (click)="chargerCommandes()" [disabled]="loading">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+      </svg>
+      Actualiser
+    </button>
+  </div>
+
+  <!-- Chargement -->
+  <div class="loading-state" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Chargement des commandes...</p>
+  </div>
+
+  <!-- Erreur -->
+  <div class="error-state" *ngIf="error && !loading">
+    <p>{{ error }}</p>
+    <button (click)="chargerCommandes()">Réessayer</button>
+  </div>
+
+  <div *ngIf="!loading && !error">
+
+    <!-- Stats -->
+    <div class="stats-bar">
+      <div class="stat-card">
+        <span class="stat-val">{{ totalCommandes }}</span>
+        <span class="stat-lbl">Total commandes</span>
+      </div>
+      <div class="stat-card attente">
+        <span class="stat-val">{{ enAttente }}</span>
+        <span class="stat-lbl">En attente</span>
+      </div>
+      <div class="stat-card payee">
+        <span class="stat-val">{{ payees }}</span>
+        <span class="stat-lbl">Payées</span>
+      </div>
+      <div class="stat-card en-cours">
+        <span class="stat-val">{{ enCours }}</span>
+        <span class="stat-lbl">En livraison</span>
+      </div>
+      <div class="stat-card livree">
+        <span class="stat-val">{{ formatPrix(chiffreAffaires) }}</span>
+        <span class="stat-lbl">Chiffre d'affaires</span>
+      </div>
+    </div>
+
+    <!-- Vide -->
+    <div class="empty-state" *ngIf="commandes.length === 0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 01-8 0"></path>
+      </svg>
+      <h2>Aucune commande reçue</h2>
+      <p>Les commandes de vos clients apparaîtront ici.</p>
+    </div>
+
+    <!-- Layout principal -->
+    <div class="main-layout" *ngIf="commandes.length > 0">
+
+      <!-- GAUCHE : Tableau -->
+      <div class="table-panel">
+
+        <!-- Filtres -->
+        <div class="filters">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input
+              type="text"
+              placeholder="Référence, produit, client..."
+              [(ngModel)]="filtreRecherche"
+              (input)="onRecherche()" />
+            <button *ngIf="filtreRecherche" (click)="reinitialiserFiltres()">×</button>
+          </div>
+
+          <!-- Tabs statut avec compteurs -->
+          <div class="filtre-tabs">
+            <button
+              *ngFor="let s of statuts"
+              class="filtre-tab"
+              [class.active]="filtreStatut === s.valeur"
+              (click)="changerFiltre(s.valeur)">
+              {{ s.label }}
+              <span class="tab-count" *ngIf="s.count > 0">{{ s.count }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Info filtre -->
+        <div class="table-info" *ngIf="commandesFiltrees.length !== commandes.length">
+          {{ commandesFiltrees.length }} / {{ commandes.length }} commande(s)
+          <button class="reset-link" (click)="reinitialiserFiltres()">Réinitialiser</button>
+        </div>
+
+        <div class="no-result" *ngIf="commandesFiltrees.length === 0 && commandes.length > 0">
+          Aucune commande ne correspond.
+        </div>
+
+        <!-- Tableau -->
+        <div class="table-wrapper" *ngIf="commandesFiltrees.length > 0">
+          <table>
+            <thead>
+              <tr>
+                <th>Référence</th>
+                <th>Client</th>
+                <th>Articles</th>
+                <th>Total</th>
+                <th>Date</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let commande of commandesFiltrees"
+                (click)="selectionner(commande)"
+                [class.selected]="commandeSelectionnee?._id === commande._id">
+                <td class="ref-cell">{{ commande.reference }}</td>
+                <td class="client-cell">
+                  <span class="client-nom">{{ commande.utilisateur?.prenom }} {{ commande.utilisateur?.nom }}</span>
+                  <span class="client-email">{{ commande.utilisateur?.email }}</span>
+                </td>
+                <td class="articles-cell">{{ commande.articles.length }} article(s)</td>
+                <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
+                <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
+                <td>
+                  <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+                    {{ getStatutLabel(commande.statut) }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DROITE : Détail + suivi + actions -->
+      <div class="detail-panel" *ngIf="commandeSelectionnee">
+
+        <!-- Header -->
+        <div class="detail-header">
+          <div>
+            <h2>{{ commandeSelectionnee.reference }}</h2>
+            <p class="detail-date">{{ formatDateLong(commandeSelectionnee.date_creation) }}</p>
+          </div>
+          <span class="statut-badge large" [ngClass]="getStatutClass(commandeSelectionnee.statut)">
+            {{ getStatutLabel(commandeSelectionnee.statut) }}
+          </span>
+        </div>
+
+        <!-- Suivi timeline -->
+        <div class="timeline-section">
+          <div class="timeline">
+
+            <div class="timeline-step" [class.done]="true">
+              <div class="step-dot done"></div>
+              <div class="step-info">
+                <span class="step-label">Commande passée</span>
+                <span class="step-date">{{ formatDate(commandeSelectionnee.date_creation) }}</span>
+              </div>
+            </div>
+
+            <div class="timeline-step" [class.done]="['PAYEE','EN_COURS','LIVREE'].includes(commandeSelectionnee.statut)">
+              <div class="step-dot" [class.done]="['PAYEE','EN_COURS','LIVREE'].includes(commandeSelectionnee.statut)"></div>
+              <div class="step-info">
+                <span class="step-label">Paiement confirmé</span>
+                <span class="step-date">{{ formatDate(commandeSelectionnee.date_paiement) }}</span>
+              </div>
+            </div>
+
+            <div class="timeline-step" [class.done]="['EN_COURS','LIVREE'].includes(commandeSelectionnee.statut)">
+              <div class="step-dot" [class.done]="['EN_COURS','LIVREE'].includes(commandeSelectionnee.statut)"></div>
+              <div class="step-info">
+                <span class="step-label">En cours de livraison</span>
+                <span class="step-date">—</span>
+              </div>
+            </div>
+
+            <div class="timeline-step" [class.done]="commandeSelectionnee.statut === 'LIVREE'">
+              <div class="step-dot" [class.done]="commandeSelectionnee.statut === 'LIVREE'"></div>
+              <div class="step-info">
+                <span class="step-label">Livrée</span>
+                <span class="step-date">{{ formatDate(commandeSelectionnee.date_livraison) }}</span>
+              </div>
+            </div>
+
+            <!-- Annulée -->
+            <div class="timeline-step annulee" *ngIf="commandeSelectionnee.statut === 'ANNULEE'">
+              <div class="step-dot annulee"></div>
+              <div class="step-info">
+                <span class="step-label">Annulée</span>
+                <span class="step-date">{{ formatDate(commandeSelectionnee.date_annulation) }}</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Client -->
+        <div class="detail-section" *ngIf="commandeSelectionnee.utilisateur">
+          <h3>Client</h3>
+          <div class="client-block">
+            <p class="client-nom-full">
+              {{ commandeSelectionnee.utilisateur.prenom }} {{ commandeSelectionnee.utilisateur.nom }}
+            </p>
+            <p>{{ commandeSelectionnee.utilisateur.email }}</p>
+          </div>
+        </div>
+
+        <!-- Articles -->
+        <div class="detail-section">
+          <h3>Articles commandés</h3>
+          <div class="detail-articles">
+            <div class="detail-article" *ngFor="let article of commandeSelectionnee.articles">
+              <div class="art-info">
+                <span class="art-nom">{{ article.nom_produit }}</span>
+                <span class="art-sku" *ngIf="article.sku">{{ article.sku }}</span>
+              </div>
+              <div class="art-calcul">
+                <span>{{ formatPrix(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
+                <span class="mult">×</span>
+                <span>{{ article.quantite }}</span>
+                <strong>{{ formatPrix((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Adresse -->
+        <div class="detail-section" *ngIf="commandeSelectionnee.adresse_livraison">
+          <h3>Adresse de livraison</h3>
+          <div class="adresse-block">
+            <p class="adr-nom">{{ commandeSelectionnee.adresse_livraison.nom }}</p>
+            <p>{{ commandeSelectionnee.adresse_livraison.adresse }}, {{ commandeSelectionnee.adresse_livraison.ville }}</p>
+            <p>{{ commandeSelectionnee.adresse_livraison.telephone }}</p>
+          </div>
+        </div>
+
+        <!-- Total -->
+        <div class="detail-section">
+          <h3>Récapitulatif financier</h3>
+          <div class="detail-totaux">
+            <div class="total-row">
+              <span>Sous-total</span>
+              <span>{{ formatPrix(commandeSelectionnee.sous_total) }}</span>
+            </div>
+            <div class="total-row remise" *ngIf="commandeSelectionnee.total_remise > 0">
+              <span>Remise</span>
+              <span>- {{ formatPrix(commandeSelectionnee.total_remise) }}</span>
+            </div>
+            <div class="total-row final">
+              <span>Total</span>
+              <strong>{{ formatPrix(commandeSelectionnee.total) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS STATUT -->
+        <div class="detail-actions" *ngIf="getTransitions(commandeSelectionnee).length > 0">
+          <h3>Mettre à jour le statut</h3>
+          <div class="actions-buttons">
+            <button
+              *ngFor="let t of getTransitions(commandeSelectionnee)"
+              [class]="'btn-action ' + t.classe"
+              (click)="changerStatut(commandeSelectionnee, t.valeur)"
+              [disabled]="majEnCours.has(commandeSelectionnee._id)">
+              <span *ngIf="!majEnCours.has(commandeSelectionnee._id)">{{ t.label }}</span>
+              <span *ngIf="majEnCours.has(commandeSelectionnee._id)">Mise à jour...</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Terminée / Annulée -->
+        <div class="detail-termine" *ngIf="getTransitions(commandeSelectionnee).length === 0">
+          <div *ngIf="commandeSelectionnee.statut === 'LIVREE'" class="termine-livree">
+            Commande livrée le {{ formatDate(commandeSelectionnee.date_livraison) }}
+          </div>
+          <div *ngIf="commandeSelectionnee.statut === 'ANNULEE'" class="termine-annulee">
+            Commande annulée — stock restitué automatiquement
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

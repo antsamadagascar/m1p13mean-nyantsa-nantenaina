@@ -195,5 +195,63 @@ exports.annulerCommande = async (req, res) => {
     res.status(500).json({ message: 'Erreur annulation commande', error: error.message });
   }
 };
+// get commande by boutique id
+exports.getCommandesBoutique = async (req, res) => {
+  try {
+    const boutiqueId = req.user.boutiqueId;
+
+    const produitIds = await Produit.find({ boutique: boutiqueId }).distinct('_id');
+
+    const commandes = await Commande.find({
+      'articles.produit': { $in: produitIds }
+    })
+    .sort({ date_creation: -1 })
+    .populate('utilisateur', 'nom prenom email');
+
+    res.json(commandes);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+};
+
+exports.mettreAJourStatut = async (req, res) => {
+  try {
+    const { statut } = req.body;
+    const statutsAutorises = ['EN_COURS', 'LIVREE', 'ANNULEE'];
+
+    if (!statutsAutorises.includes(statut)) {
+      return res.status(400).json({ message: 'Statut invalide' });
+    }
+
+    const commande = await Commande.findById(req.params.id);
+    if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
+
+    commande.statut = statut;
+
+    if (statut === 'LIVREE') commande.date_livraison = new Date();
+    if (statut === 'ANNULEE') {
+      commande.date_annulation = new Date();
+      // Restituer le stock
+      for (const article of commande.articles) {
+        const produit = await Produit.findById(article.produit);
+        if (!produit) continue;
+        if (article.variante) {
+          const v = produit.variantes.id(article.variante);
+          if (v) v.quantite += article.quantite;
+        } else {
+          produit.quantite += article.quantite;
+        }
+        await produit.save();
+      }
+    }
+
+    await commande.save();
+    res.json(commande);
+  } catch (error) {
+    console.error('Erreur mettreAJourStatut:', error);
+    res.status(500).json({ message: 'Erreur mise à jour statut', error: error.message });
+  }
+};
+
 
 module.exports = exports;
