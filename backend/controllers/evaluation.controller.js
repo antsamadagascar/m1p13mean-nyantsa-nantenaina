@@ -1,111 +1,103 @@
 const Evaluation = require('../models/Evaluation');
 const Boutique = require('../models/Boutique');
+const Produit = require('../models/Produit');
+
+
 
 // ============================================
-// GET - Toutes les évaluations d'une boutique
+// BOUTIQUE — Soumettre
 // ============================================
-exports.getEvaluations = async (req, res) => {
-  try {
-    const { boutiqueId } = req.params;
-
-    // Vérifier que la boutique existe
-    const boutique = await Boutique.findById(boutiqueId);
-    if (!boutique) {
-      return res.status(404).json({ success: false, message: 'Boutique introuvable' });
-    }
-
-    const evaluations = await Evaluation.find({
-      boutique: boutiqueId,
-      statut: 'visible'
-    })
-      .populate('client', 'nom prenom photo')
-      .sort({ date_creation: -1 });
-
-    res.json({
-      success: true,
-      count: evaluations.length,
-      data: evaluations
-    });
-
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-};
-
-// ============================================
-// POST - Créer ou modifier son évaluation
-// ============================================
-exports.soumettre = async (req, res) => {
+exports.soumettreBoutique = async (req, res) => {
   try {
     const { boutiqueId } = req.params;
     const { note, commentaire } = req.body;
     const clientId = req.user._id;
 
-    // Vérifier que la boutique existe et est active
     const boutique = await Boutique.findById(boutiqueId);
-    if (!boutique) {
-      return res.status(404).json({ success: false, message: 'Boutique introuvable' });
-    }
-    if (!boutique.statut.actif) {
-      return res.status(400).json({ success: false, message: 'Cette boutique n\'est pas active' });
-    }
+    if (!boutique) return res.status(404).json({ success: false, message: 'Boutique introuvable' });
+    if (!boutique.statut.actif) return res.status(400).json({ success: false, message: 'Boutique inactive' });
 
-    // Vérifier si une évaluation existe déjà
     const existante = await Evaluation.findOne({ boutique: boutiqueId, client: clientId });
 
-    let evaluation;
-
     if (existante) {
-      // Mise à jour
       existante.note = note;
       existante.commentaire = commentaire;
-      evaluation = await existante.save();
-
-      return res.json({
-        success: true,
-        message: 'Évaluation mise à jour',
-        data: evaluation
-      });
+      await existante.save();
+    } else {
+      await Evaluation.create({ boutique: boutiqueId, client: clientId, note, commentaire });
     }
 
-    // Nouvelle évaluation
-    evaluation = await Evaluation.create({
-      boutique: boutiqueId,
-      client: clientId,
-      note,
-      commentaire
-    });
+    const boutiqueMAJ = await Boutique.findById(boutiqueId).select('evaluation');
 
-    res.status(201).json({
+    res.status(existante ? 200 : 201).json({
       success: true,
-      message: 'Évaluation ajoutée',
-      data: evaluation
+      message: existante ? 'Évaluation mise à jour' : 'Évaluation ajoutée',
+      evaluation: boutiqueMAJ.evaluation
     });
 
   } catch (err) {
     if (err.name === 'ValidationError') {
-      const messages = Object.values(err.errors).map(e => e.message);
-      return res.status(400).json({ success: false, message: messages.join(', ') });
+      return res.status(400).json({ success: false, message: Object.values(err.errors).map(e => e.message).join(', ') });
+    }
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+
+
+// ============================================
+// PRODUIT — Soumettre
+// ============================================
+exports.soumettreProduit = async (req, res) => {
+  try {
+    const { produitId } = req.params;
+    const { note, commentaire } = req.body;
+    const clientId = req.user._id;
+
+    const produit = await Produit.findById(produitId);
+    if (!produit) return res.status(404).json({ success: false, message: 'Produit introuvable' });
+    if (produit.statut === 'ARCHIVE' || produit.supprime) {
+      return res.status(400).json({ success: false, message: 'Produit non disponible' });
+    }
+
+    const existante = await Evaluation.findOne({ produit: produitId, client: clientId });
+
+    if (existante) {
+      existante.note = note;
+      existante.commentaire = commentaire;
+      await existante.save();
+    } else {
+      await Evaluation.create({ produit: produitId, client: clientId, note, commentaire });
+    }
+
+    const produitMAJ = await Produit.findById(produitId).select('note_moyenne nombre_avis');
+
+    res.status(existante ? 200 : 201).json({
+      success: true,
+      message: existante ? 'Évaluation mise à jour' : 'Évaluation ajoutée',
+      evaluation: { moyenne: produitMAJ.note_moyenne, total: produitMAJ.nombre_avis }
+    });
+
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ success: false, message: Object.values(err.errors).map(e => e.message).join(', ') });
     }
     res.status(500).json({ success: false, message: err.message });
   }
 };
 
 // ============================================
-// GET - Récupérer MON évaluation pour une boutique
+// COMMUN — Mon évaluation
 // ============================================
 exports.monEvaluation = async (req, res) => {
   try {
-    const evaluation = await Evaluation.findOne({
-      boutique: req.params.boutiqueId,
-      client: req.user._id
-    });
+    const { boutiqueId, produitId } = req.params;
+    const filtre = boutiqueId
+      ? { boutique: boutiqueId, client: req.user._id }
+      : { produit: produitId, client: req.user._id };
 
-    if (!evaluation) {
-      return res.json({ success: true, data: null });
-    }
-
-    res.json({ success: true, data: evaluation });
+    const evaluation = await Evaluation.findOne(filtre);
+    res.json({ success: true, data: evaluation || null });
 
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -113,18 +105,17 @@ exports.monEvaluation = async (req, res) => {
 };
 
 // ============================================
-// DELETE - Supprimer son évaluation
+// COMMUN — Supprimer
 // ============================================
 exports.supprimer = async (req, res) => {
   try {
-    const evaluation = await Evaluation.findOneAndDelete({
-      boutique: req.params.boutiqueId,
-      client: req.user._id
-    });
+    const { boutiqueId, produitId } = req.params;
+    const filtre = boutiqueId
+      ? { boutique: boutiqueId, client: req.user._id }
+      : { produit: produitId, client: req.user._id };
 
-    if (!evaluation) {
-      return res.status(404).json({ success: false, message: 'Évaluation introuvable' });
-    }
+    const evaluation = await Evaluation.findOneAndDelete(filtre);
+    if (!evaluation) return res.status(404).json({ success: false, message: 'Évaluation introuvable' });
 
     res.json({ success: true, message: 'Évaluation supprimée' });
 
@@ -134,29 +125,23 @@ exports.supprimer = async (req, res) => {
 };
 
 // ============================================
-// ADMIN - Changer le statut d'une évaluation
+// ADMIN — Changer statut
 // ============================================
 exports.changerStatut = async (req, res) => {
   try {
-    const { statut } = req.body;
     const { id } = req.params;
+    const { statut } = req.body;
 
     if (!['visible', 'masque', 'signale'].includes(statut)) {
       return res.status(400).json({ success: false, message: 'Statut invalide' });
     }
 
-    const evaluation = await Evaluation.findByIdAndUpdate(
-      id,
-      { statut },
-      { new: true }
-    );
+    const evaluation = await Evaluation.findByIdAndUpdate(id, { statut }, { new: true });
+    if (!evaluation) return res.status(404).json({ success: false, message: 'Évaluation introuvable' });
 
-    if (!evaluation) {
-      return res.status(404).json({ success: false, message: 'Évaluation introuvable' });
-    }
-
-    // Recalculer la moyenne après modération
-    await Evaluation.calculerMoyenne(evaluation.boutique);
+    // Recalcul selon la cible
+    if (evaluation.boutique) await Evaluation.calculerMoyenneBoutique(evaluation.boutique);
+    if (evaluation.produit)  await Evaluation.calculerMoyenneProduit(evaluation.produit);
 
     res.json({ success: true, data: evaluation });
 
@@ -164,3 +149,50 @@ exports.changerStatut = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+// evaluation.controller.js
+exports.getEvaluationsProduit = async (req, res) => {
+    try {
+      const { produitId } = req.params;
+  
+      const produit = await Produit.findById(produitId).select('note_moyenne nombre_avis nom');
+      if (!produit) return res.status(404).json({ success: false, message: 'Produit introuvable' });
+  
+      const evaluations = await Evaluation.find({ produit: produitId, statut: 'visible' })
+        .populate('client', 'nom prenom avatar')  // ← avatar et non photo
+        .sort({ date_creation: -1 });
+  
+      res.json({
+        success: true,
+        evaluation: { moyenne: produit.note_moyenne, total: produit.nombre_avis },
+        count: evaluations.length,
+        data: evaluations
+      });
+  
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  };
+  
+  exports.getEvaluationsBoutique = async (req, res) => {
+    try {
+      const { boutiqueId } = req.params;
+  
+      const boutique = await Boutique.findById(boutiqueId).select('evaluation nom');
+      if (!boutique) return res.status(404).json({ success: false, message: 'Boutique introuvable' });
+  
+      const evaluations = await Evaluation.find({ boutique: boutiqueId, statut: 'visible' })
+        .populate('client', 'nom prenom avatar')  // ← avatar et non photo
+        .sort({ date_creation: -1 });
+  
+      res.json({
+        success: true,
+        evaluation: boutique.evaluation,
+        count: evaluations.length,
+        data: evaluations
+      });
+  
+    } catch (err) {
+      res.status(500).json({ success: false, message: err.message });
+    }
+  };

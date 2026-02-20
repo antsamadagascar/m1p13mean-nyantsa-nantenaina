@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { AlertService } from '../../services/alert.service';
-
-
+import { FavoriService } from '../../services/favori.service';
+import { Subject, takeUntil } from 'rxjs';
 @Component({
   selector: 'app-front-layout',
   standalone: true,
@@ -13,7 +13,7 @@ import { AlertService } from '../../services/alert.service';
   styleUrls: ['./front-layout.component.css']
 })
 
-export class FrontLayoutComponent implements OnInit {
+export class FrontLayoutComponent implements OnInit{
   mobileMenuOpen = false;
   userMenuOpen = false;  
   currentUser: any = null;
@@ -23,15 +23,24 @@ export class FrontLayoutComponent implements OnInit {
     { path: '/produits', label: 'Produits', exact: false },
   ];
 
+  nombreFavoris = 0;
+  private destroy$ = new Subject<void>();
+
   constructor(public authService: AuthService , private router: Router,
-  private alertService: AlertService) {}
+  private alertService: AlertService,private favoriService: FavoriService) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+  
+    this.favoriService.favorisIds.subscribe(ids => {
+      this.nombreFavoris = ids.size;
+    });
+  
     this.checkUserAccess();
   }
+  
 
   private checkUserAccess() {
     const userRole = this.authService.getUserRole();

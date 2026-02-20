@@ -22,7 +22,11 @@
         <!-- Image principale -->
         <div class="main-image">
           <img [src]="getImagePrincipale()" [alt]="produit.nom" />
-          
+          <app-btn-favori
+                [produitId]="produit._id"
+                taille="sm"
+                style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+          </app-btn-favori>
           <!-- Badges -->
           <div class="image-badges">
            <!-- Badges -->
@@ -327,13 +331,64 @@
         </div>
 
         <!-- Avis -->
+        <!-- Avis -->
         <div class="tab-panel" [class.active]="ongletActif === 'avis'">
-          <div class="reviews-empty">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-            <p>Les avis clients seront bientôt disponibles</p>
+
+          <!-- Résumé note globale -->
+          <div class="avis-resume">
+            <span class="big-score">
+              {{ produit.note_moyenne > 0 ? (produit.note_moyenne | number:'1.1-1') : '0.0' }}
+            </span>
+            <div class="resume-stars">
+              <i *ngFor="let star of [1,2,3,4,5]"
+                class="fa-star"
+                [ngClass]="star <= mathRound(produit.note_moyenne) ? 'fa-solid' : 'fa-regular'"
+                [style.color]="star <= mathRound(produit.note_moyenne) ? '#f59e0b' : '#d1d5db'">
+              </i>
+            </div>
+            <span class="resume-total">{{ produit.nombre_avis }} avis clients</span>
           </div>
+
+          <!-- Loading -->
+          <div *ngIf="loadingAvis" class="avis-loading">
+            <i class="fa-solid fa-spinner fa-spin"></i> Chargement des avis...
+          </div>
+
+          <!-- Aucun avis -->
+          <div *ngIf="!loadingAvis && evaluationsProduit.length === 0" class="avis-empty">
+            <i class="fa-regular fa-comments fa-2x"></i>
+            <p>Aucun avis pour le moment.</p>
+          </div>
+
+          <!-- Liste -->
+          <div class="avis-liste" *ngIf="!loadingAvis && evaluationsProduit.length > 0">
+            <div *ngFor="let avis of evaluationsProduit" class="avis-card">
+              <div class="avis-header">
+                <div class="avis-avatar">
+                  <span *ngIf="!avis.client?.avatar">
+                    {{ getInitiales(avis) }}
+                  </span>
+                </div>
+                <div class="avis-meta">
+                  <strong>{{ avis.client?.prenom }} {{ avis.client?.nom }}</strong>
+                  <div class="avis-stars">
+                    <i *ngFor="let star of [1,2,3,4,5]"
+                      class="fa-star fa-xs"
+                      [ngClass]="star <= avis.note ? 'fa-solid' : 'fa-regular'"
+                      [style.color]="star <= avis.note ? '#f59e0b' : '#d1d5db'">
+                    </i>
+                    <span class="avis-note-label">
+                      {{ ['','Très mauvais','Mauvais','Correct','Bien','Excellent'][avis.note] }}
+                    </span>
+                  </div>
+                </div>
+                <span class="avis-date">{{ avis.date_creation | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <p class="avis-commentaire" *ngIf="avis.commentaire">{{ avis.commentaire }}</p>
+              <p class="avis-vide" *ngIf="!avis.commentaire">Pas de commentaire</p>
+            </div>
+          </div>
+
         </div>
 
       </div>

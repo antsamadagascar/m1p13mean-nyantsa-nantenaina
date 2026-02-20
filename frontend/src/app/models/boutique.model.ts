@@ -8,10 +8,17 @@ export interface Evaluation {
   total: number;
 }
 
+// boutique.model.ts
 export interface EvaluationClient {
   _id?: string;
-  boutique: string;
-  client: string | { _id: string; nom: string; prenom: string; photo?: string };
+  boutique?: string;
+  produit?: string;
+  client?: {
+    _id: string;
+    nom: string;
+    prenom: string;
+    avatar?: string;   // ← avatar et non photo
+  };
   note: number;
   commentaire?: string;
   statut?: 'visible' | 'masque' | 'signale';

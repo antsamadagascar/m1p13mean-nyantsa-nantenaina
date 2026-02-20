@@ -12,10 +12,12 @@ import {
   ResultatsProduits
 } from '../../../models/produit.model';
 
+import { BtnFavoriComponent } from '../btn-favori/btn-favori.component';
+
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink,BtnFavoriComponent],
   templateUrl: './product-list.component.html',
   styleUrls: ['./product-list.component.css']
 })

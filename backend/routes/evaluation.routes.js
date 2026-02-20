@@ -1,38 +1,46 @@
 const express = require('express');
-const router = express.Router({ mergeParams: true });
+const auth = require('../middleware/auth');
 const {
-  getEvaluations,
-  soumettre,
+  getEvaluationsBoutique,
+  soumettreBoutique,
+  getEvaluationsProduit,
+  soumettreProduit,
   monEvaluation,
   supprimer,
   changerStatut
 } = require('../controllers/evaluation.controller');
 
-const auth = require('../middleware/auth'); // votre middleware existant
+// ─────────────────────────────────────────────
+// ROUTER BOUTIQUE
+// ─────────────────────────────────────────────
+const boutiqueRouter = express.Router({ mergeParams: true });
+
+boutiqueRouter.get('/',     getEvaluationsBoutique);
+boutiqueRouter.get('/moi',  auth, (req, res) => { req.params.boutiqueId = req.params.boutiqueId; monEvaluation(req, res); });
+boutiqueRouter.post('/',    auth, soumettreBoutique);
+boutiqueRouter.delete('/',  auth, supprimer);
 
 // ─────────────────────────────────────────────
-// PUBLIC
+// ROUTER PRODUIT
 // ─────────────────────────────────────────────
-router.get('/', getEvaluations);
+const produitRouter = express.Router({ mergeParams: true });
+
+produitRouter.get('/',     getEvaluationsProduit);
+produitRouter.get('/moi',  auth, monEvaluation);
+produitRouter.post('/',    auth, soumettreProduit);
+produitRouter.delete('/',  auth, supprimer);
 
 // ─────────────────────────────────────────────
-// CLIENT CONNECTÉ
+// ADMIN
 // ─────────────────────────────────────────────
-router.get('/moi', auth, monEvaluation);
-router.post('/', auth, soumettre);
-router.delete('/', auth, supprimer);
+const adminRouter = express.Router();
+adminRouter.patch('/:id/statut', auth, checkAdmin, changerStatut);
 
-// ─────────────────────────────────────────────
-// ADMIN SEULEMENT
-// ─────────────────────────────────────────────
-router.patch('/:id/statut', auth, checkAdmin, changerStatut);
-
-module.exports = router;
-
-// Middleware admin inline (pas besoin de restrictTo séparé)
 function checkAdmin(req, res, next) {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ success: false, message: 'Accès refusé' });
   }
   next();
 }
+
+module.exports = { boutiqueRouter, produitRouter, adminRouter };

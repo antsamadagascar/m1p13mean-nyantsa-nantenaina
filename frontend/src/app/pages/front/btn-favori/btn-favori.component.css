@@ -1,0 +1,77 @@
+/* ================================================ */
+/* BOUTON FAVORI                                    */
+/* ================================================ */
+.btn-favori {
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  flex-shrink: 0;
+}
+
+/* ================================================ */
+/* TAILLES                                          */
+/* ================================================ */
+.btn-favori.sm { width: 28px; height: 28px; }
+.btn-favori.sm i { font-size: 12px; }
+
+.btn-favori.md { width: 36px; height: 36px; }
+.btn-favori.md i { font-size: 15px; }
+
+.btn-favori.lg { width: 44px; height: 44px; }
+.btn-favori.lg i { font-size: 18px; }
+
+/* ================================================ */
+/* ÉTATS                                            */
+/* ================================================ */
+
+/* Défaut — coeur vide gris */
+.btn-favori i {
+  color: #9ca3af;
+  transition: color 0.2s, transform 0.2s;
+}
+
+/* Survol */
+.btn-favori:hover {
+  background: #fff;
+  transform: scale(1.12);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+.btn-favori:hover i { color: #ef4444; }
+
+/* Actif — coeur plein rouge */
+.btn-favori.actif {
+  background: #fff;
+}
+.btn-favori.actif i {
+  color: #ef4444;
+  animation: heartBeat 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Chargement */
+.btn-favori.loading {
+  opacity: 0.7;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+.btn-favori.loading i { color: #9ca3af; }
+
+/* Clic */
+.btn-favori:active { transform: scale(0.92); }
+
+/* ================================================ */
+/* ANIMATION COEUR                                  */
+/* ================================================ */
+@keyframes heartBeat {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.4); }
+  60%  { transform: scale(0.9); }
+  80%  { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}

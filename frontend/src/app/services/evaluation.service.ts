@@ -30,4 +30,13 @@ export class EvaluationService {
   supprimer(boutiqueId: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/api/boutiques/${boutiqueId}/evaluations`);
   }
+
+    // Ajoutez cette méthode dans EvaluationService
+    soumettreEvaluationProduit(produitId: string, payload: { note: number; commentaire?: string }): Observable<any> {
+      return this.http.post(`${this.apiUrl}/api/produits/${produitId}/evaluations`, payload);
+    }
+
+    getEvaluationsProduit(produitId: string): Observable<{ success: boolean; data: EvaluationClient[]; evaluation: any }> {
+      return this.http.get<any>(`${this.apiUrl}/api/produits/${produitId}/evaluations`);
+    }
 }

@@ -134,16 +134,20 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/front/product-detail/product-detail.component')
           .then(m => m.ProductDetailComponent)
       },
-        
       // DÉTAIL BOUTIQUE PUBLIC(client)
       {
         path: 'boutiques/:id',
         loadComponent: () => import('./pages/front/boutique-detail/boutique-detail.component')
           .then(m => m.BoutiqueDetailComponent)
       },
-      
+      {
+        path: 'favoris',
+        loadComponent: () => import('./pages/front/favori-list/favori-list.component')
+          .then(m => m.FavoriListComponent)
+      }, 
     ]
   },
+ 
   // Redirection 404
   { path: '**', redirectTo: 'connexion' }
 ];

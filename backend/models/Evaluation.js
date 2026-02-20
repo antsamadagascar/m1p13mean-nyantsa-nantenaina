@@ -1,16 +1,28 @@
 const mongoose = require('mongoose');
 
 const evaluationSchema = new mongoose.Schema({
+
+  // ============================================
+  // CIBLE — boutique OU produit (pas les deux)
+  // ============================================
   boutique: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Boutique',
-    required: [true, 'La boutique est requise']
+    default: null
   },
+
+  produit: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Produit',
+    default: null
+  },
+
   client: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: [true, 'Le client est requis']
   },
+
   note: {
     type: Number,
     required: [true, 'La note est requise'],
@@ -21,40 +33,61 @@ const evaluationSchema = new mongoose.Schema({
       message: 'La note doit être un nombre entier'
     }
   },
+
   commentaire: {
     type: String,
     trim: true,
     maxlength: [1000, 'Le commentaire ne peut pas dépasser 1000 caractères']
   },
+
   statut: {
     type: String,
     enum: ['visible', 'masque', 'signale'],
     default: 'visible'
   }
+
 }, {
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' }
 });
 
-// Un client ne peut laisser qu'une seule évaluation par boutique
-evaluationSchema.index({ boutique: 1, client: 1 }, { unique: true });
+// ============================================
+// INDEX — un seul avis par client par cible
+// ============================================
+
+// Un client = un seul avis par boutique
+evaluationSchema.index(
+  { boutique: 1, client: 1 },
+  { unique: true, partialFilterExpression: { boutique: { $ne: null } } }
+);
+
+// Un client = un seul avis par produit
+evaluationSchema.index(
+  { produit: 1, client: 1 },
+  { unique: true, partialFilterExpression: { produit: { $ne: null } } }
+);
+
+// Validation : il faut au moins une cible
+evaluationSchema.pre('save', function(next) {
+  if (!this.boutique && !this.produit) {
+    return next(new Error('Une évaluation doit cibler une boutique ou un produit'));
+  }
+  if (this.boutique && this.produit) {
+    return next(new Error('Une évaluation ne peut pas cibler les deux à la fois'));
+  }
+  next();
+});
 
 // ============================================
-// FONCTION DE CALCUL — séparée et réutilisable
+// FONCTIONS DE CALCUL
 // ============================================
-async function recalculerMoyenne(boutiqueId) {
+
+async function recalculerMoyenneBoutique(boutiqueId) {
   try {
-    // ← CAST EXPLICITE — c'était le bug principal
     const objectId = new mongoose.Types.ObjectId(boutiqueId.toString());
 
     const result = await mongoose.model('Evaluation').aggregate([
       { $match: { boutique: objectId, statut: 'visible' } },
-      {
-        $group: {
-          _id: '$boutique',
-          moyenne: { $avg: '$note' },
-          total: { $sum: 1 }
-        }
-      }
+      { $group: { _id: '$boutique', moyenne: { $avg: '$note' }, total: { $sum: 1 } } }
     ]);
 
     await mongoose.model('Boutique').findByIdAndUpdate(boutiqueId, {
@@ -63,27 +96,48 @@ async function recalculerMoyenne(boutiqueId) {
     });
 
   } catch (err) {
-    console.error('Erreur recalculerMoyenne:', err.message);
+    console.error('Erreur recalculerMoyenneBoutique:', err.message);
+  }
+}
+
+async function recalculerMoyenneProduit(produitId) {
+  try {
+    const objectId = new mongoose.Types.ObjectId(produitId.toString());
+
+    const result = await mongoose.model('Evaluation').aggregate([
+      { $match: { produit: objectId, statut: 'visible' } },
+      { $group: { _id: '$produit', moyenne: { $avg: '$note' }, total: { $sum: 1 } } }
+    ]);
+
+    await mongoose.model('Produit').findByIdAndUpdate(produitId, {
+      'note_moyenne': result.length ? Math.round(result[0].moyenne * 10) / 10 : 0,
+      'nombre_avis': result.length ? result[0].total : 0
+    });
+
+  } catch (err) {
+    console.error('Erreur recalculerMoyenneProduit:', err.message);
   }
 }
 
 // ============================================
-// HOOKS — async pour capturer les erreurs
+// HOOKS
 // ============================================
-
-// ← async ajouté — sans ça les erreurs sont silencieuses
 evaluationSchema.post('save', async function() {
-  await recalculerMoyenne(this.boutique);
+  if (this.boutique) await recalculerMoyenneBoutique(this.boutique);
+  if (this.produit)  await recalculerMoyenneProduit(this.produit);
 });
 
 evaluationSchema.post('findOneAndDelete', async function(doc) {
-  if (doc) await recalculerMoyenne(doc.boutique);
+  if (!doc) return;
+  if (doc.boutique) await recalculerMoyenneBoutique(doc.boutique);
+  if (doc.produit)  await recalculerMoyenneProduit(doc.produit);
 });
 
 // ============================================
-// MÉTHODE STATIQUE — pour appel manuel si besoin
+// MÉTHODES STATIQUES
 // ============================================
-evaluationSchema.statics.calculerMoyenne = recalculerMoyenne;
+evaluationSchema.statics.calculerMoyenneBoutique = recalculerMoyenneBoutique;
+evaluationSchema.statics.calculerMoyenneProduit  = recalculerMoyenneProduit;
 
 const Evaluation = mongoose.model('Evaluation', evaluationSchema);
 module.exports = Evaluation;
