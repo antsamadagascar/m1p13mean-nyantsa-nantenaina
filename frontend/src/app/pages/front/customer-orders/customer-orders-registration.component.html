@@ -23,16 +23,17 @@
       <div class="commande-form">
 
         <!-- Info utilisateur connecté -->
-        <div class="user-info-banner" *ngIf="utilisateur">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <div>
-            <span class="user-nom">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
-            <span class="user-email">{{ utilisateur.email }}</span>
-          </div>
+       <div class="user-info-banner" *ngIf="utilisateur">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <div>
+          <span class="user-nom">{{ utilisateur.prenom }} {{ utilisateur.nom }}</span>
+          <span class="user-email">{{ utilisateur.email }}</span>
+          <span class="user-tel" *ngIf="utilisateur.telephone">{{ utilisateur.telephone }}</span>
         </div>
+      </div>
 
         <h2>Adresse de livraison</h2>
         <p class="form-hint">Les champs marqués * sont obligatoires</p>

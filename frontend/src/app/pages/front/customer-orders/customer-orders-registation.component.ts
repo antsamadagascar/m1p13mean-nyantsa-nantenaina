@@ -49,16 +49,20 @@ export class CommandeComponent implements OnInit {
   chargerUtilisateur(): void {
     this.http.get<any>(`${environment.apiUrl}/api/auth/me`).subscribe({
       next: (res) => {
-        this.utilisateur = res.user;
-        // Pré-remplir le formulaire avec nom + prénom
-        const nomComplet = [res.user.prenom, res.user.nom].filter(Boolean).join(' ');
+        const user = res.user || res;
+        this.utilisateur = user;
+
+        const nomComplet = [user.prenom, user.nom].filter(Boolean).join(' ');
+
         this.adresseForm.patchValue({
-          nom: nomComplet || ''
+          nom:       nomComplet      || '',
+          telephone: user.telephone  || '',  
+          adresse:   user.adresse    || '',  
+          ville:     user.ville      || '',  
         });
       },
       error: (err) => {
         console.error('Erreur chargement utilisateur:', err);
-        // Pas bloquant, l'utilisateur remplit manuellement
       }
     });
   }
