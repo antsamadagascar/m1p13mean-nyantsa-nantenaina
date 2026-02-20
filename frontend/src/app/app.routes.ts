@@ -113,7 +113,7 @@ export const routes: Routes = [
 
        {
         path: 'orders',
-        loadComponent: () => import('./pages/admin/orders/orders.component')
+        loadComponent: () => import('./pages/admin/orders-stores/orders-stores.component')
           .then(m => m.OrdersComponent),
         canActivate: [roleGuard],
         data: { roles: ['BOUTIQUE'] }

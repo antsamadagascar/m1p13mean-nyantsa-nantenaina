@@ -8,8 +8,8 @@ import { environment } from '../../../../environments/environment';
   selector: 'app-orders',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './orders.component.html',
-  styleUrls: ['./orders.component.css']
+  templateUrl: './orders-stores.component.html',
+  styleUrls: ['./orders-stores.component.css']
 })
 export class OrdersComponent implements OnInit, OnDestroy {
   commandes: any[] = [];
