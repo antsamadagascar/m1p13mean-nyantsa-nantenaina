@@ -159,7 +159,7 @@ export const routes: Routes = [
 
       {
         path: 'commande',
-        loadComponent: () => import('./pages/front/customer-orders/customer-orders.component')
+        loadComponent: () => import('./pages/front/customer-orders/customer-orders-registation.component')
           .then(m => m.CommandeComponent),
         canActivate: [authGuard]
       },
