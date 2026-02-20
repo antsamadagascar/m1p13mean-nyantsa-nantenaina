@@ -83,12 +83,34 @@ exports.creerCommande = async (req, res) => {
 // ============================================
 // MES COMMANDES (client)
 // ============================================
+
 exports.getMesCommandes = async (req, res) => {
   try {
     const commandes = await Commande.find({ utilisateur: req.user._id })
       .sort({ date_creation: -1 })
-      .populate('utilisateur', 'nom prenom email');
-    res.json(commandes);
+      .populate('utilisateur', 'nom prenom email')
+      .populate({
+        path: 'articles.produit',
+        select: 'nom variantes reference',
+        populate: { path: 'variantes' } 
+      });
+
+
+    const commandesEnrichies = commandes.map(commande => {
+      const obj = commande.toObject();
+      obj.articles = obj.articles.map(article => {
+        if (article.variante && article.produit?.variantes) {
+          const varianteDetails = article.produit.variantes.find(
+            v => v._id.toString() === article.variante.toString()
+          );
+          article.variante_details = varianteDetails || null;
+        }
+        return article;
+      });
+      return obj;
+    });
+
+    res.json(commandesEnrichies);
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
