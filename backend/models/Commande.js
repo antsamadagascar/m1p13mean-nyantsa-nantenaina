@@ -10,7 +10,6 @@ const commandeSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-
   panier: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Panier',
@@ -21,14 +20,8 @@ const commandeSchema = new mongoose.Schema({
   // ARTICLES (snapshot au moment de la commande)
   // ============================================
   articles: [{
-    produit: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Produit'
-    },
-    variante: {
-      type: mongoose.Schema.Types.ObjectId,
-      default: null
-    },
+    produit: { type: mongoose.Schema.Types.ObjectId, ref: 'Produit' },
+    variante: { type: mongoose.Schema.Types.ObjectId, default: null },
     nom_produit: { type: String, required: true },
     sku: { type: String },
     quantite: { type: Number, required: true, min: 1 },
@@ -44,11 +37,7 @@ const commandeSchema = new mongoose.Schema({
     telephone: { type: String, required: true },
     adresse: { type: String, required: true },
     ville: { type: String, required: true },
-    zone: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Zone',
-      default: null
-    }
+    zone: { type: mongoose.Schema.Types.ObjectId, ref: 'Zone', default: null }
   },
 
   // ============================================
@@ -59,12 +48,23 @@ const commandeSchema = new mongoose.Schema({
   total: { type: Number, required: true },
 
   // ============================================
-  // STATUT
+  // STATUT COMMANDE — suivi livraison
+  // EN_ATTENTE -> EN_COURS -> LIVREE -> ANNULEE
   // ============================================
   statut: {
     type: String,
-    enum: ['EN_ATTENTE', 'PAYEE', 'EN_COURS', 'LIVREE', 'ANNULEE'],
+    enum: ['EN_ATTENTE', 'EN_COURS', 'LIVREE', 'ANNULEE'],
     default: 'EN_ATTENTE'
+  },
+
+  // ============================================
+  // STATUT PAIEMENT — séparé du statut commande
+  // IMPAYE par défaut -> PAYE quand livreur ramène l'argent
+  // ============================================
+  statut_paiement: {
+    type: String,
+    enum: ['IMPAYE', 'PAYE'],
+    default: 'IMPAYE'
   },
 
   // ============================================
@@ -76,9 +76,11 @@ const commandeSchema = new mongoose.Schema({
     required: true
   },
 
-  // Dates importantes
-  date_paiement: { type: Date, default: null },
-  date_livraison: { type: Date, default: null },
+  // ============================================
+  // DATES IMPORTANTES
+  // ============================================
+  date_paiement:   { type: Date, default: null },
+  date_livraison:  { type: Date, default: null },
   date_annulation: { type: Date, default: null },
 
 }, {
@@ -91,13 +93,19 @@ const commandeSchema = new mongoose.Schema({
 // INDEX
 // ============================================
 commandeSchema.index({ utilisateur: 1, statut: 1 });
+commandeSchema.index({ statut: 1, statut_paiement: 1 });
 commandeSchema.index({ reference: 1 });
 
 // ============================================
 // VIRTUALS
 // ============================================
-commandeSchema.virtual('nombre_articles').get(function() {
+commandeSchema.virtual('nombre_articles').get(function () {
   return this.articles.reduce((total, a) => total + a.quantite, 0);
+});
+
+// Virtual : commande complètement terminée
+commandeSchema.virtual('est_terminee').get(function () {
+  return this.statut === 'LIVREE' && this.statut_paiement === 'PAYE';
 });
 
 module.exports = mongoose.model('Commande', commandeSchema);

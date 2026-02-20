@@ -2,75 +2,48 @@ const Commande = require('../models/Commande');
 const Panier = require('../models/Panier');
 const Produit = require('../models/Produit');
 
-/**
- * Crée une commande depuis le panier actif (step by step)
- */
+// ============================================
+// CRÉER COMMANDE
+// ============================================
 exports.creerCommande = async (req, res) => {
   try {
     const userId = req.user._id;
     const { adresse_livraison } = req.body;
 
-    // 1. Validation adresse
-    if (!adresse_livraison || !adresse_livraison.adresse || !adresse_livraison.telephone)
-    {   return res.status(400).json({ message: 'Adresse de livraison incomplète' }); }
+    if (!adresse_livraison?.adresse || !adresse_livraison?.telephone) {
+      return res.status(400).json({ message: 'Adresse de livraison incomplète' });
+    }
 
-    // 2. Récupération du  panier actif
-    const panier = await Panier.findOne({
-      utilisateur: userId,
-      statut: 'ACTIF'
-    }).populate('articles.produit');
+    const panier = await Panier.findOne({ utilisateur: userId, statut: 'ACTIF' }).populate('articles.produit');
+    if (!panier || panier.articles.length === 0) {
+      return res.status(400).json({ message: 'Panier vide ou introuvable' });
+    }
 
-    if (!panier || panier.articles.length === 0) 
-    {   return res.status(400).json({ message: 'Panier vide ou introuvable' }); }
-
-    // 3. Vérifie si un panier et en expiration 
     if (panier.date_expiration && new Date() > new Date(panier.date_expiration)) {
       await Panier.deleteOne({ _id: panier._id });
       return res.status(400).json({ message: 'Panier expiré, veuillez recommencer' });
     }
 
-    // 4. Vérifie le stock ET décrémente pour chaque article
     const articlesSnapshot = [];
-
     for (const article of panier.articles) {
       const produit = await Produit.findById(article.produit._id);
+      if (!produit) return res.status(404).json({ message: 'Produit introuvable' });
 
-      if (!produit) {
-        return res.status(404).json({ message: `Produit introuvable` });
-      }
-
-      // stock de type variantes 
       if (article.variante) {
-        // Produit avec variante
         const variante = produit.variantes.id(article.variante);
-        if (!variante) 
-        {  return res.status(404).json({ message: `Variante introuvable pour ${produit.nom}` }); }
-       
+        if (!variante) return res.status(404).json({ message: `Variante introuvable pour ${produit.nom}` });
         if (variante.quantite < article.quantite) {
-          return res.status(400).json({
-            message: `Stock insuffisant pour ${produit.nom} - ${variante.nom}`,
-            stock_disponible: variante.quantite
-          });
+          return res.status(400).json({ message: `Stock insuffisant pour ${produit.nom} - ${variante.nom}` });
         }
-        //  on Décrémente le stock variante
         variante.quantite -= article.quantite;
-      }
-      // eto ndray stock simple sans variantes
-      else {
-        // Produit simple
+      } else {
         if (produit.quantite < article.quantite) {
-          return res.status(400).json({
-            message: `Stock insuffisant pour ${produit.nom}`,
-            stock_disponible: produit.quantite
-          });
+          return res.status(400).json({ message: `Stock insuffisant pour ${produit.nom}` });
         }
-        // Décrémente le stock simple
         produit.quantite -= article.quantite;
       }
-
       await produit.save();
 
-      // Snapshot du produit au moment de la commande
       articlesSnapshot.push({
         produit: produit._id,
         variante: article.variante || null,
@@ -82,10 +55,6 @@ exports.creerCommande = async (req, res) => {
       });
     }
 
-    // 5. Génére un référence unique
-    const reference = `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-
-    // 6. Création du  commande (status en  attente)
     const commande = await Commande.create({
       utilisateur: userId,
       panier: panier._id,
@@ -95,79 +64,75 @@ exports.creerCommande = async (req, res) => {
       total_remise: panier.total_remise,
       total: panier.total,
       statut: 'EN_ATTENTE',
-      reference
+      statut_paiement: 'IMPAYE',   // ✅ toujours impayé à la création
+      reference: `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
     });
 
-    // 7. Passer le panier en CONVERTI
     panier.statut = 'CONVERTI';
     panier.date_conversion = new Date();
     panier.commande = commande._id;
     await panier.save();
 
     res.status(201).json(commande);
-
   } catch (error) {
     console.error('Erreur creerCommande:', error);
     res.status(500).json({ message: 'Erreur création commande', error: error.message });
   }
 };
 
-/**
- * Récupère les commandes de l'utilisateur connecté
- */
+// ============================================
+// MES COMMANDES (client)
+// ============================================
 exports.getMesCommandes = async (req, res) => {
   try {
-    const userId = req.user._id;
-
-    const commandes = await Commande.find({ utilisateur: userId })
+    const commandes = await Commande.find({ utilisateur: req.user._id })
       .sort({ date_creation: -1 })
-      .select('reference statut total date_creation articles');
-
+      .populate('utilisateur', 'nom prenom email');
     res.json(commandes);
   } catch (error) {
-    console.error('Erreur getMesCommandes:', error);
-    res.status(500).json({ message: 'Erreur récupération commandes', error: error.message });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 };
 
-/**
- * Récupère le détail d'une commande
- */
+// ============================================
+// DÉTAIL COMMANDE
+// ============================================
 exports.getCommandeDetail = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const { id } = req.params;
-
-    const commande = await Commande.findOne({ _id: id, utilisateur: userId })
-      .populate('utilisateur', 'nom email')
+    const commande = await Commande.findOne({ _id: req.params.id, utilisateur: req.user._id })
+      .populate('utilisateur', 'nom prenom email')
       .populate('adresse_livraison.zone');
-
-    if (!commande) {
-      return res.status(404).json({ message: 'Commande introuvable' });
-    }
-
+    if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
     res.json(commande);
   } catch (error) {
-    console.error('Erreur getCommandeDetail:', error);
-    res.status(500).json({ message: 'Erreur récupération commande', error: error.message });
+    res.status(500).json({ message: 'Erreur', error: error.message });
   }
 };
 
-/**
- * Annule une commande et restitue le stock
- */
+// ============================================
+// COMMANDES BOUTIQUE
+// ============================================
+exports.getCommandesBoutique = async (req, res) => {
+  try {
+    const boutiqueId = req.user.boutiqueId;
+    const produitIds = await Produit.find({ boutique: boutiqueId }).distinct('_id');
+    const commandes = await Commande.find({ 'articles.produit': { $in: produitIds } })
+      .sort({ date_creation: -1 })
+      .populate('utilisateur', 'nom prenom email');
+    res.json(commandes);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur', error: error.message });
+  }
+};
+
+// ============================================
+// ANNULER COMMANDE (client)
+// ============================================
 exports.annulerCommande = async (req, res) => {
   try {
-    const userId = req.user._id;
-    const { id } = req.params;
-
-    const commande = await Commande.findOne({ _id: id, utilisateur: userId });
-
-    if (!commande) {
-      return res.status(404).json({ message: 'Commande introuvable' });
-    }
-
-    if (!['EN_ATTENTE'].includes(commande.statut)) {
+    const commande = await Commande.findOne({ _id: req.params.id, utilisateur: req.user._id });
+    if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
+    if (commande.statut !== 'EN_ATTENTE') {
       return res.status(400).json({ message: 'Cette commande ne peut plus être annulée' });
     }
 
@@ -175,10 +140,9 @@ exports.annulerCommande = async (req, res) => {
     for (const article of commande.articles) {
       const produit = await Produit.findById(article.produit);
       if (!produit) continue;
-
       if (article.variante) {
-        const variante = produit.variantes.id(article.variante);
-        if (variante) variante.quantite += article.quantite;
+        const v = produit.variantes.id(article.variante);
+        if (v) v.quantite += article.quantite;
       } else {
         produit.quantite += article.quantite;
       }
@@ -186,34 +150,18 @@ exports.annulerCommande = async (req, res) => {
     }
 
     commande.statut = 'ANNULEE';
+    commande.date_annulation = new Date();
     await commande.save();
-
-    res.json({ message: 'Commande annulée avec succès', commande });
-
-  } catch (error) {
-    console.error('Erreur annulerCommande:', error);
-    res.status(500).json({ message: 'Erreur annulation commande', error: error.message });
-  }
-};
-// get commande by boutique id
-exports.getCommandesBoutique = async (req, res) => {
-  try {
-    const boutiqueId = req.user.boutiqueId;
-
-    const produitIds = await Produit.find({ boutique: boutiqueId }).distinct('_id');
-
-    const commandes = await Commande.find({
-      'articles.produit': { $in: produitIds }
-    })
-    .sort({ date_creation: -1 })
-    .populate('utilisateur', 'nom prenom email');
-
-    res.json(commandes);
+    res.json(commande);
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
   }
 };
 
+// ============================================
+// METTRE À JOUR STATUT (boutique)
+// Gère séparément : statut livraison ET statut paiement
+// ============================================
 exports.mettreAJourStatut = async (req, res) => {
   try {
     const { statut } = req.body;
@@ -228,7 +176,12 @@ exports.mettreAJourStatut = async (req, res) => {
 
     commande.statut = statut;
 
-    if (statut === 'LIVREE') commande.date_livraison = new Date();
+    if (statut === 'LIVREE') {
+      // Colis livré → paiement toujours IMPAYE jusqu'à confirmation
+      commande.date_livraison = new Date();
+      commande.statut_paiement = 'IMPAYE';
+    }
+
     if (statut === 'ANNULEE') {
       commande.date_annulation = new Date();
       // Restituer le stock
@@ -248,10 +201,34 @@ exports.mettreAJourStatut = async (req, res) => {
     await commande.save();
     res.json(commande);
   } catch (error) {
-    console.error('Erreur mettreAJourStatut:', error);
     res.status(500).json({ message: 'Erreur mise à jour statut', error: error.message });
   }
 };
 
+// ============================================
+// CONFIRMER PAIEMENT (boutique — livreur revenu)
+// ============================================
+exports.confirmerPaiement = async (req, res) => {
+  try {
+    const commande = await Commande.findById(req.params.id);
+    if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
+
+    if (commande.statut !== 'LIVREE') {
+      return res.status(400).json({ message: 'Le colis doit être livré avant de confirmer le paiement' });
+    }
+
+    if (commande.statut_paiement === 'PAYE') {
+      return res.status(400).json({ message: 'Paiement déjà confirmé' });
+    }
+
+    commande.statut_paiement = 'PAYE';
+    commande.date_paiement = new Date();
+    await commande.save();
+
+    res.json(commande);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur confirmation paiement', error: error.message });
+  }
+};
 
 module.exports = exports;
