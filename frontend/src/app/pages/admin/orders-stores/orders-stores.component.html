@@ -61,8 +61,8 @@
       </ng-container>
 
       <div class="stat-card livree">
-        <span class="stat-val">{{ formatPrix(stats.chiffreAffaires) }}</span>
-        <span class="stat-lbl">{{ mode === 'temps-reel' ? 'CA encaissé' : 'CA période' }}</span>
+        <span class="stat-val">{{ formatPrix(stats.chiffreAffaires) }} </span>
+        <span class="stat-lbl">{{ mode === 'temps-reel' ? 'CA encaissé' : 'CA période(Payée )' }}</span>
       </div>
     </div>
 
@@ -301,16 +301,47 @@
     <h3>Articles</h3>
     <div class="detail-articles">
       <div class="detail-article" *ngFor="let article of commande.articles">
+
         <div class="art-info">
-          <span class="art-nom">{{ article.nom_produit }}</span>
-          <span class="art-sku" *ngIf="article.sku">{{ article.sku }}</span>
+
+          <!-- Nom produit -->
+          <span class="art-nom">
+            {{ article.produit?.nom }}
+          </span>
+
+          <!--  Variantes (attributs) -->
+          <div class="art-variante"
+              *ngIf="article.variante_details?.attributs?.length">
+
+            <span *ngFor="let attr of article.variante_details.attributs; let last = last">
+              {{ attr.nom }} : {{ attr.valeur }}<span *ngIf="!last"> — </span>
+            </span>
+
+          </div>
+
+          <!-- SKU -->
+          <span class="art-sku" *ngIf="article.sku">
+            {{ article.sku }}
+          </span>
+
         </div>
+
         <div class="art-calcul">
-          <span>{{ formatPrix(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
+          <span>
+            {{ formatPrix(article.prix_promo_unitaire ?? article.prix_unitaire) }}
+          </span>
+
           <span class="mult">×</span>
-          <span>{{ article.quantite }}</span>
-          <strong>{{ formatPrix((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}</strong>
+
+          <span>
+            {{ article.quantite }}
+          </span>
+
+          <strong>
+            {{ formatPrix((article.prix_promo_unitaire ?? article.prix_unitaire) * article.quantite) }}
+          </strong>
         </div>
+
       </div>
     </div>
   </div>
