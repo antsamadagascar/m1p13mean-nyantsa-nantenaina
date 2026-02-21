@@ -264,4 +264,58 @@ exports.confirmerPaiement = async (req, res) => {
   }
 };
 
+// ============================================
+// STATS BOUTIQUE — calculées côté backend
+// ============================================
+exports.getStatsBoutique = async (req, res) => {
+  try {
+    const boutiqueId = req.user.boutiqueId;
+    const produitIds = await Produit.find({ boutique: boutiqueId }).distinct('_id');
+
+    const { mode, dateDebut, dateFin, statutHistorique } = req.query;
+
+    let filtre = { 'articles.produit': { $in: produitIds } };
+
+    if (mode === 'temps-reel') {
+      // Actives = tout sauf ANNULEE et LIVREE+PAYE
+      filtre.$nor = [
+        { statut: 'ANNULEE' },
+        { statut: 'LIVREE', statut_paiement: 'PAYE' }
+      ];
+    } else {
+      // Historique = terminées
+      filtre.$or = [
+        { statut: 'ANNULEE' },
+        { statut: 'LIVREE', statut_paiement: 'PAYE' }
+      ];
+
+      if (statutHistorique === 'LIVREE') filtre.statut = 'LIVREE';
+      if (statutHistorique === 'ANNULEE') filtre.statut = 'ANNULEE';
+
+      if (dateDebut) filtre.date_creation = { ...filtre.date_creation, $gte: new Date(dateDebut) };
+      if (dateFin) {
+        const fin = new Date(dateFin);
+        fin.setHours(23, 59, 59, 999);
+        filtre.date_creation = { ...filtre.date_creation, $lte: fin };
+      }
+    }
+
+    const commandes = await Commande.find(filtre);
+
+    const stats = {
+      total:           commandes.length,
+      enAttente:       commandes.filter(c => c.statut === 'EN_ATTENTE').length,
+      enCours:         commandes.filter(c => c.statut === 'EN_COURS').length,
+      livreesImpayees: commandes.filter(c => c.statut === 'LIVREE' && c.statut_paiement === 'IMPAYE').length,
+      chiffreAffaires: commandes
+        .filter(c => c.statut_paiement === 'PAYE')
+        .reduce((sum, c) => sum + c.total, 0)
+    };
+
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur stats', error: error.message });
+  }
+};
+
 module.exports = exports;

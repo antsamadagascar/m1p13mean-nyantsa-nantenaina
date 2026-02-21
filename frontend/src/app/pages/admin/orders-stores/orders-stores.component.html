@@ -34,24 +34,35 @@
     <!-- Stats -->
     <div class="stats-bar">
       <div class="stat-card">
-        <span class="stat-val">{{ totalCommandes }}</span>
-        <span class="stat-lbl">Total</span>
+        <span class="stat-val">{{ stats.total }}</span>
+        <span class="stat-lbl">{{ mode === 'temps-reel' ? 'Actives' : 'Résultats' }}</span>
       </div>
-      <div class="stat-card attente">
-        <span class="stat-val">{{ enAttente }}</span>
-        <span class="stat-lbl">En attente</span>
-      </div>
-      <div class="stat-card en-cours">
-        <span class="stat-val">{{ enCours }}</span>
-        <span class="stat-lbl">En cours</span>
-      </div>
-      <div class="stat-card impayee">
-        <span class="stat-val">{{ livreesImpayees }}</span>
-        <span class="stat-lbl">Livrées — impayées</span>
-      </div>
+
+      <ng-container *ngIf="mode === 'temps-reel'">
+        <div class="stat-card attente">
+          <span class="stat-val">{{ stats.enAttente }}</span>
+          <span class="stat-lbl">En attente</span>
+        </div>
+        <div class="stat-card en-cours">
+          <span class="stat-val">{{ stats.enCours }}</span>
+          <span class="stat-lbl">En cours</span>
+        </div>
+        <div class="stat-card impayee">
+          <span class="stat-val">{{ stats.livreesImpayees }}</span>
+          <span class="stat-lbl">Livrées — impayées</span>
+        </div>
+      </ng-container>
+
+      <ng-container *ngIf="mode === 'historique'">
+        <div class="stat-card livree">
+          <span class="stat-val">{{ stats.total }}</span>
+          <span class="stat-lbl">Terminées</span>
+        </div>
+      </ng-container>
+
       <div class="stat-card livree">
-        <span class="stat-val">{{ formatPrix(chiffreAffaires) }}</span>
-        <span class="stat-lbl">CA encaissé</span>
+        <span class="stat-val">{{ formatPrix(stats.chiffreAffaires) }}</span>
+        <span class="stat-lbl">{{ mode === 'temps-reel' ? 'CA encaissé' : 'CA période' }}</span>
       </div>
     </div>
 
@@ -126,15 +137,15 @@
       <div class="historique-filters">
         <div class="filter-group">
           <label>Du</label>
-          <input type="date" [(ngModel)]="dateDebut" (change)="appliquerFiltres()" />
+          <input type="date" [(ngModel)]="dateDebut" (change)="onFiltreHistoriqueChange()" />
         </div>
         <div class="filter-group">
           <label>Au</label>
-          <input type="date" [(ngModel)]="dateFin" (change)="appliquerFiltres()" />
+          <input type="date" [(ngModel)]="dateFin" (change)="onFiltreHistoriqueChange()" />
         </div>
         <div class="filter-group">
           <label>Statut</label>
-          <select [(ngModel)]="filtreStatutHistorique" (change)="appliquerFiltres()">
+          <select [(ngModel)]="filtreStatutHistorique" (change)="onFiltreHistoriqueChange()">
             <option value="TOUS">Tous</option>
             <option value="LIVREE">Livrées & payées</option>
             <option value="ANNULEE">Annulées</option>
