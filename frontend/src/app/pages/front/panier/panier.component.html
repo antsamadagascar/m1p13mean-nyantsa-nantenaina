@@ -91,7 +91,7 @@
               <img [src]="getImageProduit(article)" [alt]="article.produit.nom" />
             </a>
             <span class="promo-badge" *ngIf="enPromotion(article)">
-              -{{ ((1 - getPrixUnitaire(article) / article.prix_unitaire) * 100).toFixed(0) }}%
+              -{{ article.produit.promotion_active?.valeur }}%
             </span>
           </div>
 

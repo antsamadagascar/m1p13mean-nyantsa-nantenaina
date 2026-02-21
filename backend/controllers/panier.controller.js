@@ -13,7 +13,11 @@ exports.getPanier = async (req, res) => {
       statut: 'ACTIF' 
     }).populate({
       path: 'articles.produit',
-      select: 'nom slug prix prix_promo images quantite variantes'
+      select: 'nom slug prix prix_promo images quantite variantes promotion_active',
+      populate: {
+        path: 'promotion_active',
+        select: 'valeur type nom'
+      }
     });
 
     //  Si expiré ->  supprime et retourner null
@@ -60,7 +64,8 @@ exports.ajouterArticle = async (req, res) => {
       return res.status(400).json({ message: 'Quantité invalide' });
     }
 
-    const produit = await Produit.findById(produit_id);
+    const produit = await Produit.findById(produit_id)
+     .populate('promotion_active', 'valeur actif supprime date_suppression date_fin type');
     if (!produit) {
       return res.status(404).json({ message: 'Produit non trouvé' });
     }

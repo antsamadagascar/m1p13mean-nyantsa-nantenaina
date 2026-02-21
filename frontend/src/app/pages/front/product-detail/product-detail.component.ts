@@ -233,19 +233,39 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    */
    getPrixFinal(): number {
     if (!this.produit) return 0;
-    
-    //  Utilise promotion_active_valide au lieu de prix_final
-    let prix = this.produit.promotion_active_valide 
-      ? (this.produit.prix_promo || this.produit.prix) 
-      : this.produit.prix;
-    
+
+    // 1. Prix de base + supplément variante
+    let prixBase = this.produit.prix;
     if (this.varianteSelectionnee?.prix_supplement) {
-      prix += this.varianteSelectionnee.prix_supplement;
+      prixBase += this.varianteSelectionnee.prix_supplement;
     }
-    
-    return prix;
+
+    // 2. Appliquer la promotion sur le prix TOTAL (base + supplément)
+    if (this.produit.promotion_active_valide && this.produit.promotion_active) {
+      const promo = this.produit.promotion_active;
+
+      if (promo.type === 'POURCENTAGE') {
+          const valeur = promo.valeur ?? 0;
+          return prixBase * (1 - valeur / 100);
+        }
+
+        if (promo.type === 'PRIX_FIXE') {
+          const supplement = this.varianteSelectionnee?.prix_supplement ?? 0;
+          return (promo.prix_fixe ?? prixBase) + supplement;
+        }
+    }
+
+    return prixBase;
   }
 
+  getPrixBaseAvecVariante(): number {
+      if (!this.produit) return 0;
+      let prix = this.produit.prix;
+      if (this.varianteSelectionnee?.prix_supplement) {
+        prix += this.varianteSelectionnee.prix_supplement;
+      }
+      return prix;
+    }
   /**
    * Génère les étoiles de notation
    */

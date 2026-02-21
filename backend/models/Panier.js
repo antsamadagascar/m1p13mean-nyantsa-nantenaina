@@ -153,6 +153,21 @@ panierSchema.methods.calculerTotaux = function() {
  * Ajoute un article au panier
  */
 panierSchema.methods.ajouterArticle = async function(produit, quantite = 1, varianteId = null) {
+  
+  //  Calcule le prix réel avec supplément variante
+  let prixUnitaire = produit.prix;
+  let prixPromoUnitaire = produit.prix_promo || null;
+
+  if (varianteId) {
+    const variante = produit.variantes?.id(varianteId);
+    if (variante?.prix_supplement) {
+      prixUnitaire += variante.prix_supplement;
+
+      if (produit.promotion_active?.valeur) {
+        prixPromoUnitaire = Math.round(prixUnitaire * (1 - produit.promotion_active.valeur / 100));
+      }
+    }
+  }
   // Vérifie si l'article existe déjà
   const articleExistant = this.articles.find(
     a => a.produit.toString() === produit._id.toString() && 
@@ -160,16 +175,14 @@ panierSchema.methods.ajouterArticle = async function(produit, quantite = 1, vari
   );
   
   if (articleExistant) {
-    // Augmente la quantité
     articleExistant.quantite += quantite;
   } else {
-    // Ajoute nouvel article
     this.articles.push({
       produit: produit._id,
-      quantite: quantite,
+      quantite,
       variante: varianteId,
-      prix_unitaire: produit.prix,
-      prix_promo_unitaire: produit.prix_promo || null,
+      prix_unitaire: prixUnitaire,        
+      prix_promo_unitaire: prixPromoUnitaire, 
       date_ajout: new Date()
     });
   }

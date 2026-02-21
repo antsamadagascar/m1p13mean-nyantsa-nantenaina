@@ -15,6 +15,7 @@ export interface ArticlePanier {
     images: Array<{ url: string; alt?: string }>;
     quantite: number;
     variantes?: any[];
+    promotion_active?: { valeur?: number; type?: string; nom?: string };
   };
   quantite: number;
   variante?: string;

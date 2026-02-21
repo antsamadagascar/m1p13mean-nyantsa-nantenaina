@@ -117,8 +117,9 @@
             <span class="price-current" [class.has-promo]="produit.promotion_active_valide">
               {{ formatPrix(getPrixFinal()) }}
             </span>
+   
             <span class="price-original" *ngIf="produit.promotion_active_valide">
-              {{ formatPrix(produit.prix) }}
+              {{ formatPrix(getPrixBaseAvecVariante()) }}
             </span>
           </div>
 
@@ -126,8 +127,9 @@
           <div class="promo-details" *ngIf="produit.promotion_active_valide">
             <p class="price-info">
               <i class="fa-solid fa-piggy-bank"></i>
-              Vous économisez {{ formatPrix(produit.prix - getPrixFinal()) }}
+              Vous économisez {{ formatPrix(getPrixBaseAvecVariante() - getPrixFinal()) }}
             </p>
+            
             <p class="promo-dates">
               <i class="fa-solid fa-clock"></i>
               Offre valable jusqu'au {{ produit.promotion_active?.date_fin | date:'dd/MM/yyyy à HH:mm' }}
