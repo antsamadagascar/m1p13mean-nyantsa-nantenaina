@@ -2,6 +2,7 @@ const router = require('express').Router();
 const commandeCtrl = require('../controllers/commande.controller');
 const auth = require('../middleware/auth');
 
+router.get('/stats', auth, commandeCtrl.getStatsClient);
 router.get('/boutique/stats', auth, commandeCtrl.getStatsBoutique);
 router.get('/boutique', auth, commandeCtrl.getCommandesBoutique);
 

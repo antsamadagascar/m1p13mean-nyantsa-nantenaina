@@ -9,9 +9,9 @@
           <span class="dot-live"></span> Mise à jour : {{ formatHeure(derniereMaj) }}
         </p>
       </div>
+      
       <a routerLink="/produits" class="btn-shop">Continuer mes achats</a>
     </div>
-
     <!-- Chargement -->
     <div class="loading-state" *ngIf="loading">
       <div class="spinner"></div>
@@ -26,21 +26,34 @@
 
     <div *ngIf="!loading && !error">
 
-      <!-- Stats -->
-      <div class="stats-bar">
+      <!--  Stats temps réel — masquées quand historique ouvert -->
+      <div class="stats-bar" *ngIf="!afficherHistorique">
         <div class="stat-item">
-          <span class="stat-value">{{ totalCommandes }}</span>
+          <span class="stat-value">{{ statsTempsReel.total }}</span>
           <span class="stat-label">Commande(s)</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-value">{{ commandesEnCours }}</span>
+          <span class="stat-value">{{ statsTempsReel.enCours }}</span>
           <span class="stat-label">En cours</span>
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-value">{{ formatPrix(totalDepense) }}</span>
+          <span class="stat-value">{{ formatPrix(statsTempsReel.totalDepense) }}</span>
           <span class="stat-label">Total dépensé</span>
+        </div>
+      </div>
+
+      <!--  Stats historique — visibles quand switch ON, se mettent à jour avec les filtres -->
+      <div class="stats-bar stats-historique" *ngIf="afficherHistorique">
+        <div class="stat-item">
+          <span class="stat-value">{{ statsHistorique.total }}</span>
+          <span class="stat-label">Résultats</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ formatPrix(statsHistorique.totalDepense) }}</span>
+          <span class="stat-label">Total payé (période)</span>
         </div>
       </div>
 
@@ -55,6 +68,118 @@
         <a routerLink="/produits" class="btn-shop">Découvrir nos produits</a>
       </div>
 
+        <!-- ================================================== -->
+        <!-- SECTION 2 : HISTORIQUE — switch toggle             -->
+        <!-- ================================================== -->
+        <div class="section-block historique-block">
+          <div class="section-header historique-header" (click)="toggleHistorique()">
+            <div class="historique-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <h2>Historique</h2>
+              <span class="badge-count grey" *ngIf="commandesHistorique.length > 0">
+                {{ commandesHistorique.length }}
+              </span>
+            </div>
+            <div class="toggle-switch" [class.active]="afficherHistorique">
+              <span class="toggle-label">{{ afficherHistorique ? 'Masquer' : 'Afficher' }}</span>
+              <div class="toggle-track">
+                <div class="toggle-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="historique-content" *ngIf="afficherHistorique">
+
+            <!--  Barre de filtres — chaque changement déclenche onFiltreHistoriqueChange() -->
+            <div class="filtres-bar">
+
+              <!-- Filtre statut -->
+              <div class="filtre-groupe">
+                <label>Statut</label>
+                <div class="filtre-btns">
+                  <button *ngFor="let s of statutsHistorique"
+                    class="filtre-btn"
+                    [class.active]="filtreHistoriqueStatut === s.valeur"
+                    (click)="filtreHistoriqueStatut = s.valeur; onFiltreHistoriqueChange()">
+                    {{ s.label }}
+                  </button>
+                </div>
+              </div>
+
+              <!--  Filtre date début — (change) déclenche recalcul stats + liste -->
+              <div class="filtre-groupe">
+                <label>Du</label>
+                <input type="date"
+                  [(ngModel)]="filtreHistoriqueDateDebut"
+                  class="input-date"
+                  (change)="onFiltreHistoriqueChange()" />
+              </div>
+
+              <!--  Filtre date fin — (change) déclenche recalcul stats + liste -->
+              <div class="filtre-groupe">
+                <label>Au</label>
+                <input type="date"
+                  [(ngModel)]="filtreHistoriqueDateFin"
+                  class="input-date"
+                  (change)="onFiltreHistoriqueChange()" />
+              </div>
+
+              <button class="btn-reinit" (click)="reinitialiserFiltresHistorique()">
+                Réinitialiser
+              </button>
+            </div>
+
+            <div class="section-empty" *ngIf="commandesHistorique.length === 0">
+              Aucune commande dans l'historique pour ces critères.
+            </div>
+
+            <div class="split-layout" *ngIf="commandesHistorique.length > 0">
+              <div class="split-table">
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Référence</th>
+                        <th>Date commande</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Paiement</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let commande of commandesHistorique"
+                        (click)="selectionnerCommande(commande)"
+                        [class.selected]="commandeSelectionnee?._id === commande._id">
+                        <td class="ref-cell">{{ commande.reference }}</td>
+                        <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
+                        <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
+                        <td>
+                          <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+                            {{ getStatutLabel(commande.statut) }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
+                            {{ getStatutPaiementLabel(commande.statut_paiement) }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="split-detail"
+                *ngIf="commandeSelectionnee && commandesHistorique.includes(commandeSelectionnee)">
+                <ng-container *ngTemplateOutlet="detailTemplate; context: { commande: commandeSelectionnee }">
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
       <div *ngIf="commandes.length > 0">
 
         <!-- ================================================== -->
@@ -74,7 +199,6 @@
           </div>
 
           <div class="split-layout" *ngIf="commandesTempsReel.length > 0">
-            <!-- Tableau temps réel -->
             <div class="split-table">
               <div class="table-wrapper">
                 <table>
@@ -111,7 +235,6 @@
               </div>
             </div>
 
-            <!-- Détail temps réel -->
             <div class="split-detail"
               *ngIf="commandeSelectionnee && commandesTempsReel.includes(commandeSelectionnee)">
               <ng-container *ngTemplateOutlet="detailTemplate; context: { commande: commandeSelectionnee }">
@@ -120,109 +243,6 @@
           </div>
         </div>
 
-        <!-- ================================================== -->
-        <!-- SECTION 2 : HISTORIQUE — switch toggle             -->
-        <!-- ================================================== -->
-        <div class="section-block historique-block">
-          <div class="section-header historique-header" (click)="toggleHistorique()">
-            <div class="historique-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                <circle cx="12" cy="12" r="10"></circle>
-                <polyline points="12 6 12 12 16 14"></polyline>
-              </svg>
-              <h2>Historique</h2>
-              <span class="badge-count grey" *ngIf="commandesHistorique.length > 0">
-                {{ commandesHistorique.length }}
-              </span>
-            </div>
-            <!-- Toggle switch -->
-            <div class="toggle-switch" [class.active]="afficherHistorique">
-              <span class="toggle-label">{{ afficherHistorique ? 'Masquer' : 'Afficher' }}</span>
-              <div class="toggle-track">
-                <div class="toggle-thumb"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Contenu historique (visible si switch ON) -->
-          <div class="historique-content" *ngIf="afficherHistorique">
-
-            <!-- Barre de filtres -->
-            <div class="filtres-bar">
-              <div class="filtre-groupe">
-                <label>Statut</label>
-                <div class="filtre-btns">
-                  <button *ngFor="let s of statutsHistorique"
-                    class="filtre-btn"
-                    [class.active]="filtreHistoriqueStatut === s.valeur"
-                    (click)="filtreHistoriqueStatut = s.valeur">
-                    {{ s.label }}
-                  </button>
-                </div>
-              </div>
-              <div class="filtre-groupe">
-                <label>Du</label>
-                <input type="date" [(ngModel)]="filtreHistoriqueDateDebut" class="input-date" />
-              </div>
-              <div class="filtre-groupe">
-                <label>Au</label>
-                <input type="date" [(ngModel)]="filtreHistoriqueDateFin" class="input-date" />
-              </div>
-              <button class="btn-reinit" (click)="reinitialiserFiltresHistorique()">
-                Réinitialiser
-              </button>
-            </div>
-
-            <div class="section-empty" *ngIf="commandesHistorique.length === 0">
-              Aucune commande dans l'historique pour ces critères.
-            </div>
-
-            <div class="split-layout" *ngIf="commandesHistorique.length > 0">
-              <!-- Tableau historique -->
-              <div class="split-table">
-                <div class="table-wrapper">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Référence</th>
-                        <th>Date commande</th>
-                        <th>Total</th>
-                        <th>Statut</th>
-                        <th>Paiement</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let commande of commandesHistorique"
-                        (click)="selectionnerCommande(commande)"
-                        [class.selected]="commandeSelectionnee?._id === commande._id">
-                        <td class="ref-cell">{{ commande.reference }}</td>
-                        <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
-                        <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
-                        <td>
-                          <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
-                            {{ getStatutLabel(commande.statut) }}
-                          </span>
-                        </td>
-                        <td>
-                          <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
-                            {{ getStatutPaiementLabel(commande.statut_paiement) }}
-                          </span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Détail historique -->
-              <div class="split-detail"
-                *ngIf="commandeSelectionnee && commandesHistorique.includes(commandeSelectionnee)">
-                <ng-container *ngTemplateOutlet="detailTemplate; context: { commande: commandeSelectionnee }">
-                </ng-container>
-              </div>
-            </div>
-          </div>
-        </div>
 
       </div>
     </div>
@@ -233,7 +253,6 @@
 <ng-template #detailTemplate let-commande="commande">
   <div class="detail-panel">
 
-    <!-- Header -->
     <div class="detail-header">
       <div>
         <h3>{{ commande.reference }}</h3>
@@ -299,15 +318,13 @@
       </div>
     </div>
 
-    <!-- Articles avec variantes détaillées -->
+    <!-- Articles -->
     <div class="detail-section">
       <h4>Articles commandés</h4>
       <div class="detail-articles">
         <div class="detail-article" *ngFor="let article of commande.articles">
           <div class="detail-article-info">
             <span class="detail-nom">{{ article.nom_produit }}</span>
-
-            <!-- VARIANTES DÉTAILLÉES — attributs complets -->
             <div class="detail-variante" *ngIf="getVarianteLabel(article)">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
                 <polyline points="9 11 12 14 22 4"></polyline>
@@ -315,16 +332,11 @@
               </svg>
               {{ getVarianteLabel(article) }}
             </div>
-
-            <!-- Attributs individuels si variante_details disponible -->
-            <div class="detail-variante-attrs"
-              *ngIf="article.variante_details?.attributs?.length > 0">
-              <span class="attr-chip"
-                *ngFor="let attr of article.variante_details.attributs">
+            <div class="detail-variante-attrs" *ngIf="article.variante_details?.attributs?.length > 0">
+              <span class="attr-chip" *ngFor="let attr of article.variante_details.attributs">
                 <strong>{{ attr.nom }}</strong> : {{ attr.valeur }}
               </span>
             </div>
-
             <span class="detail-sku" *ngIf="article.sku">Réf : {{ article.sku }}</span>
             <span class="detail-promo" *ngIf="article.prix_promo_unitaire">Promotion appliquée</span>
           </div>

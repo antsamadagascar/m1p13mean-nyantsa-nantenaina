@@ -318,4 +318,51 @@ exports.getStatsBoutique = async (req, res) => {
   }
 };
 
+// ============================================
+// STATS CLIENT — calculées côté backend
+// ============================================
+exports.getStatsClient = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { mode, dateDebut, dateFin, statut } = req.query;
+
+    let filtre = { utilisateur: userId };
+
+    if (mode === 'temps-reel') {
+      filtre.$nor = [
+        { statut: 'ANNULEE' },
+        { statut: 'LIVREE', statut_paiement: 'PAYE' }
+      ];
+    } else if (mode === 'historique') {
+      filtre.$or = [
+        { statut: 'ANNULEE' },
+        { statut: 'LIVREE', statut_paiement: 'PAYE' }
+      ];
+      if (statut && statut !== 'TOUS') filtre.statut = statut;
+      if (dateDebut) filtre.date_creation = { ...filtre.date_creation, $gte: new Date(dateDebut) };
+      if (dateFin) {
+        const fin = new Date(dateFin);
+        fin.setHours(23, 59, 59, 999);
+        filtre.date_creation = { ...filtre.date_creation, $lte: fin };
+      }
+    }
+
+    const commandes = await Commande.find(filtre);
+
+    res.json({
+      total:        commandes.length,
+      enCours:      commandes.filter(c =>
+                      c.statut === 'EN_ATTENTE' ||
+                      c.statut === 'EN_COURS' ||
+                      (c.statut === 'LIVREE' && c.statut_paiement === 'IMPAYE')
+                    ).length,
+      totalDepense: commandes
+                      .filter(c => c.statut_paiement === 'PAYE')
+                      .reduce((sum, c) => sum + c.total, 0)
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur stats', error: error.message });
+  }
+};
+
 module.exports = exports;

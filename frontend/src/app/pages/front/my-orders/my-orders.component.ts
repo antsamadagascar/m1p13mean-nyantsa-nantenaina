@@ -13,6 +13,7 @@ import { environment } from '../../../../environments/environment';
   styleUrls: ['./my-orders.component.css']
 })
 export class MesCommandesComponent implements OnInit, OnDestroy {
+
   commandes: any[] = [];
   loading = true;
   error: string | null = null;
@@ -27,12 +28,15 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   filtreHistoriqueDateDebut: string = '';
   filtreHistoriqueDateFin: string = '';
 
+  //  Stats calculées par le backend
+  statsTempsReel = { total: 0, enCours: 0, totalDepense: 0 };
+  statsHistorique = { total: 0, enCours: 0, totalDepense: 0 };
+
   private refreshInterval: any;
   derniereMaj: Date = new Date();
 
   // ============================================================
   // SECTION 1 : Commandes en cours (temps réel)
-  // EN_ATTENTE, EN_COURS, LIVREE+IMPAYE
   // ============================================================
   get commandesTempsReel(): any[] {
     return this.commandes.filter(c =>
@@ -47,22 +51,18 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   // ============================================================
   get commandesHistorique(): any[] {
     return this.commandes.filter(c => {
-      // Terminées : ANNULEE ou LIVREE+PAYE
       const estTerminee = c.statut === 'ANNULEE' ||
         (c.statut === 'LIVREE' && c.statut_paiement === 'PAYE');
       if (!estTerminee) return false;
 
-      // Filtre statut
       if (this.filtreHistoriqueStatut !== 'TOUS' && c.statut !== this.filtreHistoriqueStatut) return false;
 
-      // Filtre date début
       if (this.filtreHistoriqueDateDebut) {
         const debut = new Date(this.filtreHistoriqueDateDebut);
         debut.setHours(0, 0, 0, 0);
         if (new Date(c.date_creation) < debut) return false;
       }
 
-      // Filtre date fin
       if (this.filtreHistoriqueDateFin) {
         const fin = new Date(this.filtreHistoriqueDateFin);
         fin.setHours(23, 59, 59, 999);
@@ -73,31 +73,30 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
     });
   }
 
-  get totalCommandes(): number { return this.commandes.length; }
-  get totalDepense(): number {
-    return this.commandes
-      .filter(c => c.statut_paiement === 'PAYE')
-      .reduce((sum, c) => sum + c.total, 0);
-  }
-  get commandesEnCours(): number { return this.commandesTempsReel.length; }
-
   readonly statutsHistorique = [
-    { valeur: 'TOUS',     label: 'Toutes' },
-    { valeur: 'LIVREE',   label: 'Livrée & Payée' },
-    { valeur: 'ANNULEE',  label: 'Annulée' },
+    { valeur: 'TOUS',    label: 'Toutes'        },
+    { valeur: 'LIVREE',  label: 'Livrée & Payée' },
+    { valeur: 'ANNULEE', label: 'Annulée'        },
   ];
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.chargerCommandes();
-    this.refreshInterval = setInterval(() => this.chargerCommandes(true), 30000);
+    this.chargerStatsTempsReel();
+    this.refreshInterval = setInterval(() => {
+      this.chargerCommandes(true);
+      this.chargerStatsTempsReel();
+    }, 30000);
   }
 
   ngOnDestroy(): void {
     if (this.refreshInterval) clearInterval(this.refreshInterval);
   }
 
+  // ============================================
+  // CHARGEMENT
+  // ============================================
   chargerCommandes(silencieux = false): void {
     if (!silencieux) this.loading = true;
     this.error = null;
@@ -120,18 +119,53 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================
+  // STATS — backend
+  // ============================================
+  chargerStatsTempsReel(): void {
+    this.http.get<any>(`${environment.apiUrl}/api/commandes/stats`, {
+      params: { mode: 'temps-reel' }
+    }).subscribe({ next: (s) => this.statsTempsReel = s });
+  }
+
+  chargerStatsHistorique(): void {
+    const params: any = { mode: 'historique' };
+    if (this.filtreHistoriqueStatut !== 'TOUS') params.statut   = this.filtreHistoriqueStatut;
+    if (this.filtreHistoriqueDateDebut)          params.dateDebut = this.filtreHistoriqueDateDebut;
+    if (this.filtreHistoriqueDateFin)            params.dateFin   = this.filtreHistoriqueDateFin;
+
+    this.http.get<any>(`${environment.apiUrl}/api/commandes/stats`, { params })
+      .subscribe({ next: (s) => this.statsHistorique = s });
+  }
+
+  // ============================================
+  // TOGGLE & FILTRES
+  // ============================================
   selectionnerCommande(commande: any): void { this.commandeSelectionnee = commande; }
+
   toggleHistorique(): void {
     this.afficherHistorique = !this.afficherHistorique;
-    if (!this.afficherHistorique) this.commandeSelectionnee = null;
+    if (this.afficherHistorique) {
+      this.chargerStatsHistorique(); 
+    } else {
+      this.commandeSelectionnee = null;
+    }
+  }
+
+  onFiltreHistoriqueChange(): void {
+    this.chargerStatsHistorique(); 
   }
 
   reinitialiserFiltresHistorique(): void {
-    this.filtreHistoriqueStatut = 'TOUS';
+    this.filtreHistoriqueStatut  = 'TOUS';
     this.filtreHistoriqueDateDebut = '';
-    this.filtreHistoriqueDateFin = '';
+    this.filtreHistoriqueDateFin   = '';
+    this.chargerStatsHistorique();
   }
 
+  // ============================================
+  // ANNULATION
+  // ============================================
   annulerCommande(commande: any): void {
     if (!confirm(`Annuler la commande ${commande.reference} ?`)) return;
     if (this.annulationEnCours.has(commande._id)) return;
@@ -144,6 +178,7 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
         if (this.commandeSelectionnee?._id === commande._id) {
           this.commandeSelectionnee = { ...this.commandeSelectionnee, ...updated };
         }
+        this.chargerStatsTempsReel(); 
       },
       error: (err) => {
         this.annulationEnCours.delete(commande._id);
@@ -154,27 +189,24 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
 
   peutAnnuler(commande: any): boolean { return commande?.statut === 'EN_ATTENTE'; }
 
-  // Retourne les attributs de la variante — supporte les deux formats
+  // ============================================
+  // HELPERS AFFICHAGE
+  // ============================================
   getVarianteLabel(article: any): string {
     const details = article.variante_details;
     if (!details) return '';
-
-    // Format 1 : attributs = [{ nom, valeur }]
     const attrs = details.attributs || details.attributes || [];
     if (Array.isArray(attrs) && attrs.length > 0) {
       return attrs.map((a: any) => `${a.nom || a.key} : ${a.valeur || a.value}`).join(' — ');
     }
-
-    // Format 2 : nom simple
     if (details.nom) return details.nom;
-
     return article.sku ? `Réf. ${article.sku}` : '';
   }
 
   getStatutClass(statut: string): string {
     const map: { [k: string]: string } = {
       'EN_ATTENTE': 'statut-attente', 'EN_COURS': 'statut-en-cours',
-      'LIVREE': 'statut-livree', 'ANNULEE': 'statut-annulee'
+      'LIVREE': 'statut-livree',      'ANNULEE': 'statut-annulee'
     };
     return map[statut] || '';
   }
@@ -182,7 +214,7 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   getStatutLabel(statut: string): string {
     const map: { [k: string]: string } = {
       'EN_ATTENTE': 'En attente', 'EN_COURS': 'En cours',
-      'LIVREE': 'Livrée', 'ANNULEE': 'Annulée'
+      'LIVREE': 'Livrée',         'ANNULEE': 'Annulée'
     };
     return map[statut] || statut;
   }
@@ -193,7 +225,9 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   getSousTotal(a: any): number { return this.getPrixUnitaire(a) * a.quantite; }
 
   formatPrix(prix: number): string {
-    return new Intl.NumberFormat('fr-MG', { style: 'currency', currency: 'MGA', minimumFractionDigits: 0 }).format(prix || 0);
+    return new Intl.NumberFormat('fr-MG', {
+      style: 'currency', currency: 'MGA', minimumFractionDigits: 0
+    }).format(prix || 0);
   }
   formatDate(date: string): string {
     if (!date) return '—';
@@ -201,7 +235,9 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   }
   formatDateLong(date: string): string {
     if (!date) return '—';
-    return new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return new Date(date).toLocaleDateString('fr-FR', {
+      day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
   }
   formatHeure(date: Date): string {
     return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
