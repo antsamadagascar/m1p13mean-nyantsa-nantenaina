@@ -6,7 +6,7 @@
       <div>
         <h1>Mes commandes</h1>
         <p class="subtitle">
-          <span class="dot-live"></span> Mise à jour : {{ formatHeure(derniereMaj) }}
+          <span class="dot-live"></span> Mise à jour : {{ formatHeureFn(derniereMaj) }}
         </p>
       </div>
       
@@ -39,7 +39,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-value">{{ formatPrix(statsTempsReel.totalDepense) }}</span>
+          <span class="stat-value">{{ formatPrixFn(statsTempsReel.totalDepense) }}</span>
           <span class="stat-label">Total dépensé</span>
         </div>
       </div>
@@ -52,7 +52,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-item">
-          <span class="stat-value">{{ formatPrix(statsHistorique.totalDepense) }}</span>
+          <span class="stat-value">{{ formatPrixFn(statsHistorique.totalDepense) }}</span>
           <span class="stat-label">Total payé (période)</span>
         </div>
       </div>
@@ -154,8 +154,8 @@
                         (click)="selectionnerCommande(commande)"
                         [class.selected]="commandeSelectionnee?._id === commande._id">
                         <td class="ref-cell">{{ commande.reference }}</td>
-                        <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
-                        <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
+                        <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
+                        <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
                         <td>
                           <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
                             {{ getStatutLabel(commande.statut) }}
@@ -217,8 +217,8 @@
                       [class.selected]="commandeSelectionnee?._id === commande._id"
                       [class.row-impayee]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
                       <td class="ref-cell">{{ commande.reference }}</td>
-                      <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
-                      <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
+                      <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
+                      <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
                       <td>
                         <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
                           {{ getStatutLabel(commande.statut) }}
@@ -256,7 +256,7 @@
     <div class="detail-header">
       <div>
         <h3>{{ commande.reference }}</h3>
-        <p class="detail-date">Passée le {{ formatDateLong(commande.date_creation) }}</p>
+        <p class="detail-date">Passée le {{ formatDateLongFn(commande.date_creation) }}</p>
       </div>
       <div class="detail-badges">
         <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
@@ -275,7 +275,7 @@
           <div class="step-dot done"></div>
           <div class="step-info">
             <span class="step-label">Commande passée</span>
-            <span class="step-date">{{ formatDate(commande.date_creation) }}</span>
+            <span class="step-date">{{ formatDateFn(commande.date_creation) }}</span>
           </div>
         </div>
         <div class="timeline-step" [class.done]="['EN_COURS','LIVREE'].includes(commande.statut)">
@@ -289,7 +289,7 @@
           <div class="step-dot" [class.done]="commande.statut === 'LIVREE'"></div>
           <div class="step-info">
             <span class="step-label">Colis livré</span>
-            <span class="step-date">{{ formatDate(commande.date_livraison) }}</span>
+            <span class="step-date">{{ formatDateFn(commande.date_livraison) }}</span>
           </div>
         </div>
         <div class="timeline-step"
@@ -305,14 +305,14 @@
               {{ commande.statut_paiement === 'PAYE' ? 'Paiement confirmé' :
                  commande.statut === 'LIVREE' ? 'En attente paiement...' : 'Paiement' }}
             </span>
-            <span class="step-date">{{ formatDate(commande.date_paiement) }}</span>
+            <span class="step-date">{{ formatDateFn(commande.date_paiement) }}</span>
           </div>
         </div>
         <div class="timeline-step annulee" *ngIf="commande.statut === 'ANNULEE'">
           <div class="step-dot annulee"></div>
           <div class="step-info">
             <span class="step-label">Annulée</span>
-            <span class="step-date">{{ formatDate(commande.date_annulation) }}</span>
+            <span class="step-date">{{ formatDateFn(commande.date_annulation) }}</span>
           </div>
         </div>
       </div>
@@ -337,11 +337,11 @@
           </div>
 
           <div class="detail-article-calcul">
-            <span class="prix-unit">{{ formatPrix(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
+            <span class="prix-unit">{{ formatPrixFn(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
             <span class="mult">×</span>
             <span class="qte">{{ article.quantite }}</span>
             <strong class="sous-total-article">
-              {{ formatPrix((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}
+              {{ formatPrixFn((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}
             </strong>
           </div>
         </div>
@@ -365,11 +365,11 @@
       <div class="detail-totaux">
         <div class="total-row">
           <span>Sous-total</span>
-          <span>{{ formatPrix(commande.sous_total) }}</span>
+          <span>{{ formatPrixFn(commande.sous_total) }}</span>
         </div>
         <div class="total-row remise" *ngIf="commande.total_remise > 0">
           <span>Remise</span>
-          <span>- {{ formatPrix(commande.total_remise) }}</span>
+          <span>- {{ formatPrixFn(commande.total_remise) }}</span>
         </div>
         <div class="total-row">
           <span>Livraison</span>
@@ -377,7 +377,7 @@
         </div>
         <div class="total-row final">
           <span>Total</span>
-          <strong>{{ formatPrix(commande.total) }}</strong>
+          <strong>{{ formatPrixFn(commande.total) }}</strong>
         </div>
         <div class="total-row paiement-row">
           <span>Paiement</span>
@@ -399,7 +399,7 @@
     </div>
 
     <div class="detail-annulee" *ngIf="commande.statut === 'ANNULEE'">
-      Cette commande a été annulée le {{ formatDate(commande.date_annulation) }}.
+      Cette commande a été annulée le {{ formatDateFn(commande.date_annulation) }}.
     </div>
     <div class="detail-non-annulable"
       *ngIf="!peutAnnuler(commande) && commande.statut !== 'ANNULEE' && commande.statut_paiement !== 'PAYE'">

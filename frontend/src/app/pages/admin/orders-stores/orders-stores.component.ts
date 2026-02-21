@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
+import { formatPrix, formatDate, formatDateLong, formatHeure } from '../../../utils/formatters';
 
 @Component({
   selector: 'app-orders',
@@ -33,6 +34,12 @@ export class OrdersComponent implements OnInit, OnDestroy {
     livreesImpayees: 0,
     chiffreAffaires: 0
   };
+
+  //utils formatage
+  formatHeureFn = formatHeure;
+  formatDateFn = formatDate;
+  formatDateLongFn = formatDateLong;
+  formatPrixFn = formatPrix;
 
   private refreshInterval: any;
   derniereMaj: Date = new Date();
@@ -183,7 +190,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   confirmerPaiement(commande: any): void {
-    if (!confirm(`Confirmer la réception du paiement de ${this.formatPrix(commande.total)} pour ${commande.reference} ?`)) return;
+    if (!confirm(`Confirmer la réception du paiement de ${this.formatPrixFn(commande.total)} pour ${commande.reference} ?`)) return;
     if (this.majEnCours.has(commande._id)) return;
 
     this.majEnCours.add(commande._id);
@@ -259,28 +266,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
     return statut_paiement === 'PAYE' ? 'Payée' : 'Impayée';
   }
 
-  formatPrix(prix: number): string {
-    return new Intl.NumberFormat('fr-MG', {
-      style: 'currency',
-      currency: 'MGA',
-      minimumFractionDigits: 0
-    }).format(prix || 0);
-  }
-
-  formatDate(date: string): string {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit', month: 'short', year: 'numeric'
-    });
-  }
-
-  formatDateLong(date: string): string {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit', month: 'long', year: 'numeric',
-      hour: '2-digit', minute: '2-digit'
-    });
-  }
   onFiltreHistoriqueChange(): void {
     this.appliquerFiltres();
     this.chargerStats();

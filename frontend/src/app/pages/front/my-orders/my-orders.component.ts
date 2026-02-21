@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { environment } from '../../../../environments/environment';
+import { formatPrix, formatDate, formatDateLong, formatHeure } from '../../../utils/formatters';
 
 @Component({
   selector: 'app-mes-commandes',
@@ -19,6 +20,13 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   error: string | null = null;
   annulationEnCours: Set<string> = new Set();
   commandeSelectionnee: any = null;
+
+  //utils formatage
+  formatHeureFn = formatHeure;
+  formatDateFn = formatDate;
+  formatDateLongFn = formatDateLong;
+  formatPrixFn = formatPrix;
+
 
   // Switch historique
   afficherHistorique = false;
@@ -209,23 +217,4 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   getStatutPaiementClass(p: string): string { return p === 'PAYE' ? 'paiement-paid' : 'paiement-unpaid'; }
   getStatutPaiementLabel(p: string): string { return p === 'PAYE' ? 'Payée' : 'Impayée'; }
 
-
-  formatPrix(prix: number): string {
-    return new Intl.NumberFormat('fr-MG', {
-      style: 'currency', currency: 'MGA', minimumFractionDigits: 0
-    }).format(prix || 0);
-  }
-  formatDate(date: string): string {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  }
-  formatDateLong(date: string): string {
-    if (!date) return '—';
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-  }
-  formatHeure(date: Date): string {
-    return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  }
 }

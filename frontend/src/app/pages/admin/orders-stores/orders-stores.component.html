@@ -61,7 +61,7 @@
       </ng-container>
 
       <div class="stat-card livree">
-        <span class="stat-val">{{ formatPrix(stats.chiffreAffaires) }} </span>
+        <span class="stat-val">{{ formatPrixFn(stats.chiffreAffaires) }} </span>
         <span class="stat-lbl">{{ mode === 'temps-reel' ? 'CA encaissé' : 'CA période(Payée )' }}</span>
       </div>
     </div>
@@ -107,8 +107,8 @@
                     <span class="client-nom">{{ commande.utilisateur?.prenom }} {{ commande.utilisateur?.nom }}</span>
                     <span class="client-email">{{ commande.utilisateur?.email }}</span>
                   </td>
-                  <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
-                  <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
+                  <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
+                  <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
                   <td>
                     <span class="statut-badge" [ngClass]="getStatutLivraisonLabel(commande.statut)">
                       {{ getStatutLivraisonLabel(commande.statut) }}
@@ -190,10 +190,10 @@
                   <td class="client-cell">
                     <span class="client-nom">{{ commande.utilisateur?.prenom }} {{ commande.utilisateur?.nom }}</span>
                   </td>
-                  <td class="prix-cell"><strong>{{ formatPrix(commande.total) }}</strong></td>
-                  <td class="date-cell">{{ formatDate(commande.date_creation) }}</td>
-                  <td class="date-cell">{{ formatDate(commande.date_livraison) }}</td>
-                  <td class="date-cell">{{ formatDate(commande.date_paiement) }}</td>
+                  <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
+                  <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
+                  <td class="date-cell">{{ formatDateFn(commande.date_livraison) }}</td>
+                  <td class="date-cell">{{ formatDateFn(commande.date_paiement) }}</td>
                   <td>
                     <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
                       {{ getStatutPaiementLabel(commande.statut_paiement) }}
@@ -220,7 +220,7 @@
   <div class="detail-header">
     <div>
       <h2>{{ commande.reference }}</h2>
-      <p class="detail-date">{{ formatDateLong(commande.date_creation) }}</p>
+      <p class="detail-date">{{ formatDateLongFn(commande.date_creation) }}</p>
     </div>
     <div class="detail-badges">
       <span class="statut-badge" [ngClass]="getStatutLivraisonLabel(commande.statut)">
@@ -240,7 +240,7 @@
         <div class="step-dot done"></div>
         <div class="step-info">
           <span class="step-label">Commande reçue</span>
-          <span class="step-date">{{ formatDate(commande.date_creation) }}</span>
+          <span class="step-date">{{ formatDateFn(commande.date_creation) }}</span>
         </div>
       </div>
 
@@ -256,7 +256,7 @@
         <div class="step-dot" [class.done]="commande.statut === 'LIVREE'"></div>
         <div class="step-info">
           <span class="step-label">Colis livré</span>
-          <span class="step-date">{{ formatDate(commande.date_livraison) }}</span>
+          <span class="step-date">{{ formatDateFn(commande.date_livraison) }}</span>
         </div>
       </div>
 
@@ -273,7 +273,7 @@
             [class.text-pending]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
             {{ commande.statut_paiement === 'PAYE' ? 'Paiement reçu' : commande.statut === 'LIVREE' ? 'En attente du livreur...' : 'Paiement' }}
           </span>
-          <span class="step-date">{{ formatDate(commande.date_paiement) }}</span>
+          <span class="step-date">{{ formatDateFn(commande.date_paiement) }}</span>
         </div>
       </div>
 
@@ -282,7 +282,7 @@
         <div class="step-dot annulee"></div>
         <div class="step-info">
           <span class="step-label">Annulée</span>
-          <span class="step-date">{{ formatDate(commande.date_annulation) }}</span>
+          <span class="step-date">{{ formatDateFn(commande.date_annulation) }}</span>
         </div>
       </div>
 
@@ -328,7 +328,7 @@
 
         <div class="art-calcul">
           <span>
-            {{ formatPrix(article.prix_promo_unitaire ?? article.prix_unitaire) }}
+            {{ formatPrixFn(article.prix_promo_unitaire ?? article.prix_unitaire) }}
           </span>
 
           <span class="mult">×</span>
@@ -338,7 +338,7 @@
           </span>
 
           <strong>
-            {{ formatPrix((article.prix_promo_unitaire ?? article.prix_unitaire) * article.quantite) }}
+            {{ formatPrixFn((article.prix_promo_unitaire ?? article.prix_unitaire) * article.quantite) }}
           </strong>
         </div>
 
@@ -360,11 +360,11 @@
     <div class="detail-totaux">
       <div class="total-row" *ngIf="commande.total_remise > 0">
         <span>Remise</span>
-        <span class="remise">- {{ formatPrix(commande.total_remise) }}</span>
+        <span class="remise">- {{ formatPrixFn(commande.total_remise) }}</span>
       </div>
       <div class="total-row final">
         <span>Total à encaisser</span>
-        <strong>{{ formatPrix(commande.total) }}</strong>
+        <strong>{{ formatPrixFn(commande.total) }}</strong>
       </div>
       <!-- Statut paiement bien visible -->
       <div class="paiement-status-row">
@@ -375,7 +375,7 @@
       </div>
       <div class="date-paiement-row" *ngIf="commande.date_paiement">
         <span>Encaissé le</span>
-        <span>{{ formatDateLong(commande.date_paiement) }}</span>
+        <span>{{ formatDateLongFn(commande.date_paiement) }}</span>
       </div>
     </div>
   </div>
@@ -410,7 +410,7 @@
       class="btn-action btn-confirmer-paiement"
       (click)="confirmerPaiement(commande)"
       [disabled]="majEnCours.has(commande._id)">
-      {{ majEnCours.has(commande._id) ? 'Confirmation...' : '✓ Confirmer réception paiement (' + formatPrix(commande.total) + ')' }}
+      {{ majEnCours.has(commande._id) ? 'Confirmation...' : '✓ Confirmer réception paiement (' + formatPrixFn(commande.total) + ')' }}
     </button>
   </div>
 
@@ -418,7 +418,7 @@
   <div class="detail-termine"
     *ngIf="commande.statut === 'LIVREE' && commande.statut_paiement === 'PAYE'">
     <div class="termine-payee">
-      Commande livrée et payée — {{ formatDate(commande.date_paiement) }}
+      Commande livrée et payée — {{ formatDateFn(commande.date_paiement) }}
     </div>
   </div>
 
