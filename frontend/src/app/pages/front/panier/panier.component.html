@@ -90,9 +90,9 @@
             <a [routerLink]="['/produits', article.produit.slug]">
               <img [src]="getImageProduit(article)" [alt]="article.produit.nom" />
             </a>
-            <span class="promo-badge" *ngIf="enPromotion(article)">
-              -{{ article.produit.promotion_active?.valeur }}%
-            </span>
+          <span class="promo-badge" *ngIf="enPromotion(article)">
+            -{{ article.pourcentage_reduction }}%
+          </span>
           </div>
 
           <!-- Informations produit -->

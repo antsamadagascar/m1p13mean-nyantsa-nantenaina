@@ -45,7 +45,7 @@ const panierSchema = new mongoose.Schema({
       type: Number,
       default: null
     },
-    
+     pourcentage_reduction: { type: Number, default: null },
     // Date d'ajout
     date_ajout: {
       type: Date,
@@ -183,6 +183,7 @@ panierSchema.methods.ajouterArticle = async function(produit, quantite = 1, vari
       variante: varianteId,
       prix_unitaire: prixUnitaire,        
       prix_promo_unitaire: prixPromoUnitaire, 
+      pourcentage_reduction: produit.pourcentage_reduction || null,
       date_ajout: new Date()
     });
   }

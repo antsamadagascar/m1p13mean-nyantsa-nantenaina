@@ -21,6 +21,7 @@ export interface ArticlePanier {
   variante?: string;
   prix_unitaire: number;
   prix_promo_unitaire?: number;
+  pourcentage_reduction?: number;
   date_ajout: Date;
 }
 
