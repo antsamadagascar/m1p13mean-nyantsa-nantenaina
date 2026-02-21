@@ -325,26 +325,24 @@
         <div class="detail-article" *ngFor="let article of commande.articles">
           <div class="detail-article-info">
             <span class="detail-nom">{{ article.nom_produit }}</span>
-            <div class="detail-variante" *ngIf="getVarianteLabel(article)">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
-                <polyline points="9 11 12 14 22 4"></polyline>
-                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"></path>
-              </svg>
-              {{ getVarianteLabel(article) }}
-            </div>
+
             <div class="detail-variante-attrs" *ngIf="article.variante_details?.attributs?.length > 0">
               <span class="attr-chip" *ngFor="let attr of article.variante_details.attributs">
                 <strong>{{ attr.nom }}</strong> : {{ attr.valeur }}
               </span>
             </div>
+
             <span class="detail-sku" *ngIf="article.sku">Réf : {{ article.sku }}</span>
             <span class="detail-promo" *ngIf="article.prix_promo_unitaire">Promotion appliquée</span>
           </div>
+
           <div class="detail-article-calcul">
-            <span class="prix-unit">{{ formatPrix(getPrixUnitaire(article)) }}</span>
+            <span class="prix-unit">{{ formatPrix(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
             <span class="mult">×</span>
             <span class="qte">{{ article.quantite }}</span>
-            <strong class="sous-total-article">{{ formatPrix(getSousTotal(article)) }}</strong>
+            <strong class="sous-total-article">
+              {{ formatPrix((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}
+            </strong>
           </div>
         </div>
       </div>

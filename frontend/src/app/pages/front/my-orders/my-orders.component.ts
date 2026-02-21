@@ -189,19 +189,6 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
 
   peutAnnuler(commande: any): boolean { return commande?.statut === 'EN_ATTENTE'; }
 
-  // ============================================
-  // HELPERS AFFICHAGE
-  // ============================================
-  getVarianteLabel(article: any): string {
-    const details = article.variante_details;
-    if (!details) return '';
-    const attrs = details.attributs || details.attributes || [];
-    if (Array.isArray(attrs) && attrs.length > 0) {
-      return attrs.map((a: any) => `${a.nom || a.key} : ${a.valeur || a.value}`).join(' — ');
-    }
-    if (details.nom) return details.nom;
-    return article.sku ? `Réf. ${article.sku}` : '';
-  }
 
   getStatutClass(statut: string): string {
     const map: { [k: string]: string } = {
@@ -221,8 +208,7 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
 
   getStatutPaiementClass(p: string): string { return p === 'PAYE' ? 'paiement-paid' : 'paiement-unpaid'; }
   getStatutPaiementLabel(p: string): string { return p === 'PAYE' ? 'Payée' : 'Impayée'; }
-  getPrixUnitaire(a: any): number { return a.prix_promo_unitaire || a.prix_unitaire; }
-  getSousTotal(a: any): number { return this.getPrixUnitaire(a) * a.quantite; }
+
 
   formatPrix(prix: number): string {
     return new Intl.NumberFormat('fr-MG', {
