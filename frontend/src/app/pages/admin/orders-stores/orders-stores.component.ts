@@ -24,7 +24,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
   mode: 'temps-reel' | 'historique' = 'temps-reel';
   dateDebut = '';
   dateFin = '';
-  filtreStatutHistorique = 'TOUS';
+  filtreStatutHistorique = 'TOUS'; // TOUS, EN_ATTENTE, EN_COURS, LIVREE, ANNULEE
 
   //  Stats calculées par le backend
   stats = {
@@ -77,12 +77,22 @@ export class OrdersComponent implements OnInit, OnDestroy {
   // ============================================
   chargerCommandes(silencieux = false): void {
     if (!silencieux) this.loading = true;
-    this.http.get<any[]>(`${environment.apiUrl}/api/commandes/boutique`).subscribe({
+
+    const params: any = {};
+    if (this.mode === 'historique') {
+      if (this.dateDebut) params.dateDebut = this.dateDebut;
+      if (this.dateFin)   params.dateFin   = this.dateFin;
+      if (this.filtreStatutHistorique && this.filtreStatutHistorique !== 'TOUS') {
+        params.statutHistorique = this.filtreStatutHistorique;
+      }
+    }
+
+    this.http.get<any[]>(`${environment.apiUrl}/api/commandes/boutique`, { params }).subscribe({
       next: (commandes) => {
         this.commandes = commandes;
         this.derniereMaj = new Date();
         this.appliquerFiltres();
-        this.chargerStats(); 
+        this.chargerStats();
         this.loading = false;
         if (!this.commandeSelectionnee && this.commandesFiltrees.length > 0) {
           this.commandeSelectionnee = this.commandesFiltrees[0];
@@ -98,21 +108,23 @@ export class OrdersComponent implements OnInit, OnDestroy {
   // ============================================
   // STATS — calculées par le backend
   // ============================================
-  chargerStats(): void {
-    const params: any = { mode: this.mode };
-
-    if (this.mode === 'historique') {
-      if (this.dateDebut)              params.dateDebut        = this.dateDebut;
-      if (this.dateFin)                params.dateFin          = this.dateFin;
-      if (this.filtreStatutHistorique) params.statutHistorique = this.filtreStatutHistorique;
+ chargerStats(): void {
+  const params: any = { mode: this.mode };
+  if (this.mode === 'historique') {
+    if (this.dateDebut) params.dateDebut = this.dateDebut;
+    if (this.dateFin) params.dateFin = this.dateFin;
+    if (this.filtreStatutHistorique && this.filtreStatutHistorique !== 'TOUS') {
+      params.statutHistorique = this.filtreStatutHistorique;
     }
-
-    this.http.get<any>(`${environment.apiUrl}/api/commandes/boutique/stats`, { params })
-      .subscribe({
-        next: (stats) => this.stats = stats,
-        error: () => {} // non bloquant
-      });
   }
+
+  this.http.get<any>(`${environment.apiUrl}/api/commandes/boutique/stats`, { params })
+    .subscribe({
+      next: (stats) => this.stats = stats,
+      error: () => {} // non bloquant
+    });
+}
+
 
   // ============================================
   // MODE & FILTRES
@@ -127,29 +139,26 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   appliquerFiltres(): void {
     let res = [...this.commandes];
-
     if (this.mode === 'temps-reel') {
       res = res.filter(c =>
         !(c.statut === 'ANNULEE') &&
         !(c.statut === 'LIVREE' && c.statut_paiement === 'PAYE')
       );
     } else {
-      res = res.filter(c =>
-        c.statut === 'ANNULEE' ||
-        (c.statut === 'LIVREE' && c.statut_paiement === 'PAYE')
-      );
-      if (this.filtreStatutHistorique === 'LIVREE')  res = res.filter(c => c.statut === 'LIVREE');
+      if (this.filtreStatutHistorique === 'EN_ATTENTE') res = res.filter(c => c.statut === 'EN_ATTENTE');
+      if (this.filtreStatutHistorique === 'EN_COURS') res = res.filter(c => c.statut === 'EN_COURS');
+      if (this.filtreStatutHistorique === 'LIVREE')  res = res.filter(c => c.statut === 'LIVREE' && c.statut_paiement === 'PAYE');
       if (this.filtreStatutHistorique === 'ANNULEE') res = res.filter(c => c.statut === 'ANNULEE');
+
       if (this.dateDebut) res = res.filter(c => new Date(c.date_creation) >= new Date(this.dateDebut));
       if (this.dateFin) {
         const fin = new Date(this.dateFin);
-        fin.setHours(23, 59, 59);
+        fin.setHours(23, 59, 59, 999);
         res = res.filter(c => new Date(c.date_creation) <= fin);
       }
     }
 
     this.commandesFiltrees = res;
-
     if (this.commandeSelectionnee && !res.find(c => c._id === this.commandeSelectionnee._id)) {
       this.commandeSelectionnee = res.length > 0 ? res[0] : null;
     }
@@ -159,8 +168,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
     this.dateDebut = '';
     this.dateFin = '';
     this.filtreStatutHistorique = 'TOUS';
-    this.appliquerFiltres();
-    this.chargerStats();
+    this.chargerCommandes();
   }
 
   selectionner(commande: any): void {
@@ -180,7 +188,7 @@ export class OrdersComponent implements OnInit, OnDestroy {
       next: (updated: any) => {
         this.majEnCours.delete(commande._id);
         this.mettreAJourCommande(commande._id, updated);
-        this.chargerStats(); 
+        this.chargerStats();
       },
       error: (err) => {
         this.majEnCours.delete(commande._id);
@@ -222,7 +230,6 @@ export class OrdersComponent implements OnInit, OnDestroy {
 
   // ============================================
   // TRANSITIONS — affichage uniquement
-  // La validation réelle est côté backend
   // ============================================
   getTransitions(commande: any): any[] {
     if (!commande) return [];
@@ -267,9 +274,9 @@ export class OrdersComponent implements OnInit, OnDestroy {
   }
 
   onFiltreHistoriqueChange(): void {
-    this.appliquerFiltres();
-    this.chargerStats();
+    this.chargerCommandes();
   }
+
   formatHeure(date: Date): string {
     return date.toLocaleTimeString('fr-FR', {
       hour: '2-digit', minute: '2-digit', second: '2-digit'

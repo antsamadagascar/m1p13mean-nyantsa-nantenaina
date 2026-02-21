@@ -299,26 +299,38 @@ exports.getStatsBoutique = async (req, res) => {
   try {
     const boutiqueId = req.user.boutiqueId;
     const produitIds = await Produit.find({ boutique: boutiqueId }).distinct('_id');
-
     const { mode, dateDebut, dateFin, statutHistorique } = req.query;
 
     let filtre = { 'articles.produit': { $in: produitIds } };
 
     if (mode === 'temps-reel') {
-      // Actives = tout sauf ANNULEE et LIVREE+PAYE
+      // Tout sauf annulées et livrées+payées
       filtre.$nor = [
         { statut: 'ANNULEE' },
         { statut: 'LIVREE', statut_paiement: 'PAYE' }
       ];
     } else {
-      // Historique = terminées
-      filtre.$or = [
-        { statut: 'ANNULEE' },
-        { statut: 'LIVREE', statut_paiement: 'PAYE' }
-      ];
-
-      if (statutHistorique === 'LIVREE') filtre.statut = 'LIVREE';
-      if (statutHistorique === 'ANNULEE') filtre.statut = 'ANNULEE';
+      // Historique
+      switch(statutHistorique) {
+        case 'EN_ATTENTE':
+        case 'EN_COURS':
+          filtre.statut = statutHistorique;
+          break;
+        case 'LIVREE':
+          filtre.statut = 'LIVREE';
+          filtre.statut_paiement = 'PAYE';
+          break;
+        case 'ANNULEE':
+          filtre.statut = 'ANNULEE';
+          break;
+        default: // TOUS
+          filtre.$or = [
+            { statut: 'EN_ATTENTE' },
+            { statut: 'EN_COURS' },
+            { statut: 'LIVREE', statut_paiement: 'PAYE' },
+            { statut: 'ANNULEE' }
+          ];
+      }
 
       if (dateDebut) filtre.date_creation = { ...filtre.date_creation, $gte: new Date(dateDebut) };
       if (dateFin) {
@@ -331,13 +343,12 @@ exports.getStatsBoutique = async (req, res) => {
     const commandes = await Commande.find(filtre);
 
     const stats = {
-      total:           commandes.length,
-      enAttente:       commandes.filter(c => c.statut === 'EN_ATTENTE').length,
-      enCours:         commandes.filter(c => c.statut === 'EN_COURS').length,
+      total: commandes.length,
+      enAttente: commandes.filter(c => c.statut === 'EN_ATTENTE').length,
+      enCours: commandes.filter(c => c.statut === 'EN_COURS').length,
       livreesImpayees: commandes.filter(c => c.statut === 'LIVREE' && c.statut_paiement === 'IMPAYE').length,
-      chiffreAffaires: commandes
-        .filter(c => c.statut_paiement === 'PAYE')
-        .reduce((sum, c) => sum + c.total, 0)
+      annulees: commandes.filter(c => c.statut === 'ANNULEE').length,
+      chiffreAffaires: commandes.filter(c => c.statut_paiement === 'PAYE').reduce((sum, c) => sum + c.total, 0)
     };
 
     res.json(stats);
