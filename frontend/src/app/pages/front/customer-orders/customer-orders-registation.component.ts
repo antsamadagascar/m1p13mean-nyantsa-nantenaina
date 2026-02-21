@@ -21,6 +21,12 @@ export class CommandeComponent implements OnInit {
   utilisateur: any = null;
 
   adresseForm: FormGroup;
+  telephoneMalgacheValidator(control: any) {
+    if (!control.value) return null;
+    const clean = control.value.replace(/[\s\-]/g, '');
+    const regex = /^(032|033|034|037|038)\d{7}$/;
+    return regex.test(clean) ? null : { telephoneInvalide: true };
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -28,6 +34,7 @@ export class CommandeComponent implements OnInit {
     private router: Router,
     private panierService: PanierService
   ) {
+    
     this.adresseForm = this.fb.group({
       nom:       ['', [Validators.required, Validators.minLength(3)]],
       telephone: ['', [Validators.required, Validators.minLength(10)]],

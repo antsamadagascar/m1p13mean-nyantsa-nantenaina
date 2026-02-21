@@ -64,7 +64,7 @@ exports.creerCommande = async (req, res) => {
       total_remise: panier.total_remise,
       total: panier.total,
       statut: 'EN_ATTENTE',
-      statut_paiement: 'IMPAYE',   // ✅ toujours impayé à la création
+      statut_paiement: 'IMPAYE',   // toujours impayé à la création
       reference: `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
     });
 
