@@ -31,8 +31,7 @@ export class FrontLayoutComponent implements OnInit{
 
   constructor(public authService: AuthService , private router: Router,
 
-  private alertService: AlertService,private favoriService: FavoriService) {}
-  private alertService: AlertService, private panierService: PanierService) {}
+  private alertService: AlertService,private favoriService: FavoriService,private panierService: PanierService) {}
 
    ngOnInit() {
     // Abonnement aux changements d'utilisateur
