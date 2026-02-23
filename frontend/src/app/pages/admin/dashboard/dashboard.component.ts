@@ -8,7 +8,8 @@ import {
   StatsOptions,
   Periode
 } from '../../../services/boutique-stats.service';
-
+import { BoutiqueService } from '../../../services/boutique.service';
+import { Boutique } from '../../../models/boutique.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -48,9 +49,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ];
 
   isAdmin = false;
+  boutiqueIdFiltreAdmin = ''; // 👈 ajout (filtre admin uniquement)
+  boutiquesDispos: { _id: string; nom: string }[] = []; // 👈 liste des boutiques
 
-
-  constructor(private statsService: BoutiqueStatsService) {}
+  constructor(private statsService: BoutiqueStatsService,private boutiqueService: BoutiqueService) {}
 
   // ngOnInit() {
   //   try {
@@ -61,16 +63,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   // }
   ngOnInit() {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-  
     this.isAdmin = user.role === 'ADMIN';
-  
+
     if (!this.isAdmin) {
       this.boutiqueId = user.boutiqueId || '';
+    } else {
+      this.boutiqueService.getBoutiques().subscribe(res => {
+        console.log('boutiques res:', res); // 👈 regarde la structure dans la console
+        this.boutiquesDispos = Array.isArray(res) ? res : (res as any).data || [];
+      });
     }
-  
+
     this.chargerStats();
   }
-  
+
 
   ngAfterViewInit() {}
 
@@ -107,6 +113,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.dateFin           = '';
     this.anneeSelectionnee = '';
     this.periodeActive     = 'annee';
+    this.boutiqueIdFiltreAdmin  = '';
     this.chargerStats();
   }
 
@@ -134,26 +141,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   chargerStats() {
     this.loading = true;
     this.erreur  = '';
-  
+
     const options: StatsOptions = { periode: this.periodeActive };
-  
     if (this.anneeSelectionnee) {
       options.annee = this.anneeSelectionnee;
     } else {
       if (this.dateDebut) options.debut = this.dateDebut;
       if (this.dateFin)   options.fin   = this.dateFin;
     }
-  
+
+    // 👇 Filtre boutique admin
+    if (this.isAdmin && this.boutiqueIdFiltreAdmin) {
+      options.boutique_id = this.boutiqueIdFiltreAdmin;
+    }
+
     const request$ = this.isAdmin
       ? this.statsService.getChiffreAffairesAdmin(options)
       : this.statsService.getChiffreAffaires(this.boutiqueId, options);
-    console.log(request$);
+
     request$.subscribe({
       next: (res) => {
         this.stats = res;
         this.anneesDispo = res.annees_dispos ?? [];
         this.loading = false;
-  
         setTimeout(() => this.dessinerCourbe(), 100);
       },
       error: () => {
@@ -162,7 +172,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
 
   // Redessine la courbe quand on change d'onglet
   changerVue(vue: 'reel' | 'previsionnel') {
