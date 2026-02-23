@@ -8,7 +8,8 @@ import {
   StatsOptions,
   Periode
 } from '../../../services/boutique-stats.service';
-
+import { BoutiqueService } from '../../../services/boutique.service';
+import { Boutique } from '../../../models/boutique.model';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -47,15 +48,35 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     { label: 'Cette année', value: 'annee'   }
   ];
 
-  constructor(private statsService: BoutiqueStatsService) {}
+  isAdmin = false;
+  boutiqueIdFiltreAdmin = ''; // 👈 ajout (filtre admin uniquement)
+  boutiquesDispos: { _id: string; nom: string }[] = []; // 👈 liste des boutiques
 
+  constructor(private statsService: BoutiqueStatsService,private boutiqueService: BoutiqueService) {}
+
+  // ngOnInit() {
+  //   try {
+  //     const user = JSON.parse(localStorage.getItem('user') || '{}');
+  //     this.boutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
+  //   } catch {}
+  //   this.chargerStats();
+  // }
   ngOnInit() {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      this.boutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
-    } catch {}
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    this.isAdmin = user.role === 'ADMIN';
+
+    if (!this.isAdmin) {
+      this.boutiqueId = user.boutiqueId || '';
+    } else {
+      this.boutiqueService.getBoutiques().subscribe(res => {
+        console.log('boutiques res:', res); // 👈 regarde la structure dans la console
+        this.boutiquesDispos = Array.isArray(res) ? res : (res as any).data || [];
+      });
+    }
+
     this.chargerStats();
   }
+
 
   ngAfterViewInit() {}
 
@@ -92,30 +113,66 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.dateFin           = '';
     this.anneeSelectionnee = '';
     this.periodeActive     = 'annee';
+    this.boutiqueIdFiltreAdmin  = '';
     this.chargerStats();
   }
 
+  // chargerStats() {
+  //   if (!this.boutiqueId) { this.erreur = 'ID boutique introuvable.'; return; }
+  //   this.loading = true;
+  //   this.erreur  = '';
+
+  //   const options: StatsOptions = { periode: this.periodeActive };
+  //   if (this.anneeSelectionnee)             options.annee = this.anneeSelectionnee;
+  //   else if (this.dateDebut)                options.debut = this.dateDebut;
+  //   if (this.dateFin && !this.anneeSelectionnee) options.fin = this.dateFin;
+
+  //   this.statsService.getChiffreAffaires(this.boutiqueId, options).subscribe({
+  //     next: (res) => {
+  //       this.stats       = res;
+  //       this.anneesDispo = res.annees_dispos ?? [];
+  //       this.loading     = false;
+  //       this.tooltip.visible = false;
+  //       setTimeout(() => this.dessinerCourbe(), 100);
+  //     },
+  //     error: () => { this.erreur = 'Impossible de charger les statistiques.'; this.loading = false; }
+  //   });
+  // }
   chargerStats() {
-    if (!this.boutiqueId) { this.erreur = 'ID boutique introuvable.'; return; }
     this.loading = true;
     this.erreur  = '';
 
     const options: StatsOptions = { periode: this.periodeActive };
-    if (this.anneeSelectionnee)             options.annee = this.anneeSelectionnee;
-    else if (this.dateDebut)                options.debut = this.dateDebut;
-    if (this.dateFin && !this.anneeSelectionnee) options.fin = this.dateFin;
+    if (this.anneeSelectionnee) {
+      options.annee = this.anneeSelectionnee;
+    } else {
+      if (this.dateDebut) options.debut = this.dateDebut;
+      if (this.dateFin)   options.fin   = this.dateFin;
+    }
 
-    this.statsService.getChiffreAffaires(this.boutiqueId, options).subscribe({
+    // 👇 Filtre boutique admin
+    if (this.isAdmin && this.boutiqueIdFiltreAdmin) {
+      options.boutique_id = this.boutiqueIdFiltreAdmin;
+    }
+
+    const request$ = this.isAdmin
+      ? this.statsService.getChiffreAffairesAdmin(options)
+      : this.statsService.getChiffreAffaires(this.boutiqueId, options);
+
+    request$.subscribe({
       next: (res) => {
-        this.stats       = res;
+        this.stats = res;
         this.anneesDispo = res.annees_dispos ?? [];
-        this.loading     = false;
-        this.tooltip.visible = false;
+        this.loading = false;
         setTimeout(() => this.dessinerCourbe(), 100);
       },
-      error: () => { this.erreur = 'Impossible de charger les statistiques.'; this.loading = false; }
+      error: () => {
+        this.erreur = 'Impossible de charger les statistiques.';
+        this.loading = false;
+      }
     });
   }
+
 
   // Redessine la courbe quand on change d'onglet
   changerVue(vue: 'reel' | 'previsionnel') {

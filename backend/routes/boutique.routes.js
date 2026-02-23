@@ -19,6 +19,7 @@ router.patch('/horaires/:id', boutiqueController.updateHoraires);
 // Stats /:id pour ne pas être interceptée
 router.get('/:id/chiffre-affaires', statsController.getChiffreAffaires);
 
+router.get('/chiffre-affaires', statsController.getChiffreAffairesAdmin);
 // Routes par ID
 router.get('/:id', boutiqueController.getBoutiqueById);
 router.get('/details/:id', boutiqueController.getBoutiqueDetailsById);
