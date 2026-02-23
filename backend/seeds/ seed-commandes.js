@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 
 const CONFIG = {
   BOUTIQUE_ID:    '6995dad86dfefeae4a066c94',
-  UTILISATEUR_ID: '6998a82609cb02467d3377f2',
+  UTILISATEUR_ID: '6995dadb5aced2ae718e7e0f',
   PRODUIT_IDS: [
     '6995db6fa5bac5b6688a54d3', // Canapé d'angle Scandi 5 places
     '6995db70a5bac5b6688a54e0', // Lampe sur pied Arc Design
