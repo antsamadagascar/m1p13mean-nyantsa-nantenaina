@@ -1,0 +1,224 @@
+.confirmation-page {
+  min-height: 80vh;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  padding: 40px 0;
+}
+
+.container {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+}
+
+/* Chargement */
+.loading-state {
+  text-align: center;
+  padding: 60px;
+  color: #64748b;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Carte */
+.confirmation-card {
+  background: white;
+  border-radius: 16px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  text-align: center;
+}
+
+/* Icône */
+.success-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.success-icon svg {
+  width: 60px;
+  height: 60px;
+  color: #22c55e;
+  stroke: #22c55e;
+}
+
+/* Titre */
+h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 6px;
+}
+
+.reference {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.date-commande {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-bottom: 16px;
+}
+
+/* Statut */
+.statut-badge {
+  display: inline-block;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.statut-attente  { background: #fef3c7; color: #92400e; }
+.statut-en-cours { background: #dbeafe; color: #1e40af; }
+.statut-livree   { background: #dcfce7; color: #166534; }
+.statut-annulee  { background: #fef2f2; color: #dc2626; }
+
+/* Articles */
+.articles-recap {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.article-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.article-row:last-child { border-bottom: none; padding-bottom: 0; }
+
+.art-nom {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.art-detail {
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* Adresse */
+.adresse-recap {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.recap-label {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+/* Total */
+.total-recap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.total-ligne {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+  color: #64748b;
+}
+
+.total-ligne.final {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  margin-top: 4px;
+}
+
+.total-ligne.final strong { font-size: 1.1rem; }
+.remise { color: #22c55e; font-weight: 600; }
+
+/* Message info */
+.info-message {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-commandes {
+  display: block;
+  background: #1e293b;
+  color: white;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+.btn-commandes:hover { background: #0f172a; }
+
+.btn-produits {
+  display: block;
+  background: white;
+  color: #475569;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid #e2e8f0;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-produits:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}

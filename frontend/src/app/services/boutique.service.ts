@@ -60,7 +60,16 @@ export class BoutiqueService {
     return this.http.get(`${this.apiUrl}/details/${id}`);
   }
   
-  
+  updateBoutique(id: string, data: any): Observable<any> 
+  {    return this.http.patch(`${this.apiUrl}/${id}`, data);  }
+
+  // Upload image boutique (logo, banniere)
+  uploadImageBoutique(id: string, file: File, field: 'logo' | 'banniere' ): Observable<any> {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('field', field);
+    return this.http.post(`${this.apiUrl}/${id}/upload-image`, formData);
+  }
 
   getBoutiquesPublic(filters?: {
     categorie?: string;

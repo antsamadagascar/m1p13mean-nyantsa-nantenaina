@@ -4,6 +4,10 @@ const slugify = require('slugify');
 const { sendBoutiqueCreationEmail } = require('../services/email.service');
 // IMPORT DE L'UTILITAIRE
 const HorairesUtils = require('../utils/boutique-horaires.utils');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+
 
 // @desc    Créer une nouvelle boutique
 // @route   POST /api/boutiques
@@ -352,6 +356,152 @@ const updateHoraires = async (req, res) => {
   }
 };
 
+const updateBoutique = async (req, res) => {
+  try {
+    const {
+      nom,
+      description,
+      gerant,
+      localisation,
+      contact,
+      categorie,
+      sous_categories,
+      logo,
+      banniere  
+    } = req.body;
+
+    const updateData = {};
+
+    if (nom !== undefined) {
+      updateData.nom = nom;
+      updateData.slug = slugify(nom, { lower: true, strict: true, locale: 'fr' });
+    }
+    if (description !== undefined) updateData.description = description;
+    if (logo !== undefined) updateData.logo = logo;
+    if (banniere !== undefined) updateData.banniere = banniere;
+    if (categorie !== undefined) updateData.categorie = categorie;
+    if (sous_categories !== undefined) updateData.sous_categories = sous_categories;
+
+    // Gérant — mise à jour partielle des sous-champs
+    if (gerant) {
+      if (gerant.nom !== undefined) updateData['gerant.nom'] = gerant.nom;
+      if (gerant.prenom !== undefined) updateData['gerant.prenom'] = gerant.prenom;
+      if (gerant.email !== undefined) updateData['gerant.email'] = gerant.email;
+      if (gerant.telephone !== undefined) updateData['gerant.telephone'] = gerant.telephone;
+    }
+
+    // Localisation -> mise à jour partielle des sous-champs
+    if (localisation) {
+      if (localisation.zone !== undefined) updateData['localisation.zone'] = localisation.zone;
+      if (localisation.adresse_complete !== undefined) updateData['localisation.adresse_complete'] = localisation.adresse_complete;
+      if (localisation.latitude !== undefined) updateData['localisation.latitude'] = localisation.latitude;
+      if (localisation.longitude !== undefined) updateData['localisation.longitude'] = localisation.longitude;
+      if (localisation.surface !== undefined) updateData['localisation.surface'] = localisation.surface;
+      if (localisation.emplacement_complet !== undefined) updateData['localisation.emplacement_complet'] = localisation.emplacement_complet;
+
+      // Vérifie que la nouvelle zone existe et est active
+      if (localisation.zone) {
+        const zone = await Zone.findById(localisation.zone);
+        if (!zone) {
+          return res.status(404).json({ success: false, message: 'Zone non trouvée' });
+        }
+        if (!zone.actif) {
+          return res.status(400).json({ success: false, message: 'Cette zone n\'est pas active' });
+        }
+      }
+    }
+
+    // Contact — mise à jour partielle des sous-champs
+    if (contact) {
+      const contactFields = ['telephone', 'email', 'site_web', 'whatsapp', 'facebook', 'instagram', 'twitter', 'tiktok'];
+      contactFields.forEach(field => {
+        if (contact[field] !== undefined) {
+          updateData[`contact.${field}`] = contact[field];
+        }
+      });
+    }
+
+    const boutique = await Boutique.findByIdAndUpdate(
+      req.params.id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    ).populate('categorie sous_categories localisation.zone');
+
+    if (!boutique) {
+      return res.status(404).json({ success: false, message: 'Boutique non trouvée' });
+    }
+
+    res.json({ success: true, message: 'Boutique mise à jour avec succès', data: boutique });
+
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(e => e.message);
+      return res.status(400).json({ success: false, message: 'Erreur de validation', errors: messages });
+    }
+    if (error.code === 11000) {
+      return res.status(400).json({ success: false, message: 'Ce nom est déjà utilisé par une autre boutique' });
+    }
+    res.status(500).json({ success: false, message: 'Erreur serveur', error: error.message });
+  }
+};
+
+
+// Config multer pour boutiques
+const storageBoutique = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = 'uploads/boutiques';
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `boutique-${req.params.id}-${Date.now()}${ext}`);
+  }
+});
+
+const uploadBoutique = multer({
+  storage: storageBoutique,
+  limits: { fileSize: 2 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) cb(null, true);
+    else cb(new Error('Fichier non valide'));
+  }
+});
+
+const uploadImageBoutique = async (req, res) => {
+  try {
+    const { field } = req.body;
+    const champsAutorises = ['logo', 'banniere'];
+
+    if (!champsAutorises.includes(field)) {
+      return res.status(400).json({ success: false, message: 'Champ invalide' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Aucun fichier reçu' });
+    }
+
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const url = `${baseUrl}/uploads/boutiques/${req.file.filename}`;
+
+    // Mettre à jour uniquement le champ image
+    const boutique = await Boutique.findByIdAndUpdate(
+      req.params.id,
+      { $set: { [field]: url } },
+      { new: true }
+    );
+
+    if (!boutique) {
+      return res.status(404).json({ success: false, message: 'Boutique non trouvée' });
+    }
+
+    res.json({ success: true, url, field });
+
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 
 module.exports = {
   createBoutique,
@@ -363,5 +513,8 @@ module.exports = {
   getBoutiquesPublic,
   getAllBoutiques,
   getMesHoraires,
-  updateHoraires
+  updateHoraires,
+  updateBoutique,
+  uploadBoutique,
+  uploadImageBoutique
 };

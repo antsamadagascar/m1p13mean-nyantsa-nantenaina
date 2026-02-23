@@ -1,0 +1,75 @@
+<div class="confirmation-page">
+  <div class="container">
+
+    <!-- Chargement -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Carte confirmation -->
+    <div class="confirmation-card" *ngIf="!loading && commande">
+
+      <!-- Icône succès -->
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+      </div>
+
+      <!-- Titre + référence -->
+      <h1>Commande confirmée</h1>
+      <p class="reference">{{ commande.reference }}</p>
+      <p class="date-commande">Passée le {{ formatDate(commande.date_creation) }}</p>
+
+      <!-- Statut -->
+      <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+        {{ getStatutLabel(commande.statut) }}
+      </span>
+
+      <!-- Articles -->
+      <div class="articles-recap">
+        <div class="article-row" *ngFor="let article of commande.articles">
+          <span class="art-nom">{{ article.nom_produit }}</span>
+          <span class="art-detail">
+            {{ formatPrix(getPrixUnitaire(article)) }} × {{ article.quantite }}
+            = {{ formatPrix(getPrixUnitaire(article) * article.quantite) }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Adresse -->
+      <div class="adresse-recap" *ngIf="commande.adresse_livraison">
+        <p class="recap-label">Livraison</p>
+        <p>{{ commande.adresse_livraison.nom }}</p>
+        <p>{{ commande.adresse_livraison.adresse }}, {{ commande.adresse_livraison.ville }}</p>
+        <p>{{ commande.adresse_livraison.telephone }}</p>
+      </div>
+
+      <!-- Total -->
+      <div class="total-recap">
+        <div class="total-ligne" *ngIf="commande.total_remise > 0">
+          <span>Remise</span>
+          <span class="remise">- {{ formatPrix(commande.total_remise) }}</span>
+        </div>
+        <div class="total-ligne final">
+          <span>Total</span>
+          <strong>{{ formatPrix(commande.total) }}</strong>
+        </div>
+      </div>
+
+      <!-- Message info -->
+      <p class="info-message">
+        Votre commande est enregistrée. Vous serez contacté pour la livraison.
+      </p>
+
+      <!-- Actions -->
+      <div class="actions">
+        <a routerLink="/mes-commandes" class="btn-commandes">Voir mes commandes</a>
+        <a routerLink="/produits" class="btn-produits">Continuer mes achats</a>
+      </div>
+
+    </div>
+  </div>
+</div>

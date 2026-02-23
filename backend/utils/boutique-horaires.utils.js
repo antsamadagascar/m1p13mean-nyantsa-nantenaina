@@ -13,32 +13,78 @@ const getJourActuel = () => {
 };
 
 /**
+ * Convertit une heure HH:MM en minutes.
+ * - Si fin < debut → ajoute 1440 (fermeture le lendemain)
+ * - Si fin = 00:00 → 1440 (minuit exact)
+ * @param {number} h
+ * @param {number} m
+ * @param {boolean} estFin
+ * @param {number|null} debutMinutes
+ * @returns {number}
+ */
+const enMinutes = (h, m, estFin = false, debutMinutes = null) => {
+  if (estFin && h === 0 && m === 0) return 1440;
+  const minutes = h * 60 + m;
+  if (estFin && debutMinutes !== null && minutes < debutMinutes) {
+    return minutes + 1440; // fermeture le lendemain (ex: 08:00 → 01:00)
+  }
+  return minutes;
+};
+
+/**
+ * Vérifie si un horaire chevauche minuit (ex: 20:00 → 02:00)
+ * @param {Object} horaire
+ * @returns {boolean}
+ */
+const chevaucheMinuit = (horaire) => {
+  if (!horaire || !horaire.ouvert) return false;
+  const [hD, mD] = horaire.debut.split(':').map(Number);
+  const [hF, mF] = horaire.fin.split(':').map(Number);
+  const debut = hD * 60 + mD;
+  const fin = hF * 60 + mF;
+  return fin < debut || (hF === 0 && mF === 0);
+};
+
+/**
  * Vérifie si la boutique est ouverte maintenant
  * @param {Object} horaires - Horaires de la boutique
  * @returns {boolean}
  */
 const estOuverte = (horaires) => {
-  if (!horaires) {
-    return false;
-  }
+  if (!horaires) return false;
 
-  const jour = getJourActuel();
-  const horaire = horaires[jour];
-
-  if (!horaire || !horaire.ouvert) {
-    return false;
-  }
-
+  const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   const maintenant = new Date();
   const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
+  const jourIndex = maintenant.getDay();
 
-  const [heureDebut, minDebut] = horaire.debut.split(':').map(Number);
-  const [heureFin, minFin] = horaire.fin.split(':').map(Number);
+  // Vérifier le jour actuel
+  const horaire = horaires[joursNoms[jourIndex]];
+  if (horaire && horaire.ouvert) {
+    const [hD, mD] = horaire.debut.split(':').map(Number);
+    const [hF, mF] = horaire.fin.split(':').map(Number);
+    const debut = enMinutes(hD, mD);
+    const fin = enMinutes(hF, mF, true, debut);
+    // Si chevauchement minuit et qu'on est après minuit → tester avec +1440
+    const heureTest = (fin > 1440 && heureActuelle < debut) ? heureActuelle + 1440 : heureActuelle;
+    if (heureTest >= debut && heureTest <= fin) return true;
+  }
 
-  const debut = heureDebut * 60 + minDebut;
-  const fin = heureFin * 60 + minFin;
+  // Vérifier si le jour PRÉCÉDENT avait un horaire qui déborde sur aujourd'hui
+  // ex: vendredi 20:00 → 02:00, il est samedi 01:00 → toujours ouvert
+  const jourPrecedentIndex = (jourIndex + 6) % 7;
+  const horairePrecedent = horaires[joursNoms[jourPrecedentIndex]];
+  if (horairePrecedent && horairePrecedent.ouvert && chevaucheMinuit(horairePrecedent)) {
+    const [hD, mD] = horairePrecedent.debut.split(':').map(Number);
+    const [hF, mF] = horairePrecedent.fin.split(':').map(Number);
+    const debut = enMinutes(hD, mD);
+    const fin = enMinutes(hF, mF, true, debut);
+    // L'heure actuelle vue depuis hier = heureActuelle + 1440
+    const heureTest = heureActuelle + 1440;
+    if (heureTest >= debut && heureTest <= fin) return true;
+  }
 
-  return heureActuelle >= debut && heureActuelle <= fin;
+  return false;
 };
 
 /**
@@ -47,17 +93,13 @@ const estOuverte = (horaires) => {
  * @returns {string}
  */
 const getStatutMessage = (horaires) => {
-  if (!horaires) {
-    return 'Horaires non définis';
-  }
+  if (!horaires) return 'Horaires non définis';
 
-  if (estOuverte(horaires)) {
-    return 'Ouverte maintenant';
-  }
+  if (estOuverte(horaires)) return 'Ouverte maintenant';
 
-  // Trouver la prochaine ouverture
   const maintenant = new Date();
   const jourActuel = maintenant.getDay();
+  const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
   const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
   for (let i = 0; i < 7; i++) {
@@ -66,13 +108,22 @@ const getStatutMessage = (horaires) => {
     const horaire = horaires[nomJour];
 
     if (horaire && horaire.ouvert) {
+      const [hD, mD] = horaire.debut.split(':').map(Number);
+      const [hF, mF] = horaire.fin.split(':').map(Number);
+      const debutMinutes = enMinutes(hD, mD);
+      const finMinutes = enMinutes(hF, mF, true, debutMinutes);
+
       if (i === 0) {
-        return `Ouvre aujourd'hui à ${horaire.debut}`;
-      } else if (i === 1) {
-        return `Ouvre demain à ${horaire.debut}`;
-      } else {
-        return `Ouvre ${nomJour} à ${horaire.debut}`;
+        // Heure d'ouverture pas encore atteinte → ouvre aujourd'hui
+        if (heureActuelle < debutMinutes) {
+          return `Ouvre aujourd'hui à ${horaire.debut}`;
+        }
+        // Sinon l'horaire d'aujourd'hui est terminé → jour suivant
+        continue;
       }
+
+      if (i === 1) return `Ouvre demain à ${horaire.debut}`;
+      return `Ouvre ${nomJour} à ${horaire.debut}`;
     }
   }
 
@@ -85,28 +136,19 @@ const getStatutMessage = (horaires) => {
  * @returns {string}
  */
 const getHorairesAujourdhui = (horaires) => {
-  if (!horaires) {
-    return 'Non disponible';
-  }
-
+  if (!horaires) return 'Non disponible';
   const jour = getJourActuel();
   const horaire = horaires[jour];
-
-  if (!horaire || !horaire.ouvert) {
-    return "Fermé aujourd'hui";
-  }
-
+  if (!horaire || !horaire.ouvert) return "Fermé aujourd'hui";
   return `${horaire.debut} - ${horaire.fin}`;
 };
 
 /**
  * Vérifie si c'est aujourd'hui
- * @param {string} jour - Nom du jour
+ * @param {string} jour
  * @returns {boolean}
  */
-const estAujourdhui = (jour) => {
-  return jour === getJourActuel();
-};
+const estAujourdhui = (jour) => jour === getJourActuel();
 
 /**
  * Obtient la liste ordonnée des jours (lundi en premier)
@@ -118,67 +160,60 @@ const getJoursOrdre = () => {
 
 /**
  * Formate un horaire pour l'affichage
- * @param {Object} horaire - Horaire à formater
+ * @param {Object} horaire
  * @returns {string}
  */
 const formatHoraire = (horaire) => {
-  if (!horaire || !horaire.ouvert) {
-    return 'Fermé';
-  }
+  if (!horaire || !horaire.ouvert) return 'Fermé';
   return `${horaire.debut} - ${horaire.fin}`;
 };
 
 /**
  * Vérifie si la boutique sera ouverte à une heure donnée
- * @param {Object} horaires - Horaires de la boutique
- * @param {string} heure - Heure au format HH:MM
- * @param {string} [jour] - Jour (optionnel, par défaut aujourd'hui)
+ * @param {Object} horaires
+ * @param {string} heure - HH:MM
+ * @param {string} [jour]
  * @returns {boolean}
  */
 const seraOuverte = (horaires, heure, jour = null) => {
-  if (!horaires) {
-    return false;
-  }
+  if (!horaires) return false;
 
   const jourCible = jour || getJourActuel();
   const horaire = horaires[jourCible];
+  if (!horaire || !horaire.ouvert) return false;
 
-  if (!horaire || !horaire.ouvert) {
-    return false;
+  const [heureTest, minTest] = heure.split(':').map(Number);
+  const [hD, mD] = horaire.debut.split(':').map(Number);
+  const [hF, mF] = horaire.fin.split(':').map(Number);
+
+  const debutMinutes = enMinutes(hD, mD);
+  const finMinutes = enMinutes(hF, mF, true, debutMinutes);
+  let heureTestMinutes = enMinutes(heureTest, minTest || 0);
+
+  // Si chevauchement minuit et heure testée est avant le début → +1440
+  if (finMinutes > 1440 && heureTestMinutes < debutMinutes) {
+    heureTestMinutes += 1440;
   }
 
-  // Correction : traiter correctement les minutes
-  const [heureTest, minTest] = heure.split(':').map(Number);
-  const [heureDebut, minDebut] = horaire.debut.split(':').map(Number);
-  const [heureFin, minFin] = horaire.fin.split(':').map(Number);
-
-  const heureTestMinutes = heureTest * 60 + (minTest || 0);
-  const heureDebutMinutes = heureDebut * 60 + minDebut;
-  const heureFinMinutes = heureFin * 60 + minFin;
-
-  return heureTestMinutes >= heureDebutMinutes && heureTestMinutes <= heureFinMinutes;
+  return heureTestMinutes >= debutMinutes && heureTestMinutes <= finMinutes;
 };
 
 /**
  * Calcule le nombre d'heures d'ouverture dans la semaine
- * @param {Object} horaires - Horaires de la boutique
+ * @param {Object} horaires
  * @returns {number}
  */
 const getHeuresOuverture = (horaires) => {
-  if (!horaires) {
-    return 0;
-  }
-
+  if (!horaires) return 0;
   let totalMinutes = 0;
-  const jours = getJoursOrdre();
 
-  jours.forEach(jour => {
+  getJoursOrdre().forEach(jour => {
     const horaire = horaires[jour];
     if (horaire && horaire.ouvert) {
       const [hD, mD] = horaire.debut.split(':').map(Number);
       const [hF, mF] = horaire.fin.split(':').map(Number);
-      const debut = hD * 60 + mD;
-      const fin = hF * 60 + mF;
+      const debut = enMinutes(hD, mD);
+      const fin = enMinutes(hF, mF, true, debut);
       totalMinutes += fin - debut;
     }
   });
@@ -188,16 +223,12 @@ const getHeuresOuverture = (horaires) => {
 
 /**
  * Obtient les jours d'ouverture
- * @param {Object} horaires - Horaires de la boutique
+ * @param {Object} horaires
  * @returns {Array<string>}
  */
 const getJoursOuverture = (horaires) => {
-  if (!horaires) {
-    return [];
-  }
-
-  const jours = getJoursOrdre();
-  return jours.filter(jour => {
+  if (!horaires) return [];
+  return getJoursOrdre().filter(jour => {
     const horaire = horaires[jour];
     return horaire && horaire.ouvert;
   });
@@ -205,36 +236,30 @@ const getJoursOuverture = (horaires) => {
 
 /**
  * Vérifie si la boutique est ouverte 7j/7
- * @param {Object} horaires - Horaires de la boutique
+ * @param {Object} horaires
  * @returns {boolean}
  */
-const estOuvert7j7 = (horaires) => {
-  return getJoursOuverture(horaires).length === 7;
-};
+const estOuvert7j7 = (horaires) => getJoursOuverture(horaires).length === 7;
 
 /**
  * Ajoute le statut estOuverte à une boutique
- * @param {Object} boutique - Objet boutique
+ * @param {Object} boutique
  * @returns {Object}
  */
-const ajouterStatutOuverture = (boutique) => {
-  return {
-    ...boutique.toObject(),
-    estOuverte: estOuverte(boutique.horaires),
-    statutMessage: getStatutMessage(boutique.horaires)
-  };
-};
+const ajouterStatutOuverture = (boutique) => ({
+  ...boutique.toObject(),
+  estOuverte: estOuverte(boutique.horaires),
+  statutMessage: getStatutMessage(boutique.horaires)
+});
 
 /**
  * Ajoute le statut estOuverte à un tableau de boutiques
- * @param {Array} boutiques - Tableau de boutiques
+ * @param {Array} boutiques
  * @returns {Array}
  */
-const ajouterStatutOuvertureBatch = (boutiques) => {
-  return boutiques.map(boutique => ajouterStatutOuverture(boutique));
-};
+const ajouterStatutOuvertureBatch = (boutiques) =>
+  boutiques.map(boutique => ajouterStatutOuverture(boutique));
 
-// EXPORTS - TOUS LES EXPORTS SONT ICI
 module.exports = {
   getJourActuel,
   estOuverte,
@@ -243,7 +268,7 @@ module.exports = {
   estAujourdhui,
   getJoursOrdre,
   formatHoraire,
-  seraOuverte,            
+  seraOuverte,
   getHeuresOuverture,
   getJoursOuverture,
   estOuvert7j7,

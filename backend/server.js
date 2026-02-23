@@ -40,6 +40,8 @@ require('./models/SousCategorie');
 require('./models/Zone'); 
 require('./models/Produit');
 require('./models/Promotion');
+require('./models/Panier');
+require('./models/Commande');
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -50,6 +52,8 @@ const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 const zoneRoutes = require('./routes/zone.routes'); 
 const produitRoutes = require('./routes/produit.routes');
 const promotionRoutes = require('./routes/promotion.routes');
+const panierRoutes = require('./routes/panier.routes');
+const commandeRoutes = require('./routes/commande.routes');
 
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/users', userRoutes);
@@ -58,9 +62,11 @@ app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
 app.use('/api/zones', zoneRoutes);
 app.use('/api/produits',produitRoutes);
+app.use('/api/panier',panierRoutes);
+app.use('/api/commandes', commandeRoutes);
 app.use('/api', promotionRoutes);
-
 app.use('/uploads', express.static('uploads'));
+
 
 app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
 

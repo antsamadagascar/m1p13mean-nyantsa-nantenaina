@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const boutiqueController = require('../controllers/boutique.controller');
+const { uploadBoutique, uploadImageBoutique } = require('../controllers/boutique.controller');
 
 // Création
 router.post('/create', boutiqueController.createBoutique);
@@ -21,6 +22,7 @@ router.get('/details/:id', boutiqueController.getBoutiqueDetailsById);
 // Actions sur boutique
 router.patch('/:id/suspendre', boutiqueController.suspendreBoutique);
 router.patch('/:id/reactiver', boutiqueController.reactiverBoutique);
-
+router.patch('/:id', boutiqueController.updateBoutique);
+router.post('/:id/upload-image', uploadBoutique.single('image'), uploadImageBoutique);
 
 module.exports = router;
