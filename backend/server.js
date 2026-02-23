@@ -47,8 +47,8 @@ const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
 
 const boutiqueRoutes = require('./routes/boutique.routes');
-const categorieRoutes = require('./routes/categorieRoutes');
-const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
+const categorieRoutes = require('./routes/categorie.routes');
+const sousCategorieRoutes = require('./routes/sousCategorie.routes');
 const zoneRoutes = require('./routes/zone.routes'); 
 const produitRoutes = require('./routes/produit.routes');
 const promotionRoutes = require('./routes/promotion.routes');
