@@ -243,7 +243,11 @@
               <!-- Image -->
               <div class="product-image">
                 <img [src]="getImagePrincipale(produit)" [alt]="produit.nom" />
-                
+                <app-btn-favori
+                [produitId]="produit._id"
+                taille="sm"
+                style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+              </app-btn-favori>
                 <!-- Badges -->
                 <div class="product-badges">
                   <span class="badge badge-promo" *ngIf="produit.en_promotion">

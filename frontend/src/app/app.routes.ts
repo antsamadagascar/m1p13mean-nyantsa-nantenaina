@@ -158,6 +158,12 @@ export const routes: Routes = [
       },
 
       {
+        path: 'favoris',
+        loadComponent: () => import('./pages/front/favori-list/favori-list.component')
+          .then(m => m.FavoriListComponent)
+      }, 
+
+      {
         path: 'commande',
         loadComponent: () => import('./pages/front/customer-orders/customer-orders-registation.component')
           .then(m => m.CommandeComponent),
@@ -178,6 +184,7 @@ export const routes: Routes = [
       },
     ]
   },
+ 
   // Redirection 404
   { path: '**', redirectTo: 'connexion' }
 ];

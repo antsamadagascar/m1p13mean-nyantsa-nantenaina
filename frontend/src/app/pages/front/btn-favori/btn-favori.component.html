@@ -1,0 +1,20 @@
+<button
+  class="btn-favori"
+  [class.actif]="estFavori"
+  [class.loading]="enCours"
+  [class.sm]="taille === 'sm'"
+  [class.md]="taille === 'md'"
+  [class.lg]="taille === 'lg'"
+  (click)="toggle($event)"
+  [title]="estFavori ? 'Retirer des favoris' : 'Ajouter aux favoris'">
+
+  <!-- Spinner pendant le chargement -->
+  <i *ngIf="enCours" class="fa-solid fa-spinner fa-spin"></i>
+
+  <!-- Coeur -->
+  <i *ngIf="!enCours"
+     class="fa-heart"
+     [ngClass]="estFavori ? 'fa-solid' : 'fa-regular'">
+  </i>
+
+</button>

@@ -5,13 +5,16 @@ import { Subject, takeUntil } from 'rxjs';
 import { ProductService } from '../../../services/produit.service';
 import { PanierService } from '../../../services/panier.service';
 import { Produit } from '../../../models/produit.model';
+import { EvaluationClient } from '../../../models/boutique.model';
+import { EvaluationService } from '../../../services/evaluation.service';
 // IMPORT DE L'UTILITAIRE
 import * as HorairesUtils from '../../../utils/boutique-horaires.util';
+import { BtnFavoriComponent } from '../btn-favori/btn-favori.component';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink,BtnFavoriComponent],
   templateUrl: './product-detail.component.html',
   styleUrls: ['./product-detail.component.css']
 })
@@ -35,9 +38,15 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   
   private destroy$ = new Subject<void>();
 
+  // Variables
+  evaluationsProduit: EvaluationClient[] = [];
+  loadingAvis = false;
+  mathRound = Math.round;
+
   constructor(
     private productService: ProductService,
     private route: ActivatedRoute,
+    private evaluationService: EvaluationService,
     private router: Router,
     private panierService: PanierService,
   ) {}
@@ -331,8 +340,30 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
   // Onglet actif
   ongletActif = 'description';
 
+  // changerOnglet(onglet: string): void {
+  //   this.ongletActif = onglet;
+  // }
+
+  // Charge les avis quand on clique sur l'onglet
   changerOnglet(onglet: string): void {
     this.ongletActif = onglet;
+    if (onglet === 'avis' && this.evaluationsProduit.length === 0) {
+      this.chargerAvisProduit();
+    }
   }
 
+  chargerAvisProduit(): void {
+    if (!this.produit) return;
+    this.loadingAvis = true;
+    this.evaluationService.getEvaluationsProduit(this.produit._id).subscribe({
+      next: (res) => { this.evaluationsProduit = res.data; this.loadingAvis = false; },
+      error: () => this.loadingAvis = false
+    });
+  }
+  getInitiales(avis: EvaluationClient): string {
+    if (!avis.client) return '?';
+    const p = avis.client.prenom?.charAt(0) || '';
+    const n = avis.client.nom?.charAt(0) || '';
+    return (p + n).toUpperCase() || '?';
+  }
 }

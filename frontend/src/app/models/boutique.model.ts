@@ -2,6 +2,29 @@
 // INTERFACES POUR LES HORAIRES
 // ============================================
 
+// Ajoutez ces interfaces
+export interface Evaluation {
+  moyenne: number;
+  total: number;
+}
+
+// boutique.model.ts
+export interface EvaluationClient {
+  _id?: string;
+  boutique?: string;
+  produit?: string;
+  client?: {
+    _id: string;
+    nom: string;
+    prenom: string;
+    avatar?: string;   // ← avatar et non photo
+  };
+  note: number;
+  commentaire?: string;
+  statut?: 'visible' | 'masque' | 'signale';
+  date_creation?: Date;
+}
+
 export interface Horaire {
   ouvert: boolean;
   debut: string;
@@ -37,6 +60,7 @@ export interface Boutique {
   contact: Contact;
   horaires: HorairesBoutique; 
   statut: Statut;
+  evaluation?: Evaluation;        // ← AJOUTÉ
   estOuverte?: boolean;
   statutMessage?: string;
   date_creation?: Date;

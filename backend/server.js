@@ -52,8 +52,12 @@ const sousCategorieRoutes = require('./routes/sousCategorieRoutes');
 const zoneRoutes = require('./routes/zone.routes'); 
 const produitRoutes = require('./routes/produit.routes');
 const promotionRoutes = require('./routes/promotion.routes');
+
+const { boutiqueRouter, produitRouter, adminRouter } = require('./routes/evaluation.routes');
+
 const panierRoutes = require('./routes/panier.routes');
 const commandeRoutes = require('./routes/commande.routes');
+
 
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/users', userRoutes);
@@ -65,6 +69,12 @@ app.use('/api/produits',produitRoutes);
 app.use('/api/panier',panierRoutes);
 app.use('/api/commandes', commandeRoutes);
 app.use('/api', promotionRoutes);
+
+app.use('/api/boutiques/:boutiqueId/evaluations', boutiqueRouter);
+app.use('/api/produits/:produitId/evaluations', produitRouter);
+app.use('/api/evaluations', adminRouter);
+app.use('/api/favoris', require('./routes/favori.routes'));
+
 app.use('/uploads', express.static('uploads'));
 
 

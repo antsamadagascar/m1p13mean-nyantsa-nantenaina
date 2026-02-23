@@ -230,7 +230,22 @@ const boutiqueSchema = new mongoose.Schema({
     motif_suspension: String,
     date_validation: Date,
     date_suspension: Date
-  }  
+  },
+    // ============================================
+    // ÉVALUATION (calculée automatiquement)
+    // ============================================
+    evaluation: {
+        moyenne: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5
+        },
+        total: {
+        type: Number,
+        default: 0
+        }
+    }
 }, {
   timestamps: { createdAt: 'date_creation', updatedAt: 'date_modification' },
   toJSON: { virtuals: true },

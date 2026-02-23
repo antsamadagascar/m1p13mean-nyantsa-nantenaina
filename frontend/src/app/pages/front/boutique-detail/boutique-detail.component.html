@@ -136,8 +136,16 @@
       <div class="produits-grid" *ngIf="!loadingProduits && produits.length > 0">
         <div class="product-card" *ngFor="let produit of produits">
           <a [routerLink]="['/produits', produit.slug]" class="product-link">
+      
+            <!-- Image -->
             <div class="product-image">
               <img [src]="getImagePrincipale(produit)" [alt]="produit.nom" />
+                <!-- Favori positionné en haut à droite -->
+                <app-btn-favori
+                [produitId]="produit._id"
+                taille="sm"
+                style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+              </app-btn-favori>
               <div class="product-badges">
                 <span class="badge badge-promo" *ngIf="produit.en_promotion">
                   -{{ produit.pourcentage_reduction }}%
@@ -150,11 +158,13 @@
                 </span>
               </div>
             </div>
-
+      
+            <!-- Contenu -->
             <div class="product-content">
               <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
               <h3 class="product-name">{{ produit.nom }}</h3>
-              
+      
+              <!-- Prix -->
               <div class="product-price">
                 <span class="price-current" [class.price-promo]="produit.en_promotion">
                   {{ formatPrix(produit.prix_final || produit.prix) }}
@@ -163,23 +173,49 @@
                   {{ formatPrix(produit.prix) }}
                 </span>
               </div>
-
-              <div class="product-rating" *ngIf="produit.note_moyenne > 0">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                </svg>
-                <span>{{ produit.note_moyenne.toFixed(1) }}</span>
+      
+              <!-- ⭐ NOTE — intégrée dans le contenu, au-dessus du bouton -->
+              <div class="product-rating-row">
+                <div class="product-stars" *ngIf="produit.note_moyenne > 0">
+                  <i *ngFor="let star of [1,2,3,4,5]"
+                     class="fa-star fa-xs"
+                     [ngClass]="getClassEtoileProduit(star, produit.note_moyenne)">
+                  </i>
+                  <span class="note-val">{{ produit.note_moyenne.toFixed(1) }}</span>
+                  <span class="note-count">({{ produit.nombre_avis }})</span>
+                </div>
+                <div class="product-stars empty" *ngIf="produit.note_moyenne === 0">
+                  <i *ngFor="let star of [1,2,3,4,5]"
+                     class="fa-regular fa-star fa-xs"
+                     style="color:#d1d5db">
+                  </i>
+                  <span class="note-count">Aucun avis</span>
+                </div>
               </div>
+      
             </div>
           </a>
-
-          <button 
-            class="btn-add-cart" 
-            [disabled]="!peutAcheter(produit)"
-            [class.disabled]="!peutAcheter(produit)"
-          >
-            <span>{{ getMessageAchat(produit) }}</span>
-          </button>
+      
+          <!-- Footer card : bouton noter + panier -->
+          <div class="product-card-footer">
+            <button
+              *ngIf="currentUser"
+              (click)="ouvrirModalProduit(produit, $event)"
+              class="btn-noter-produit"
+              title="Donner mon avis">
+              <i class="fa-solid fa-pen-nib"></i>
+              <span>Noter</span>
+            </button>
+      
+            <button
+              class="btn-add-cart"
+              [disabled]="!peutAcheter(produit)"
+              [class.disabled]="!peutAcheter(produit)">
+              <i class="fa-solid fa-cart-plus"></i>
+              <span>{{ getMessageAchat(produit) }}</span>
+            </button>
+          </div>
+      
         </div>
       </div>
 
@@ -307,6 +343,90 @@
       </div>
     </div>
   </div>
+
+    <!-- ================================================ -->
+    <!-- MODAL ÉVALUATION PRODUIT                         -->
+    <!-- ================================================ -->
+    <div *ngIf="modalProduitOuvert" class="modal-overlay" (click)="fermerModalProduit()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-deco"></div>
+
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <p class="modal-pretitle">Évaluer ce produit</p>
+            <h3 class="modal-title">{{ produitSelectionne?.nom }}</h3>
+          </div>
+          <button (click)="fermerModalProduit()" class="modal-close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="stars-section">
+            <p class="stars-label">Quelle note donnez-vous ?</p>
+            <div class="stars-interactive">
+              <button *ngFor="let star of [1,2,3,4,5]"
+                class="star-btn"
+                (mouseenter)="noteHoverProduit = star"
+                (mouseleave)="noteHoverProduit = 0"
+                (click)="noteSelectProduit = star">
+                <i class="fa-star fa-2x"
+                  [ngClass]="star <= (noteHoverProduit || noteSelectProduit) ? 'fa-solid' : 'fa-regular'"
+                  [style.color]="star <= (noteHoverProduit || noteSelectProduit) ? '#f59e0b' : '#d1d5db'">
+                </i>
+              </button>
+            </div>
+            <div *ngIf="noteSelectProduit > 0" class="note-badge" [ngClass]="'note-' + noteSelectProduit">
+              <i class="fa-solid" [ngClass]="{
+                'fa-face-tired': noteSelectProduit === 1,
+                'fa-face-frown': noteSelectProduit === 2,
+                'fa-face-meh':   noteSelectProduit === 3,
+                'fa-face-smile': noteSelectProduit === 4,
+                'fa-face-grin-stars': noteSelectProduit === 5
+              }"></i>
+              {{ ['','Très mauvais','Mauvais','Correct','Bien','Excellent !'][noteSelectProduit] }}
+            </div>
+          </div>
+
+          <div class="comment-section">
+            <label class="comment-label">
+              Commentaire <span class="optional-tag">optionnel</span>
+            </label>
+            <div class="textarea-wrapper">
+              <textarea
+                [(ngModel)]="commentaireProduit"
+                rows="4"
+                maxlength="1000"
+                placeholder="Partagez votre expérience avec ce produit..."
+                class="modal-textarea">
+              </textarea>
+              <span class="char-count" [class.warn]="commentaireProduit.length > 900">
+                {{ commentaireProduit.length }}/1000
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="messageRetourProduit" class="alert-success">
+            <i class="fa-solid fa-circle-check"></i> {{ messageRetourProduit }}
+          </div>
+          <div *ngIf="messageErreurProduit" class="alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i> {{ messageErreurProduit }}
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button (click)="fermerModalProduit()" class="btn-cancel">Annuler</button>
+          <button
+            (click)="soumettreEvaluationProduit()"
+            [disabled]="noteSelectProduit === 0 || soumissionProduitEnCours"
+            class="btn-submit">
+            <i *ngIf="soumissionProduitEnCours" class="fa-solid fa-spinner fa-spin"></i>
+            <i *ngIf="!soumissionProduitEnCours" class="fa-solid fa-paper-plane"></i>
+            {{ soumissionProduitEnCours ? 'Envoi...' : 'Publier mon avis' }}
+          </button>
+        </div>
+      </div>
+    </div>
 </div>
 
 <!-- Loading initial -->
@@ -325,3 +445,4 @@
   <h2>{{ error }}</h2>
   <button class="btn-back" routerLink="/">Retour à l'accueil</button>
 </div>
+

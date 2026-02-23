@@ -132,3 +132,9 @@ export interface FiltresDisponibles {
   prix_max: number;
   boutiques: Array<{ _id: string; nom: string; count: number }>;
 }
+
+export interface Favori {
+  _id: string;
+  produit: Produit;
+  date_creation: Date;
+}

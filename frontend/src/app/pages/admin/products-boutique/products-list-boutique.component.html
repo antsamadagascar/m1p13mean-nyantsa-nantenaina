@@ -188,6 +188,29 @@
             <td class="px-6 py-4">
               <div class="text-sm font-medium text-gray-900">{{ produit.nom }}</div>
               <div class="text-xs text-gray-500" *ngIf="produit.marque">{{ produit.marque }}</div>
+              
+              <!-- ⭐ Évaluation -->
+              <div class="flex items-center gap-1 mt-1">
+                <div class="flex items-center">
+                  <ng-container *ngFor="let star of [1,2,3,4,5]">
+                    <!-- Étoile pleine -->
+                    <i *ngIf="star <= produit.note_moyenne"
+                      class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                    <!-- Demi-étoile -->
+                    <i *ngIf="star > produit.note_moyenne && star - 0.5 <= produit.note_moyenne"
+                      class="fa-solid fa-star-half-stroke text-yellow-400 text-xs"></i>
+                    <!-- Étoile vide -->
+                    <i *ngIf="star - 0.5 > produit.note_moyenne"
+                      class="fa-regular fa-star text-yellow-300 text-xs"></i>
+                  </ng-container>
+                </div>
+                <span class="text-xs text-gray-600 font-medium">
+                  {{ produit.note_moyenne | number:'1.1-1' }}
+                </span>
+                <span class="text-xs text-gray-400">
+                  ({{ produit.nombre_avis }})
+                </span>
+              </div>
             </td>
 
             <!-- Référence -->
