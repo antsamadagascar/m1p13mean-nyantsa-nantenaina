@@ -40,4 +40,19 @@ export class BoutiqueStatsService {
     if (options.annee)   params = params.set('annee',   String(options.annee));
     return this.http.get<StatsCA>(`${this.api}/${boutiqueId}/chiffre-affaires`, { params });
   }
+
+  getChiffreAffairesAdmin(options: StatsOptions = {}): Observable<StatsCA> {
+    let params = new HttpParams();
+
+    if (options.periode) params = params.set('periode', options.periode);
+    if (options.debut)   params = params.set('debut', options.debut);
+    if (options.fin)     params = params.set('fin', options.fin);
+    if (options.annee)   params = params.set('annee', String(options.annee));
+
+    return this.http.get<StatsCA>(
+      `${this.api}/chiffre-affaires`,
+      { params }
+    );
+  }
+
 }

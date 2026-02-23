@@ -47,15 +47,30 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     { label: 'Cette année', value: 'annee'   }
   ];
 
+  isAdmin = false;
+
+
   constructor(private statsService: BoutiqueStatsService) {}
 
+  // ngOnInit() {
+  //   try {
+  //     const user = JSON.parse(localStorage.getItem('user') || '{}');
+  //     this.boutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
+  //   } catch {}
+  //   this.chargerStats();
+  // }
   ngOnInit() {
-    try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      this.boutiqueId = user.boutiqueId || user.boutique_id || user.boutique || '';
-    } catch {}
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+    this.isAdmin = user.role === 'ADMIN';
+  
+    if (!this.isAdmin) {
+      this.boutiqueId = user.boutiqueId || '';
+    }
+  
     this.chargerStats();
   }
+  
 
   ngAfterViewInit() {}
 
@@ -95,27 +110,59 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.chargerStats();
   }
 
+  // chargerStats() {
+  //   if (!this.boutiqueId) { this.erreur = 'ID boutique introuvable.'; return; }
+  //   this.loading = true;
+  //   this.erreur  = '';
+
+  //   const options: StatsOptions = { periode: this.periodeActive };
+  //   if (this.anneeSelectionnee)             options.annee = this.anneeSelectionnee;
+  //   else if (this.dateDebut)                options.debut = this.dateDebut;
+  //   if (this.dateFin && !this.anneeSelectionnee) options.fin = this.dateFin;
+
+  //   this.statsService.getChiffreAffaires(this.boutiqueId, options).subscribe({
+  //     next: (res) => {
+  //       this.stats       = res;
+  //       this.anneesDispo = res.annees_dispos ?? [];
+  //       this.loading     = false;
+  //       this.tooltip.visible = false;
+  //       setTimeout(() => this.dessinerCourbe(), 100);
+  //     },
+  //     error: () => { this.erreur = 'Impossible de charger les statistiques.'; this.loading = false; }
+  //   });
+  // }
   chargerStats() {
-    if (!this.boutiqueId) { this.erreur = 'ID boutique introuvable.'; return; }
     this.loading = true;
     this.erreur  = '';
-
+  
     const options: StatsOptions = { periode: this.periodeActive };
-    if (this.anneeSelectionnee)             options.annee = this.anneeSelectionnee;
-    else if (this.dateDebut)                options.debut = this.dateDebut;
-    if (this.dateFin && !this.anneeSelectionnee) options.fin = this.dateFin;
-
-    this.statsService.getChiffreAffaires(this.boutiqueId, options).subscribe({
+  
+    if (this.anneeSelectionnee) {
+      options.annee = this.anneeSelectionnee;
+    } else {
+      if (this.dateDebut) options.debut = this.dateDebut;
+      if (this.dateFin)   options.fin   = this.dateFin;
+    }
+  
+    const request$ = this.isAdmin
+      ? this.statsService.getChiffreAffairesAdmin(options)
+      : this.statsService.getChiffreAffaires(this.boutiqueId, options);
+    console.log(request$);
+    request$.subscribe({
       next: (res) => {
-        this.stats       = res;
+        this.stats = res;
         this.anneesDispo = res.annees_dispos ?? [];
-        this.loading     = false;
-        this.tooltip.visible = false;
+        this.loading = false;
+  
         setTimeout(() => this.dessinerCourbe(), 100);
       },
-      error: () => { this.erreur = 'Impossible de charger les statistiques.'; this.loading = false; }
+      error: () => {
+        this.erreur = 'Impossible de charger les statistiques.';
+        this.loading = false;
+      }
     });
   }
+  
 
   // Redessine la courbe quand on change d'onglet
   changerVue(vue: 'reel' | 'previsionnel') {
