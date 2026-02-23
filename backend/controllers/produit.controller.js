@@ -93,9 +93,9 @@ exports.getProduits = async (req, res) => {
         case 'prix_desc':
           sortOptions = { prix: -1 };
           break;
-        case 'populaire':
-          sortOptions = { ventes: -1, vues: -1 };
-          break;
+        // case 'populaire':
+        //   sortOptions = { ventes: -1, vues: -1 };
+        //   break;
         case 'meilleures_notes':
           sortOptions = { note_moyenne: -1, nombre_avis: -1 };
           break;
@@ -111,7 +111,7 @@ exports.getProduits = async (req, res) => {
         .populate('boutique', 'nom slug')
         .populate('categorie', 'nom')
         .populate('sous_categorie', 'nom')
-        .populate('promotion_active') // ✅ populate la promotion pour utiliser promotion_active_valide
+        .populate('promotion_active') //  populate la promotion pour utiliser promotion_active_valide
         .sort(sortOptions)
         .skip(skip)
         .limit(parseInt(limite));
