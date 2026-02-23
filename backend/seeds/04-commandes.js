@@ -70,13 +70,13 @@ const BOUTIQUES = [
 
   // ── BOUTIQUE 1 : Home Decor (produits existants) ──────────────────────
   {
-    id:  '6995dad86dfefeae4a066c94',
+    id:  '699c986b3144c93ca161b8a5',
     nom: 'Home Decor',
     produits: [
-      { _id: '6995db6fa5bac5b6688a54d3', nom: "Canapé d'angle Scandi 5 places", prix: 1850000, sku: 'MBL-CAN-001' },
-      { _id: '6995db70a5bac5b6688a54e0', nom: 'Lampe sur pied Arc Design',       prix:  320000, sku: 'MBL-LAM-002' },
-      { _id: '6995db70a5bac5b6688a54da', nom: 'Table basse en chêne massif',     prix:  450000, sku: 'MBL-TAB-003' },
-      { _id: '6995db70a5bac5b6688a54e5', nom: 'Tapis berbère 200x300cm',         prix:  680000, sku: 'MBL-TAP-004' },
+      { _id: '699c98e0358398401af71a52', nom: "Canapé d'angle Scandi 5 places", prix: 1850000, sku: 'MBL-CAN-001' },
+      { _id: '699c98e0358398401af71a5f', nom: 'Lampe sur pied Arc Design',       prix:  320000, sku: 'MBL-LAM-002' },
+      { _id: '699c98e0358398401af71a59', nom: 'Table basse en chêne massif',     prix:  450000, sku: 'MBL-TAB-003' },
+      { _id: '699c98e0358398401af71a64', nom: 'Tapis berbère 200x300cm',         prix:  680000, sku: 'MBL-TAP-004' },
     ],
     // Profil : meubles haut de gamme, peu de commandes, gros montants
     commandes: [
@@ -110,7 +110,7 @@ const BOUTIQUES = [
 
   // ── BOUTIQUE 2 : Fashion Shop (1 produit existant + 3 à créer) ────────
   {
-    id:  '6995dad86dfefeae4a066c9a',
+    id:  '699c986b3144c93ca161b8a1',
     nom: 'Fashion Shop',
     produits: [
       { _id: '699c3adf6f3fe18543108897', nom: 'Robe de soirée élégante',     prix: 185000, sku: 'VET-ROB-001' },
@@ -165,7 +165,7 @@ const BOUTIQUES = [
 
   // ── BOUTIQUE 3 : Tech Store (tous produits à créer) ──────────────────
   {
-    id:  '6995dad86dfefeae4a066c98',
+    id:  '699c986b3144c93ca161b8a3',
     nom: 'Tech Store',
     produits: [
       { nom: 'Smartphone Android 128Go',  prix: 950000, sku: 'TEC-PHO-001' },
@@ -216,7 +216,7 @@ const BOUTIQUES = [
 
   // ── BOUTIQUE 4 : Kids Fashion (tous produits à créer) ────────────────
   {
-    id:  '6995dad86dfefeae4a066c9c',
+    id:  '699c986b3144c93ca161b8a7',
     nom: 'Kids Fashion',
     produits: [
       { nom: 'Ensemble pyjama enfant coton', prix:  45000, sku: 'KID-PYJ-001' },

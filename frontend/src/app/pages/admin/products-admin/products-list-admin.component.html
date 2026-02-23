@@ -170,14 +170,14 @@
 
             <!-- Stats -->
             <div class="flex items-center gap-4 text-sm">
-              <div class="flex items-center gap-1">
+              <!-- <div class="flex items-center gap-1">
                 <i class="fa-solid fa-eye text-gray-400"></i>
                 <span class="text-gray-600">{{ produit.vues || 0 }} vues</span>
-              </div>
-              <div class="flex items-center gap-1">
+              </div> -->
+              <!-- <div class="flex items-center gap-1">
                 <i class="fa-solid fa-shopping-cart text-gray-400"></i>
                 <span class="text-gray-600">{{ produit.ventes || 0 }} ventes</span>
-              </div>
+              </div> -->
               <div *ngIf="produit.note_moyenne" class="flex items-center gap-1">
                 <i class="fa-solid fa-star text-yellow-500"></i>
                 <span class="text-gray-600">{{ produit.note_moyenne }}/5 ({{ produit.nombre_avis }})</span>

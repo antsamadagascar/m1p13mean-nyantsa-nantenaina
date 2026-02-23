@@ -340,10 +340,7 @@ async function seedProduitsComplet() {
           images: data.images || [],
           gestion_stock: data.gestion_stock || 'SIMPLE',
           variantes: data.variantes || [],
-          vues: Math.floor(Math.random() * 500) + 50,
-          ventes: Math.floor(Math.random() * 100) + 10,
-          note_moyenne: parseFloat((Math.random() * 1.5 + 3.5).toFixed(1)),
-          nombre_avis: Math.floor(Math.random() * 80) + 15
+
         };
 
         const produit = await Produit.create(produitData);
