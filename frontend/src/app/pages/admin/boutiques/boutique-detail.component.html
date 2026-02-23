@@ -32,6 +32,12 @@
         >
           <i class="fa-solid fa-ban mr-2"></i> Suspendre
         </button>   
+          <button
+            (click)="startEdit()"
+            *ngIf="!isEditing && isAdmin()"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition">
+            <i class="fa-solid fa-pen-to-square mr-2"></i> Modifier
+        </button>
       </div>
     </div>
 
@@ -42,8 +48,422 @@
         [alt]="boutique.nom"
         class="w-full h-50 object-cover rounded-lg shadow"
       />
-    </div>
+    </div>  
+    <!-- ============================================ -->
+      <!-- FORMULAIRE D'ÉDITION (affiché si isEditing) -->
+      <!-- ============================================ -->
+    <div *ngIf="isEditing" class="bg-white rounded-xl shadow p-6 space-y-6 mb-6">
+      <h2 class="text-xl font-bold text-gray-800 border-b pb-3">
+        <i class="fa-solid fa-pen-to-square mr-2 text-blue-600"></i>
+        Modifier la boutique
+      </h2>
 
+      <!-- Informations de base -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-store mr-2 text-blue-600"></i> Informations de base
+        </h3>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
+          <input type="text" [(ngModel)]="editData.nom" maxlength="255"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Description <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-500">(min. 50 caractères)</span>
+          </label>
+          <textarea [(ngModel)]="editData.description" rows="4" maxlength="2000"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"></textarea>
+          <div class="text-xs text-gray-500 mt-1 text-right">
+            {{ editData.description?.length || 0 }} / 2000
+          </div>
+        </div>
+      </div>
+
+      <!-- Gérant -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-user-tie mr-2 text-blue-600"></i> Gérant
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+            <input type="text" [(ngModel)]="editData.gerant.nom"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Prénom</label>
+            <input type="text" [(ngModel)]="editData.gerant.prenom"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+         <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input type="email"
+              [(ngModel)]="editData.gerant.email"
+              (blur)="validateEmail('gerant')"
+              [ngClass]="urlErrors['gerant_email'] 
+                ? 'border-red-400 focus:ring-red-400' 
+                : 'border-gray-300 focus:ring-blue-500'"
+              class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none"
+              placeholder="email&#64;exemple.com">
+            <p *ngIf="urlErrors['gerant_email']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Email invalide
+            </p>
+          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+          <input type="text"
+            [(ngModel)]="editData.gerant.telephone"
+            (blur)="validateGerantPhone()"
+            [ngClass]="urlErrors['gerant_telephone']
+              ? 'border-red-400 focus:ring-red-400'
+              : 'border-gray-300 focus:ring-blue-500'"
+            class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none"
+            placeholder="+261 32 00 000 00">
+          <p *ngIf="urlErrors['gerant_telephone']" class="text-xs text-red-500 mt-1">
+            <i class="fa-solid fa-circle-exclamation mr-1"></i>
+            Format invalide — ex: +261 32 00 000 00
+          </p>
+        </div>
+        </div>
+      </div>
+
+      <!-- Localisation -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-location-dot mr-2 text-blue-600"></i> Localisation
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Zone <span class="text-red-500">*</span></label>
+            <select [(ngModel)]="editData.localisation.zone"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+            <input type="text" [(ngModel)]="editData.localisation.adresse_complete"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Surface (m²)</label>
+            <input type="number" [(ngModel)]="editData.localisation.surface" min="0"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
+            <input type="number" step="any" [(ngModel)]="editData.localisation.latitude"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
+            <input type="number" step="any" [(ngModel)]="editData.localisation.longitude"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-address-book mr-2 text-blue-600"></i> Contact
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+          <!-- Téléphone → validatePhone -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              Téléphone <span class="text-red-500">*</span>
+            </label>
+            <input type="text"
+              [(ngModel)]="editData.contact.telephone"
+              (blur)="validatePhone('telephone')"
+              placeholder="+261 32 00 000 00"
+              [ngClass]="urlErrors['telephone'] 
+                ? 'border-red-400 focus:ring-red-400' 
+                : 'border-gray-300 focus:ring-blue-500'"
+              class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none">
+            <p *ngIf="urlErrors['telephone']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Format invalide — ex: +261 32 00 000 00
+            </p>
+          </div>
+
+          <!-- Email → pas de validator custom, type="email" suffit -->
+         <!-- Email contact -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input type="email"
+                [(ngModel)]="editData.contact.email"
+                (blur)="validateEmail('email')"
+                [ngClass]="urlErrors['contact_email'] 
+                  ? 'border-red-400 focus:ring-red-400' 
+                  : 'border-gray-300 focus:ring-blue-500'"
+                class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none"
+                placeholder="contact&#64;boutique.com">
+              <p *ngIf="urlErrors['contact_email']" class="text-xs text-red-500 mt-1">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                Email invalide
+              </p>
+            </div>
+
+          <!-- Site web → validateUrl -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-globe mr-1"></i> Site web
+            </label>
+            <input type="text"
+              [(ngModel)]="editData.contact.site_web"
+              (blur)="validateUrl('site_web')"
+              placeholder="https://monsite.com"
+              [ngClass]="urlErrors['site_web'] 
+                ? 'border-red-400 focus:ring-red-400' 
+                : 'border-gray-300 focus:ring-blue-500'"
+              class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none">
+            <p *ngIf="urlErrors['site_web']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              URL invalide — doit commencer par https://
+            </p>
+          </div>
+
+          <!-- WhatsApp → validatePhone -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-brands fa-whatsapp mr-1 text-green-600"></i> WhatsApp
+            </label>
+            <input type="text"
+              [(ngModel)]="editData.contact.whatsapp"
+              (blur)="validatePhone('whatsapp')"
+              placeholder="+261 32 00 000 00"
+              [ngClass]="urlErrors['whatsapp'] 
+                ? 'border-red-400 focus:ring-red-400' 
+                : 'border-gray-300 focus:ring-blue-500'"
+              class="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:outline-none">
+            <p *ngIf="urlErrors['whatsapp']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Format invalide — ex: +261 32 00 000 00
+            </p>
+          </div>
+
+          <!-- Facebook → validateSocialHandle -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-brands fa-facebook mr-1 text-blue-600"></i> Facebook
+            </label>
+            <div class="flex rounded-lg overflow-hidden border focus-within:ring-2"
+              [ngClass]="urlErrors['facebook'] 
+                ? 'border-red-400 focus-within:ring-red-400' 
+                : 'border-gray-300 focus-within:ring-blue-500'">
+              <span class="bg-gray-100 px-3 py-2 text-sm text-gray-500 border-r border-gray-300 whitespace-nowrap">
+                facebook.com/
+              </span>
+              <input type="text"
+                [(ngModel)]="editData.contact.facebook"
+                (blur)="validateSocialHandle('facebook')"
+                placeholder="maboutique"
+                class="flex-1 px-3 py-2 focus:outline-none">
+            </div>
+            <p *ngIf="urlErrors['facebook']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Nom d'utilisateur invalide — sans  &#64;, espaces ou liens
+            </p>
+          </div>
+
+          <!-- Instagram → validateSocialHandle -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-brands fa-instagram mr-1 text-pink-600"></i> Instagram
+            </label>
+            <div class="flex rounded-lg overflow-hidden border focus-within:ring-2"
+              [ngClass]="urlErrors['instagram'] 
+                ? 'border-red-400 focus-within:ring-red-400' 
+                : 'border-gray-300 focus-within:ring-blue-500'">
+              <span class="bg-gray-100 px-3 py-2 text-sm text-gray-500 border-r border-gray-300 whitespace-nowrap">
+                instagram.com/
+              </span>
+              <input type="text"
+                [(ngModel)]="editData.contact.instagram"
+                (blur)="validateSocialHandle('instagram')"
+                placeholder="maboutique"
+                class="flex-1 px-3 py-2 focus:outline-none">
+            </div>
+            <p *ngIf="urlErrors['instagram']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Nom d'utilisateur invalide — sans  &#64;, espaces ou liens
+            </p>
+          </div>
+
+          <!-- Twitter/X → validateSocialHandle -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-brands fa-x-twitter mr-1"></i> Twitter / X
+            </label>
+            <div class="flex rounded-lg overflow-hidden border focus-within:ring-2"
+              [ngClass]="urlErrors['twitter'] 
+                ? 'border-red-400 focus-within:ring-red-400' 
+                : 'border-gray-300 focus-within:ring-blue-500'">
+              <span class="bg-gray-100 px-3 py-2 text-sm text-gray-500 border-r border-gray-300 whitespace-nowrap">
+                x.com/
+              </span>
+              <input type="text"
+                [(ngModel)]="editData.contact.twitter"
+                (blur)="validateSocialHandle('twitter')"
+                placeholder="maboutique"
+                class="flex-1 px-3 py-2 focus:outline-none">
+            </div>
+            <p *ngIf="urlErrors['twitter']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Nom d'utilisateur invalide — sans  &#64;, espaces ou liens
+            </p>
+          </div>
+
+          <!-- TikTok → validateSocialHandle -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-brands fa-tiktok mr-1"></i> TikTok
+            </label>
+            <div class="flex rounded-lg overflow-hidden border focus-within:ring-2"
+              [ngClass]="urlErrors['tiktok'] 
+                ? 'border-red-400 focus-within:ring-red-400' 
+                : 'border-gray-300 focus-within:ring-blue-500'">
+              <span class="bg-gray-100 px-3 py-2 text-sm text-gray-500 border-r border-gray-300 whitespace-nowrap">
+                tiktok.com/&#64;
+              </span>
+              <input type="text"
+                [(ngModel)]="editData.contact.tiktok"
+                (blur)="validateSocialHandle('tiktok')"
+                placeholder="maboutique"
+                class="flex-1 px-3 py-2 focus:outline-none">
+            </div>
+            <p *ngIf="urlErrors['tiktok']" class="text-xs text-red-500 mt-1">
+              <i class="fa-solid fa-circle-exclamation mr-1"></i>
+              Nom d'utilisateur invalide — sans  &#64;, espaces ou liens
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Bouton Enregistrer — désactivé si erreurs -->
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button type="button" (click)="cancelEdit()" [disabled]="isUpdating"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-50">
+          <i class="fa-solid fa-xmark mr-2"></i> Annuler
+        </button>
+        <button type="button" (click)="submitUpdate()"
+          [disabled]="isUpdating || hasUrlErrors() || uploadingImage['logo'] || uploadingImage['banniere']"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition 
+                disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2">
+          <i *ngIf="isUpdating" class="fa-solid fa-circle-notch fa-spin"></i>
+          <i *ngIf="!isUpdating" class="fa-solid fa-check"></i>
+          {{ isUpdating ? 'Mise à jour...' : 'Enregistrer' }}
+        </button>
+      </div>
+
+      <!-- Catégorie -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-tags mr-2 text-blue-600"></i> Catégorie
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Catégorie principale</label>
+            <select [(ngModel)]="editData.categorie" (change)="onCategorieChange()"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let cat of categories" [value]="cat._id">{{ cat.nom }}</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Sous-catégorie</label>
+            <select [(ngModel)]="selectedSousCategorie" [disabled]="!sousCategories.length"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="">-- Sélectionner --</option>
+              <option *ngFor="let sub of sousCategories" [value]="sub._id">{{ sub.nom }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <!-- Images -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4">
+          <i class="fa-solid fa-image mr-2 text-blue-600"></i> Images
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+          <!-- Logo -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Logo</label>
+            <div class="flex flex-col items-center gap-2">
+              <img *ngIf="editData.logo" 
+                  [src]="editData.logo"
+                  class="w-20 h-20 rounded-lg object-cover border border-gray-200" 
+                  alt="Logo">
+              <div *ngIf="!editData.logo"
+                class="w-20 h-20 rounded-lg bg-gray-200 flex items-center justify-center">
+                <i class="fa-solid fa-store text-gray-400 text-2xl"></i>
+              </div>
+              <label class="cursor-pointer bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
+                <i class="fa-solid fa-upload mr-1"></i> Choisir
+                <input type="file" accept="image/*" class="hidden"
+                  (change)="onFileChange($event, 'logo')">
+              </label>
+              <button *ngIf="editData.logo" type="button"
+                (click)="editData.logo = null"
+                class="text-xs text-red-500 hover:text-red-700">
+                <i class="fa-solid fa-trash mr-1"></i> Supprimer
+              </button>
+            </div>
+          </div>
+
+          <!-- Bannière -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Bannière</label>
+            <div class="flex flex-col items-center gap-2">
+             <img *ngIf="editData.banniere" 
+                    [src]="editData.banniere"
+                    class="w-full h-20 rounded-lg object-cover border border-gray-200" 
+                    alt="Bannière">
+              <div *ngIf="!editData.banniere"
+                class="w-full h-20 rounded-lg bg-gray-200 flex items-center justify-center">
+                <i class="fa-solid fa-panorama text-gray-400 text-2xl"></i>
+              </div>
+              <label class="cursor-pointer bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-50 transition">
+                <i class="fa-solid fa-upload mr-1"></i> Choisir
+                <input type="file" accept="image/*" class="hidden"
+                  (change)="onFileChange($event, 'banniere')">
+              </label>
+              <button *ngIf="editData.banniere" type="button"
+                (click)="editData.banniere = null"
+                class="text-xs text-red-500 hover:text-red-700">
+                <i class="fa-solid fa-trash mr-1"></i> Supprimer
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- Boutons -->
+      <div class="flex justify-end gap-3 pt-4 border-t">
+        <button type="button" (click)="cancelEdit()" [disabled]="isUpdating"
+          class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2.5 rounded-lg font-medium transition disabled:opacity-50">
+          <i class="fa-solid fa-xmark mr-2"></i> Annuler
+        </button>
+        <button type="button" (click)="submitUpdate()" [disabled]="isUpdating"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg font-medium transition disabled:bg-gray-400 flex items-center gap-2">
+          <i *ngIf="isUpdating" class="fa-solid fa-circle-notch fa-spin"></i>
+          <i *ngIf="!isUpdating" class="fa-solid fa-check"></i>
+          {{ isUpdating ? 'Mise à jour...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </div>
+    <!--  fin update-->
     <!-- Grid principale -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       

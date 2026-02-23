@@ -47,7 +47,22 @@ const validateEmail = (email) => {
   return true;
 };
 
+//  Numéros malgaches : 032, 033, 034, 037, 038 — 10 chiffres
+const validateTelephone = (telephone) => {
+  if (!telephone) throw new Error('Téléphone requis');
+
+  // Nettoye les espaces et tirets
+  const clean = telephone.replace(/[\s\-]/g, '');
+
+  const regex = /^(032|033|034|037|038)\d{7}$/;
+  if (!regex.test(clean)) {
+    throw new Error('Numéro invalide — doit commencer par 032, 033, 034, 037 ou 038 (10 chiffres)');
+  }
+  return true;
+};
+
 module.exports = {
   validatePassword,
-  validateEmail
+  validateEmail,
+  validateTelephone
 };

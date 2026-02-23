@@ -13,46 +13,80 @@ export function getJourActuel(): string {
 }
 
 /**
+ * Convertit une heure HH:MM en minutes.
+ * - Si fin < debut → ajoute 1440 (fermeture le lendemain)
+ * - Si fin = 00:00 → 1440 (minuit exact)
+ */
+function enMinutes(h: number, m: number, estFin = false, debutMinutes: number | null = null): number {
+  if (estFin && h === 0 && m === 0) return 1440;
+  const minutes = h * 60 + m;
+  if (estFin && debutMinutes !== null && minutes < debutMinutes) {
+    return minutes + 1440; // fermeture le lendemain (ex: 08:00 → 01:00)
+  }
+  return minutes;
+}
+
+/**
+ * Vérifie si un horaire chevauche minuit (ex: 20:00 → 02:00)
+ */
+function chevaucheMinuit(horaire: Horaire | null | undefined): boolean {
+  if (!horaire || !horaire.ouvert) return false;
+  const [hD, mD] = horaire.debut.split(':').map(Number);
+  const [hF, mF] = horaire.fin.split(':').map(Number);
+  const debut = hD * 60 + mD;
+  const fin = hF * 60 + mF;
+  return fin < debut || (hF === 0 && mF === 0);
+}
+
+/**
  * Vérifie si la boutique est ouverte maintenant
  */
 export function estOuverte(horaires: HorairesBoutique | null | undefined): boolean {
-  if (!horaires) {
-    return false;
-  }
+  if (!horaires) return false;
 
-  const jour = getJourActuel();
-  const horaire = horaires[jour];
-
-  if (!horaire || !horaire.ouvert) {
-    return false;
-  }
-
+  const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
   const maintenant = new Date();
   const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
+  const jourIndex = maintenant.getDay();
 
-  const [heureDebut, minDebut] = horaire.debut.split(':').map(Number);
-  const [heureFin, minFin] = horaire.fin.split(':').map(Number);
+  // Vérifier le jour actuel
+  const horaire = horaires[joursNoms[jourIndex]];
+  if (horaire && horaire.ouvert) {
+    const [hD, mD] = horaire.debut.split(':').map(Number);
+    const [hF, mF] = horaire.fin.split(':').map(Number);
+    const debut = enMinutes(hD, mD);
+    const fin = enMinutes(hF, mF, true, debut);
+    const heureTest = (fin > 1440 && heureActuelle < debut) ? heureActuelle + 1440 : heureActuelle;
+    if (heureTest >= debut && heureTest <= fin) return true;
+  }
 
-  const debut = heureDebut * 60 + minDebut;
-  const fin = heureFin * 60 + minFin;
+  // Vérifier si le jour PRÉCÉDENT avait un horaire qui déborde sur aujourd'hui
+  // ex: vendredi 20:00 → 02:00, il est samedi 01:00 → toujours ouvert
+  const jourPrecedentIndex = (jourIndex + 6) % 7;
+  const horairePrecedent = horaires[joursNoms[jourPrecedentIndex]];
+  if (horairePrecedent && horairePrecedent.ouvert && chevaucheMinuit(horairePrecedent)) {
+    const [hD, mD] = horairePrecedent.debut.split(':').map(Number);
+    const [hF, mF] = horairePrecedent.fin.split(':').map(Number);
+    const debut = enMinutes(hD, mD);
+    const fin = enMinutes(hF, mF, true, debut);
+    const heureTest = heureActuelle + 1440;
+    if (heureTest >= debut && heureTest <= fin) return true;
+  }
 
-  return heureActuelle >= debut && heureActuelle <= fin;
+  return false;
 }
 
 /**
  * Obtient le message de statut de la boutique
  */
 export function getStatutMessage(horaires: HorairesBoutique | null | undefined): string {
-  if (!horaires) {
-    return 'Horaires non définis';
-  }
+  if (!horaires) return 'Horaires non définis';
 
-  if (estOuverte(horaires)) {
-    return 'Ouverte maintenant';
-  }
+  if (estOuverte(horaires)) return 'Ouverte maintenant';
 
   const maintenant = new Date();
   const jourActuel = maintenant.getDay();
+  const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
   const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
   for (let i = 0; i < 7; i++) {
@@ -61,13 +95,18 @@ export function getStatutMessage(horaires: HorairesBoutique | null | undefined):
     const horaire = horaires[nomJour];
 
     if (horaire && horaire.ouvert) {
+      const [hD, mD] = horaire.debut.split(':').map(Number);
+      const debutMinutes = enMinutes(hD, mD);
+
       if (i === 0) {
-        return `Ouvre aujourd'hui à ${horaire.debut}`;
-      } else if (i === 1) {
-        return `Ouvre demain à ${horaire.debut}`;
-      } else {
-        return `Ouvre ${nomJour} à ${horaire.debut}`;
+        if (heureActuelle < debutMinutes) {
+          return `Ouvre aujourd'hui à ${horaire.debut}`;
+        }
+        continue;
       }
+
+      if (i === 1) return `Ouvre demain à ${horaire.debut}`;
+      return `Ouvre ${nomJour} à ${horaire.debut}`;
     }
   }
 
@@ -78,17 +117,10 @@ export function getStatutMessage(horaires: HorairesBoutique | null | undefined):
  * Obtient les horaires du jour actuel
  */
 export function getHorairesAujourdhui(horaires: HorairesBoutique | null | undefined): string {
-  if (!horaires) {
-    return 'Non disponible';
-  }
-
+  if (!horaires) return 'Non disponible';
   const jour = getJourActuel();
   const horaire = horaires[jour];
-
-  if (!horaire || !horaire.ouvert) {
-    return "Fermé aujourd'hui";
-  }
-
+  if (!horaire || !horaire.ouvert) return "Fermé aujourd'hui";
   return `${horaire.debut} - ${horaire.fin}`;
 }
 
@@ -110,9 +142,7 @@ export function getJoursOrdre(): string[] {
  * Formate un horaire pour l'affichage
  */
 export function formatHoraire(horaire: Horaire | null | undefined): string {
-  if (!horaire || !horaire.ouvert) {
-    return 'Fermé';
-  }
+  if (!horaire || !horaire.ouvert) return 'Fermé';
   return `${horaire.debut} - ${horaire.fin}`;
 }
 
@@ -120,50 +150,45 @@ export function formatHoraire(horaire: Horaire | null | undefined): string {
  * Vérifie si la boutique sera ouverte à une heure donnée
  */
 export function seraOuverte(
-  horaires: HorairesBoutique | null | undefined, 
-  heure: string, 
+  horaires: HorairesBoutique | null | undefined,
+  heure: string,
   jour?: string
 ): boolean {
-  if (!horaires) {
-    return false;
-  }
+  if (!horaires) return false;
 
   const jourCible = jour || getJourActuel();
   const horaire = horaires[jourCible];
-
-  if (!horaire || !horaire.ouvert) {
-    return false;
-  }
+  if (!horaire || !horaire.ouvert) return false;
 
   const [heureTest, minTest] = heure.split(':').map(Number);
-  const [heureDebut, minDebut] = horaire.debut.split(':').map(Number);
-  const [heureFin, minFin] = horaire.fin.split(':').map(Number);
+  const [hD, mD] = horaire.debut.split(':').map(Number);
+  const [hF, mF] = horaire.fin.split(':').map(Number);
 
-  const heureTestMinutes = heureTest * 60 + (minTest || 0);
-  const heureDebutMinutes = heureDebut * 60 + minDebut;
-  const heureFinMinutes = heureFin * 60 + minFin;
+  const debutMinutes = enMinutes(hD, mD);
+  const finMinutes = enMinutes(hF, mF, true, debutMinutes);
+  let heureTestMinutes = enMinutes(heureTest, minTest || 0);
 
-  return heureTestMinutes >= heureDebutMinutes && heureTestMinutes <= heureFinMinutes;
+  if (finMinutes > 1440 && heureTestMinutes < debutMinutes) {
+    heureTestMinutes += 1440;
+  }
+
+  return heureTestMinutes >= debutMinutes && heureTestMinutes <= finMinutes;
 }
 
 /**
  * Calcule le nombre d'heures d'ouverture dans la semaine
  */
 export function getHeuresOuverture(horaires: HorairesBoutique | null | undefined): number {
-  if (!horaires) {
-    return 0;
-  }
-
+  if (!horaires) return 0;
   let totalMinutes = 0;
-  const jours = getJoursOrdre();
 
-  jours.forEach(jour => {
+  getJoursOrdre().forEach(jour => {
     const horaire = horaires[jour];
     if (horaire && horaire.ouvert) {
       const [hD, mD] = horaire.debut.split(':').map(Number);
       const [hF, mF] = horaire.fin.split(':').map(Number);
-      const debut = hD * 60 + mD;
-      const fin = hF * 60 + mF;
+      const debut = enMinutes(hD, mD);
+      const fin = enMinutes(hF, mF, true, debut);
       totalMinutes += fin - debut;
     }
   });
@@ -175,12 +200,8 @@ export function getHeuresOuverture(horaires: HorairesBoutique | null | undefined
  * Obtient les jours d'ouverture
  */
 export function getJoursOuverture(horaires: HorairesBoutique | null | undefined): string[] {
-  if (!horaires) {
-    return [];
-  }
-
-  const jours = getJoursOrdre();
-  return jours.filter(jour => {
+  if (!horaires) return [];
+  return getJoursOrdre().filter(jour => {
     const horaire = horaires[jour];
     return horaire && horaire.ouvert;
   });

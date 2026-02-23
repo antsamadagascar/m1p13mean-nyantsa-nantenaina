@@ -5,18 +5,22 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { BoutiqueService } from '../../../services/boutique.service';
 import { ProductService } from '../../../services/produit.service';
-import { Boutique } from '../../../models/boutique.model';
+import { Boutique,EvaluationClient } from '../../../models/boutique.model';
 import { Produit } from '../../../models/produit.model';
+import { EvaluationService } from '../../../services/evaluation.service';
+import { AuthService } from '../../../services/auth.service';
+import { AlertService } from '../../../services/alert.service';
 import * as L from 'leaflet';
 
 // Import des utilitaires
 import * as HorairesUtils from '../../../utils/boutique-horaires.util';
 
+import { BtnFavoriComponent } from '../btn-favori/btn-favori.component';
 
 @Component({
   selector: 'app-boutique-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink,BtnFavoriComponent],
   templateUrl: './boutique-detail.component.html',
   styleUrls: ['./boutique-detail.component.css']
 })
@@ -24,6 +28,7 @@ import * as HorairesUtils from '../../../utils/boutique-horaires.util';
 export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   boutique: Boutique | null = null;
   produits: Produit[] = [];
+  currentUser: any = null;
   
   loading = true;
   loadingProduits = true;
@@ -36,22 +41,40 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
   
   triProduits = 'nouveaute';
   ongletActif: 'produits' | 'apropos' | 'horaires' = 'produits';
+
+  // ============================================
+  // ÉVALUATIONS PRODUIT
+  // ============================================
+  modalProduitOuvert = false;
+  produitSelectionne: Produit | null = null;
+  noteSelectProduit = 0;
+  noteHoverProduit = 0;
+  commentaireProduit = '';
+  soumissionProduitEnCours = false;
+  messageRetourProduit = '';
+  messageErreurProduit = '';
   
   // Utiliser l'utilitaire pour l'ordre des jours
   joursOrdre = HorairesUtils.getJoursOrdre();
   private map: L.Map | null = null;
+
 
   private destroy$ = new Subject<void>();
 
   constructor(
     private boutiqueService: BoutiqueService,
     private productService: ProductService,
+    private evaluationService: EvaluationService,
     private route: ActivatedRoute,
+    private authService: AuthService,
+    private alertService: AlertService,
     private router: Router
 
   ) {}
 
   ngOnInit(): void {
+    this.authService.currentUser$.subscribe(user => this.currentUser = user);
+
     this.route.params.pipe(takeUntil(this.destroy$)).subscribe(params => {
       const id = params['id'];
       if (id) {
@@ -278,5 +301,63 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
 
     setTimeout(() => this.map?.invalidateSize(), 200);
   }
+    // ============================================
+  // MODAL PRODUIT
+  // ============================================
+  ouvrirModalProduit(produit: Produit, event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
 
+    // if (!this.currentUser) { this.router.navigate(['/auth/login']); return; }
+
+    this.produitSelectionne = produit;
+    this.noteSelectProduit = 0;
+    this.noteHoverProduit = 0;
+    this.commentaireProduit = '';
+    this.messageRetourProduit = '';
+    this.messageErreurProduit = '';
+    this.modalProduitOuvert = true;
+  }
+
+  fermerModalProduit(): void { this.modalProduitOuvert = false; this.produitSelectionne = null; }
+
+  soumettreEvaluationProduit(): void {
+    if (!this.produitSelectionne || this.noteSelectProduit === 0) return;
+
+    this.soumissionProduitEnCours = true;
+    this.evaluationService.soumettreEvaluationProduit(this.produitSelectionne._id, {
+      note: this.noteSelectProduit,
+      commentaire: this.commentaireProduit
+    }).subscribe({
+      next: (res) => {
+        // this.messageRetourProduit = 'Merci pour votre avis !';
+        this.soumissionProduitEnCours = false;
+        if (this.boutique) {
+          this.chargerProduitsBoutique(this.boutique._id);
+        }
+        this.fermerModalProduit();
+        this.alertService.success('Merci pour votre avis !');
+      },
+      error: (err) => {
+        // this.messageErreurProduit = err?.error?.message || 'Une erreur est survenue.';
+        this.soumissionProduitEnCours = false;
+        this.alertService.error(
+          err?.error?.message || 'Une erreur est survenue lors de l\'envoi de votre avis.'
+        );
+      }
+    });
+  }
+
+  // ============================================
+  // UTILITAIRES ÉTOILES
+  // ============================================
+  getClassEtoile(star: number, moyenne: number): string {
+    return star <= Math.round(moyenne) ? 'fa-solid' : 'fa-regular';
+  }
+
+  getClassEtoileProduit(star: number, moyenne: number): string {
+    if (star <= Math.floor(moyenne)) return 'fa-solid';
+    if (star === Math.ceil(moyenne) && moyenne % 1 >= 0.5) return 'fa-solid';
+    return 'fa-regular';
+  }
 }

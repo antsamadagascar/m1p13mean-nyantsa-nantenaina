@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { BoutiqueService } from '../../../services/boutique.service';
-import { Boutique } from '../../../models/boutique.model';
+import { EvaluationService } from '../../../services/evaluation.service';
+import { Boutique,EvaluationClient } from '../../../models/boutique.model';
 import { AuthService } from '../../../services/auth.service';
+import { AlertService } from '../../../services/alert.service';
 // Import des utilitaires
 import * as HorairesUtils from '../../../utils/boutique-horaires.util';
-
 @Component({
   selector: 'app-boutiques-list',
   standalone: true,
@@ -43,8 +44,25 @@ export class HomeComponent implements OnInit {
   // Vue
   viewMode: 'grid' | 'list' = 'grid';
 
+  // ============================================
+  // ÉVALUATION
+  // ============================================
+  evaluationsMap: { [boutiqueId: string]: EvaluationClient[] } = {};
+
+  // Modal d'évaluation
+  modalOuvert = false;
+  boutiqueSelectionnee: Boutique | null = null;
+  noteSelectionnee = 0;
+  noteHover = 0;
+  commentaire = '';
+  soumissionEnCours = false;
+  messageRetour = '';
+  messageErreur = '';
+
   constructor(
     private boutiqueService: BoutiqueService,
+    private evaluationService: EvaluationService,
+    private alertService: AlertService,
     private router: Router,
     private authService: AuthService   
   ) {}
@@ -217,5 +235,90 @@ export class HomeComponent implements OnInit {
   estOuverte(boutique: Boutique): boolean {
     return HorairesUtils.estOuverte(boutique.horaires);
   }
+
+
+  // ============================================
+  // MÉTHODES ÉVALUATION
+  // ============================================
+
+  /** Retourne un tableau [1,2,3,4,5] pour les étoiles */
+  get etoiles(): number[] {
+    return [1, 2, 3, 4, 5];
+  }
+
+  /** Ouvre le modal d'évaluation pour une boutique */
+  ouvrirEvaluation(boutique: Boutique, event: Event) {
+    event.stopPropagation();
+
+    if (!this.currentUser) {
+      this.router.navigate(['/auth/login']);
+      return;
+    }
+
+    this.boutiqueSelectionnee = boutique;
+    this.noteSelectionnee = 0;
+    this.noteHover = 0;
+    this.commentaire = '';
+    this.messageRetour = '';
+    this.messageErreur = '';
+    this.modalOuvert = true;
+  }
+
+  fermerModal() {
+    this.modalOuvert = false;
+    this.boutiqueSelectionnee = null;
+  }
+
+  survolEtoile(note: number) {
+    this.noteHover = note;
+  }
+
+  quitterSurvol() {
+    this.noteHover = 0;
+  }
+
+  selectionnerNote(note: number) {
+    this.noteSelectionnee = note;
+  }
+  getClassEtoile(star: number, moyenne: number): string {
+    if (star <= Math.floor(moyenne)) return 'fa-solid';
+    if (star === Math.ceil(moyenne) && moyenne % 1 >= 0.5) return 'fa-solid'; // demi arrondi
+    return 'fa-regular';
+  }
+  /** Détermine si une étoile doit être pleine (survol ou sélection) */
+  etoilePleine(index: number): boolean {
+    return index <= (this.noteHover || this.noteSelectionnee);
+  }
+  soumettrEvaluation() {
+    if (!this.boutiqueSelectionnee || this.noteSelectionnee === 0) {
+      this.alertService.error('Veuillez sélectionner une note.');
+      return;
+    }
+  
+    this.soumissionEnCours = true;
+  
+    this.evaluationService.soumettre(this.boutiqueSelectionnee._id, {
+      note: this.noteSelectionnee,
+      commentaire: this.commentaire
+    }).subscribe({
+      next: () => {
+        
+        this.soumissionEnCours = false;  
+        this.loadBoutiques();
+        this.fermerModal();
+        this.alertService.success('Merci pour votre avis !');
+      },
+      error: (err) => {
+        console.error('Erreur soumission évaluation:', err);
+        this.soumissionEnCours = false;
+  
+        this.alertService.error(
+          err?.error?.message || 'Une erreur est survenue lors de l\'envoi de votre avis.'
+        );
+      }
+    });
+  }
+  
+
 
 }

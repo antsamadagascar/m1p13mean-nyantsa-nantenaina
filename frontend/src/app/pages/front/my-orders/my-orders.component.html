@@ -1,0 +1,410 @@
+<div class="mes-commandes-page">
+  <div class="container">
+
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1>Mes commandes</h1>
+        <p class="subtitle">
+          <span class="dot-live"></span> Mise à jour : {{ formatHeureFn(derniereMaj) }}
+        </p>
+      </div>
+      
+      <a routerLink="/produits" class="btn-shop">Continuer mes achats</a>
+    </div>
+    <!-- Chargement -->
+    <div class="loading-state" *ngIf="loading">
+      <div class="spinner"></div>
+      <p>Chargement...</p>
+    </div>
+
+    <!-- Erreur -->
+    <div class="error-state" *ngIf="error && !loading">
+      <p>{{ error }}</p>
+      <button (click)="chargerCommandes()">Réessayer</button>
+    </div>
+
+    <div *ngIf="!loading && !error">
+
+      <!--  Stats temps réel — masquées quand historique ouvert -->
+      <div class="stats-bar" *ngIf="!afficherHistorique">
+        <div class="stat-item">
+          <span class="stat-value">{{ statsTempsReel.total }}</span>
+          <span class="stat-label">Commande(s)</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ statsTempsReel.enCours }}</span>
+          <span class="stat-label">En cours</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ formatPrixFn(statsTempsReel.totalDepense) }}</span>
+          <span class="stat-label">Total dépensé</span>
+        </div>
+      </div>
+
+      <!--  Stats historique — visibles quand switch ON, se mettent à jour avec les filtres -->
+      <div class="stats-bar stats-historique" *ngIf="afficherHistorique">
+        <div class="stat-item">
+          <span class="stat-value">{{ statsHistorique.total }}</span>
+          <span class="stat-label">Résultats</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ formatPrixFn(statsHistorique.totalDepense) }}</span>
+          <span class="stat-label">Total payé (période)</span>
+        </div>
+      </div>
+
+      <!-- Aucune commande -->
+      <div class="empty-state" *ngIf="commandes.length === 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 01-8 0"></path>
+        </svg>
+        <h2>Aucune commande pour le moment</h2>
+        <a routerLink="/produits" class="btn-shop">Découvrir nos produits</a>
+      </div>
+
+        <!-- ================================================== -->
+        <!-- SECTION 2 : HISTORIQUE — switch toggle             -->
+        <!-- ================================================== -->
+        <div class="section-block historique-block">
+          <div class="section-header historique-header" (click)="toggleHistorique()">
+            <div class="historique-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              <h2>Historique</h2>
+              <span class="badge-count grey" *ngIf="commandesHistorique.length > 0">
+                {{ commandesHistorique.length }}
+              </span>
+            </div>
+            <div class="toggle-switch" [class.active]="afficherHistorique">
+              <span class="toggle-label">{{ afficherHistorique ? 'Masquer' : 'Afficher' }}</span>
+              <div class="toggle-track">
+                <div class="toggle-thumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="historique-content" *ngIf="afficherHistorique">
+
+            <!--  Barre de filtres — chaque changement déclenche onFiltreHistoriqueChange() -->
+            <div class="filtres-bar">
+
+              <!-- Filtre statut -->
+              <div class="filtre-groupe">
+                <label>Statut</label>
+                <div class="filtre-btns">
+                  <button *ngFor="let s of statutsHistorique"
+                    class="filtre-btn"
+                    [class.active]="filtreHistoriqueStatut === s.valeur"
+                    (click)="filtreHistoriqueStatut = s.valeur; onFiltreHistoriqueChange()">
+                    {{ s.label }}
+                  </button>
+                </div>
+              </div>
+
+              <!--  Filtre date début — (change) déclenche recalcul stats + liste -->
+              <div class="filtre-groupe">
+                <label>Du</label>
+                <input type="date"
+                  [(ngModel)]="filtreHistoriqueDateDebut"
+                  class="input-date"
+                  (change)="onFiltreHistoriqueChange()" />
+              </div>
+
+              <!--  Filtre date fin — (change) déclenche recalcul stats + liste -->
+              <div class="filtre-groupe">
+                <label>Au</label>
+                <input type="date"
+                  [(ngModel)]="filtreHistoriqueDateFin"
+                  class="input-date"
+                  (change)="onFiltreHistoriqueChange()" />
+              </div>
+
+              <button class="btn-reinit" (click)="reinitialiserFiltresHistorique()">
+                Réinitialiser
+              </button>
+            </div>
+
+            <div class="section-empty" *ngIf="commandesHistorique.length === 0">
+              Aucune commande dans l'historique pour ces critères.
+            </div>
+
+            <div class="split-layout" *ngIf="commandesHistorique.length > 0">
+              <div class="split-table">
+                <div class="table-wrapper">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Référence</th>
+                        <th>Date commande</th>
+                        <th>Total</th>
+                        <th>Statut</th>
+                        <th>Paiement</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let commande of commandesHistorique"
+                        (click)="selectionnerCommande(commande)"
+                        [class.selected]="commandeSelectionnee?._id === commande._id">
+                        <td class="ref-cell">{{ commande.reference }}</td>
+                        <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
+                        <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
+                        <td>
+                          <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+                            {{ getStatutLabel(commande.statut) }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
+                            {{ getStatutPaiementLabel(commande.statut_paiement) }}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="split-detail"
+                *ngIf="commandeSelectionnee && commandesHistorique.includes(commandeSelectionnee)">
+                <ng-container *ngTemplateOutlet="detailTemplate; context: { commande: commandeSelectionnee }">
+                </ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+      <div *ngIf="commandes.length > 0">
+
+        <!-- ================================================== -->
+        <!-- SECTION 1 : COMMANDES EN COURS — temps réel        -->
+        <!-- ================================================== -->
+        <div class="section-block">
+          <div class="section-header">
+            <span class="dot-live"></span>
+            <h2>Commandes en cours</h2>
+            <span class="badge-count" *ngIf="commandesTempsReel.length > 0">
+              {{ commandesTempsReel.length }}
+            </span>
+          </div>
+
+          <div class="section-empty" *ngIf="commandesTempsReel.length === 0">
+            Aucune commande active pour le moment.
+          </div>
+
+          <div class="split-layout" *ngIf="commandesTempsReel.length > 0">
+            <div class="split-table">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Référence</th>
+                      <th>Date</th>
+                      <th>Total</th>
+                      <th>Livraison</th>
+                      <th>Paiement</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let commande of commandesTempsReel"
+                      (click)="selectionnerCommande(commande)"
+                      [class.selected]="commandeSelectionnee?._id === commande._id"
+                      [class.row-impayee]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
+                      <td class="ref-cell">{{ commande.reference }}</td>
+                      <td class="date-cell">{{ formatDateFn(commande.date_creation) }}</td>
+                      <td class="prix-cell"><strong>{{ formatPrixFn(commande.total) }}</strong></td>
+                      <td>
+                        <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+                          {{ getStatutLabel(commande.statut) }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
+                          {{ getStatutPaiementLabel(commande.statut_paiement) }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="split-detail"
+              *ngIf="commandeSelectionnee && commandesTempsReel.includes(commandeSelectionnee)">
+              <ng-container *ngTemplateOutlet="detailTemplate; context: { commande: commandeSelectionnee }">
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TEMPLATE DÉTAIL PARTAGÉ ===== -->
+<ng-template #detailTemplate let-commande="commande">
+  <div class="detail-panel">
+
+    <div class="detail-header">
+      <div>
+        <h3>{{ commande.reference }}</h3>
+        <p class="detail-date">Passée le {{ formatDateLongFn(commande.date_creation) }}</p>
+      </div>
+      <div class="detail-badges">
+        <span class="statut-badge" [ngClass]="getStatutClass(commande.statut)">
+          {{ getStatutLabel(commande.statut) }}
+        </span>
+        <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
+          {{ getStatutPaiementLabel(commande.statut_paiement) }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="timeline-section">
+      <div class="timeline">
+        <div class="timeline-step done">
+          <div class="step-dot done"></div>
+          <div class="step-info">
+            <span class="step-label">Commande passée</span>
+            <span class="step-date">{{ formatDateFn(commande.date_creation) }}</span>
+          </div>
+        </div>
+        <div class="timeline-step" [class.done]="['EN_COURS','LIVREE'].includes(commande.statut)">
+          <div class="step-dot" [class.done]="['EN_COURS','LIVREE'].includes(commande.statut)"></div>
+          <div class="step-info">
+            <span class="step-label">En cours de livraison</span>
+            <span class="step-date">—</span>
+          </div>
+        </div>
+        <div class="timeline-step" [class.done]="commande.statut === 'LIVREE'">
+          <div class="step-dot" [class.done]="commande.statut === 'LIVREE'"></div>
+          <div class="step-info">
+            <span class="step-label">Colis livré</span>
+            <span class="step-date">{{ formatDateFn(commande.date_livraison) }}</span>
+          </div>
+        </div>
+        <div class="timeline-step"
+          [class.done]="commande.statut_paiement === 'PAYE'"
+          [class.pending]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
+          <div class="step-dot"
+            [class.done]="commande.statut_paiement === 'PAYE'"
+            [class.pending]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
+          </div>
+          <div class="step-info">
+            <span class="step-label"
+              [class.text-pending]="commande.statut === 'LIVREE' && commande.statut_paiement === 'IMPAYE'">
+              {{ commande.statut_paiement === 'PAYE' ? 'Paiement confirmé' :
+                 commande.statut === 'LIVREE' ? 'En attente paiement...' : 'Paiement' }}
+            </span>
+            <span class="step-date">{{ formatDateFn(commande.date_paiement) }}</span>
+          </div>
+        </div>
+        <div class="timeline-step annulee" *ngIf="commande.statut === 'ANNULEE'">
+          <div class="step-dot annulee"></div>
+          <div class="step-info">
+            <span class="step-label">Annulée</span>
+            <span class="step-date">{{ formatDateFn(commande.date_annulation) }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Articles -->
+    <div class="detail-section">
+      <h4>Articles commandés</h4>
+      <div class="detail-articles">
+        <div class="detail-article" *ngFor="let article of commande.articles">
+          <div class="detail-article-info">
+            <span class="detail-nom">{{ article.nom_produit }}</span>
+
+            <div class="detail-variante-attrs" *ngIf="article.variante_details?.attributs?.length > 0">
+              <span class="attr-chip" *ngFor="let attr of article.variante_details.attributs">
+                <strong>{{ attr.nom }}</strong> : {{ attr.valeur }}
+              </span>
+            </div>
+
+            <span class="detail-sku" *ngIf="article.sku">Réf : {{ article.sku }}</span>
+            <span class="detail-promo" *ngIf="article.prix_promo_unitaire">Promotion appliquée</span>
+          </div>
+
+          <div class="detail-article-calcul">
+            <span class="prix-unit">{{ formatPrixFn(article.prix_promo_unitaire || article.prix_unitaire) }}</span>
+            <span class="mult">×</span>
+            <span class="qte">{{ article.quantite }}</span>
+            <strong class="sous-total-article">
+              {{ formatPrixFn((article.prix_promo_unitaire || article.prix_unitaire) * article.quantite) }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Adresse livraison -->
+    <div class="detail-section" *ngIf="commande.adresse_livraison">
+      <h4>Adresse de livraison</h4>
+      <div class="adresse-block">
+        <p class="adresse-nom">{{ commande.adresse_livraison.nom }}</p>
+        <p>{{ commande.adresse_livraison.adresse }}</p>
+        <p>{{ commande.adresse_livraison.ville }}</p>
+        <p>{{ commande.adresse_livraison.telephone }}</p>
+      </div>
+    </div>
+
+    <!-- Totaux -->
+    <div class="detail-section">
+      <h4>Récapitulatif</h4>
+      <div class="detail-totaux">
+        <div class="total-row">
+          <span>Sous-total</span>
+          <span>{{ formatPrixFn(commande.sous_total) }}</span>
+        </div>
+        <div class="total-row remise" *ngIf="commande.total_remise > 0">
+          <span>Remise</span>
+          <span>- {{ formatPrixFn(commande.total_remise) }}</span>
+        </div>
+        <div class="total-row">
+          <span>Livraison</span>
+          <span class="gratuit">Gratuite</span>
+        </div>
+        <div class="total-row final">
+          <span>Total</span>
+          <strong>{{ formatPrixFn(commande.total) }}</strong>
+        </div>
+        <div class="total-row paiement-row">
+          <span>Paiement</span>
+          <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
+            {{ getStatutPaiementLabel(commande.statut_paiement) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action annuler -->
+    <div class="detail-action" *ngIf="peutAnnuler(commande)">
+      <button class="btn-annuler"
+        (click)="annulerCommande(commande)"
+        [disabled]="annulationEnCours.has(commande._id)">
+        {{ annulationEnCours.has(commande._id) ? 'Annulation en cours...' : 'Annuler cette commande' }}
+      </button>
+      <p class="annuler-info">Le stock sera automatiquement restitué après annulation.</p>
+    </div>
+
+    <div class="detail-annulee" *ngIf="commande.statut === 'ANNULEE'">
+      Cette commande a été annulée le {{ formatDateFn(commande.date_annulation) }}.
+    </div>
+    <div class="detail-non-annulable"
+      *ngIf="!peutAnnuler(commande) && commande.statut !== 'ANNULEE' && commande.statut_paiement !== 'PAYE'">
+      Cette commande est en cours de traitement et ne peut plus être annulée.
+    </div>
+
+  </div>
+</ng-template>

@@ -187,6 +187,23 @@
                       {{ boutique.estOuverte ? 'Ouvert' : 'Fermé' }}
                     </span>
                   </div>
+                  <!-- ⭐ Évaluation -->
+                  <div class="flex items-center gap-1 mt-1">
+                    <ng-container *ngFor="let star of [1,2,3,4,5]">
+                      <i *ngIf="star <= (boutique.evaluation?.moyenne ?? 0)"
+                        class="fa-solid fa-star text-yellow-400 text-xs"></i>
+                      <i *ngIf="star > (boutique.evaluation?.moyenne ?? 0) && star - 0.5 <= (boutique.evaluation?.moyenne ?? 0)"
+                        class="fa-solid fa-star-half-stroke text-yellow-400 text-xs"></i>
+                      <i *ngIf="star - 0.5 > (boutique.evaluation?.moyenne ?? 0)"
+                        class="fa-regular fa-star text-yellow-300 text-xs"></i>
+                    </ng-container>
+                    <span class="text-xs text-gray-600 font-medium">
+                      {{ boutique.evaluation?.moyenne ?? 0 | number:'1.1-1' }}
+                    </span>
+                    <span class="text-xs text-gray-400">
+                      ({{ boutique.evaluation?.total ?? 0 }} avis)
+                    </span>
+                  </div>
                 </div>
               </div>
             </td>
