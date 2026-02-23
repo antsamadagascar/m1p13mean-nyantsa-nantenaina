@@ -71,10 +71,10 @@
       <!-- Filtres actifs -->
       <div class="active-filters" *ngIf="marquesSelectionnees.length > 0 || conditionsSelectionnees.length > 0 || enPromotion || enStock || prixMin || prixMax">
         <div class="filter-chips">
-          <span class="filter-chip" *ngFor="let marque of marquesSelectionnees">
+          <!-- <span class="filter-chip" *ngFor="let marque of marquesSelectionnees">
             {{ marque }}
             <button (click)="toggleMarque(marque)">×</button>
-          </span>
+          </span> -->
           <span class="filter-chip" *ngFor="let condition of conditionsSelectionnees">
             {{ condition }}
             <button (click)="toggleCondition(condition)">×</button>
@@ -131,7 +131,7 @@
         </div>
 
         <!-- Marques -->
-        <div class="filter-section" *ngIf="hasMarques()">
+        <!-- <div class="filter-section" *ngIf="hasMarques()">
           <h3 class="filter-title">Marques</h3>
           <div class="filter-options">
             <label class="filter-option" *ngFor="let marque of getMarques()">
@@ -144,7 +144,7 @@
               <span class="option-count">({{ marque.count }})</span>
             </label>
           </div>
-        </div>
+        </div> -->
 
         <!-- Condition -->
         <div class="filter-section">
