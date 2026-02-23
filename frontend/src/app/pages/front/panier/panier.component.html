@@ -1,0 +1,225 @@
+<div class="panier-page">
+  <!-- Breadcrumb -->
+  <div class="container">
+    <nav class="breadcrumb">
+      <a routerLink="/">Accueil</a>
+      <span class="separator">/</span>
+      <span class="current">Panier</span>
+    </nav>
+  </div>
+
+  <!-- État de chargement -->
+  <div class="container" *ngIf="loading">
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Chargement du panier...</p>
+    </div>
+  </div>
+
+  <!-- État d'erreur -->
+  <div class="container" *ngIf="error && !loading">
+    <div class="error-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="8" x2="12" y2="12"></line>
+        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+      </svg>
+      <h2>{{ error }}</h2>
+      <button class="btn-retry" (click)="chargerPanier()">Réessayer</button>
+    </div>
+  </div>
+
+  <!-- Panier vide -->
+  <div class="container" *ngIf="!loading && !error && estVide()">
+    <div class="empty-cart">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="9" cy="21" r="1"></circle>
+        <circle cx="20" cy="21" r="1"></circle>
+        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+      </svg>
+      <h2>Votre panier est vide</h2>
+      <p>Vous n'avez pas encore ajouté de produits à votre panier.</p>
+      <a routerLink="/produits" class="btn-shop">Découvrir nos produits</a>
+    </div>
+  </div>
+
+  <!-- Contenu du panier -->
+  <div class="container" *ngIf="!loading && !error && !estVide() && panier">
+    <div class="panier-header">
+      <h1>Mon panier</h1>
+      <button class="btn-vider" (click)="viderPanier()">
+        Vider le panier
+      </button>
+    </div>
+    <!-- Panier expiré -->
+      <div class="banner-expire" *ngIf="panierExpire">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div class="banner-text">
+          <strong>Votre panier a expiré !</strong>
+          <p>Les articles réservés ont été libérés. Veuillez recommencer votre sélection.</p>
+        </div>
+        <button class="btn-retry" (click)="chargerPanier()">Actualiser</button>
+      </div>
+
+      <!-- Timer actif -->
+      <div class="banner-timer" *ngIf="!panierExpire && tempsRestant" 
+          [class.urgent]="tempsRestant < '05:00'">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <div class="banner-text">
+          <strong>Votre panier est réservé pendant</strong>
+          <p>Passez votre commande avant expiration, vos articles ne sont pas garantis après.</p>
+        </div>
+        <span class="countdown" [class.urgent]="tempsRestant < '05:00'">
+          {{ tempsRestant }}
+        </span>
+      </div>
+
+    <div class="panier-grid">
+      <!-- Liste des articles -->
+      <div class="panier-articles">
+        <div class="article-item" *ngFor="let article of panier.articles">
+          <!-- Image produit -->
+          <div class="article-image">
+            <a [routerLink]="['/produits', article.produit.slug]">
+              <img [src]="getImageProduit(article)" [alt]="article.produit.nom" />
+            </a>
+          <span class="promo-badge" *ngIf="enPromotion(article)">
+            -{{ article.pourcentage_reduction }}%
+          </span>
+          </div>
+
+          <!-- Informations produit -->
+          <div class="article-info">
+            <a [routerLink]="['/produits', article.produit.slug]" class="article-nom">
+              {{ article.produit.nom }}
+            </a>
+            
+            <div class="article-variante" *ngIf="article.variante">
+                <ng-container *ngIf="getVariante(article) as variante">
+                  
+                  <!-- Nom de la variante ex: "Taille S" -->
+                  <span class="variante-nom">{{ variante.nom }}</span>
+
+                  <!-- Attributs ex: Taille: S, Couleur: Rouge -->
+                  <span class="variante-tag" *ngFor="let attribut of variante.attributs">
+                    {{ attribut.nom }} : <strong>{{ attribut.valeur }}</strong>
+                  </span>
+
+                  <!-- Prix supplément si existe -->
+                  <span class="variante-supplement" *ngIf="variante.prix_supplement > 0">
+                    +{{ formatPrix(variante.prix_supplement) }}
+                  </span>
+
+                  <!-- SKU -->
+                  <span class="variante-sku">Réf: {{ variante.sku }}</span>
+
+                  <!-- Stock de la variante -->
+                  <span class="variante-stock" [class.stock-faible]="variante.quantite <= 3">
+                    {{ variante.quantite }} en stock
+                  </span>
+
+                </ng-container>
+              </div>
+
+            <div class="article-prix">
+              <span class="prix-actuel" [class.has-promo]="enPromotion(article)">
+                {{ formatPrix(getPrixUnitaire(article)) }}
+              </span>
+              <span class="prix-original" *ngIf="enPromotion(article)">
+                {{ formatPrix(article.prix_unitaire) }}
+              </span>
+            </div>
+
+            <p class="article-stock">
+              {{ getStockDisponible(article) }} en stock
+            </p>
+          </div>
+
+          <!-- Contrôles quantité -->
+          <div class="article-quantite">
+            <label>Quantité</label>
+            <div class="quantity-controls">
+              <button 
+                class="qty-btn"
+                (click)="diminuerQuantite(article)"
+                [disabled]="article.quantite <= 1 || processingItems.has(article._id)">
+                -
+              </button>
+              
+              <span class="qty-value">{{ article.quantite }}</span>
+              
+              <button 
+                class="qty-btn"
+                (click)="augmenterQuantite(article)"
+                [disabled]="article.quantite >= getStockDisponible(article) || processingItems.has(article._id)">
+                +
+              </button>
+            </div>
+          </div>
+
+          <!-- Sous-total article -->
+          <div class="article-total">
+            <span class="total-label">Total</span>
+            <span class="total-value">{{ formatPrix(getSousTotal(article)) }}</span>
+          </div>
+
+          <!-- Bouton supprimer -->
+          <button 
+            class="btn-supprimer"
+            (click)="supprimerArticle(article)"
+            [disabled]="processingItems.has(article._id)"
+            title="Retirer du panier">
+            ×
+          </button>
+        </div>
+      </div>
+
+      <!-- Récapitulatif -->
+      <div class="panier-resume">
+        <div class="resume-card">
+          <h2>Récapitulatif</h2>
+
+          <div class="resume-details">
+            <div class="resume-line">
+              <span class="label">Sous-total ({{ panier.nombre_articles }} article<span *ngIf="panier.nombre_articles > 1">s</span>)</span>
+              <span class="value">{{ formatPrix(panier.sous_total) }}</span>
+            </div>
+
+            <div class="resume-line remise" *ngIf="panier.total_remise > 0">
+              <span class="label">Remise totale</span>
+              <span class="value">-{{ formatPrix(panier.total_remise) }}</span>
+            </div>
+
+            <div class="resume-line">
+              <span class="label">Frais de livraison</span>
+              <span class="value gratuit">GRATUIT</span>
+            </div>
+
+            <div class="resume-separator"></div>
+
+            <div class="resume-line total">
+              <span class="label">Total</span>
+              <span class="value">{{ formatPrix(panier.total) }}</span>
+            </div>
+          </div>
+
+          <div class="resume-actions">
+            <button class="btn-checkout" (click)="procederAuPaiement()">
+              Procéder au commande
+            </button>
+            <a routerLink="/produits" class="btn-continue">
+              Continuer mes achats
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

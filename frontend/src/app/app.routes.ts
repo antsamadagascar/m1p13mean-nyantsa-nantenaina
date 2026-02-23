@@ -109,7 +109,15 @@ export const routes: Routes = [
           .then(m => m.UserDetailComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
-      }
+      },
+
+       {
+        path: 'orders',
+        loadComponent: () => import('./pages/admin/orders-stores/orders-stores.component')
+          .then(m => m.OrdersComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['BOUTIQUE'] }
+      },
 
     ]
   },
@@ -134,17 +142,46 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/front/product-detail/product-detail.component')
           .then(m => m.ProductDetailComponent)
       },
+
+      // gestions panier utilisateurs (connecter without guest)
+       {
+        path: 'panier',
+        loadComponent: () => import('./pages/front/panier/panier.component')
+          .then(m => m.PanierComponent)
+      },
+        
       // DÉTAIL BOUTIQUE PUBLIC(client)
       {
         path: 'boutiques/:id',
         loadComponent: () => import('./pages/front/boutique-detail/boutique-detail.component')
           .then(m => m.BoutiqueDetailComponent)
       },
+
       {
         path: 'favoris',
         loadComponent: () => import('./pages/front/favori-list/favori-list.component')
           .then(m => m.FavoriListComponent)
       }, 
+
+      {
+        path: 'commande',
+        loadComponent: () => import('./pages/front/customer-orders/customer-orders-registation.component')
+          .then(m => m.CommandeComponent),
+        canActivate: [authGuard]
+      },
+      {
+        path: 'commande/confirmation/:id',
+        loadComponent: () => import('./pages/front/customer-orders/customer-orders-confirmation.component')
+          .then(m => m.CommandeConfirmationComponent),
+        canActivate: [authGuard]
+      },
+      
+      {
+      path: 'mes-commandes',
+        loadComponent: () => import('./pages/front/my-orders/my-orders.component')
+          .then(m => m.MesCommandesComponent),
+        canActivate: [authGuard]
+      },
     ]
   },
  

@@ -8,5 +8,5 @@ router.post('/connexion', authController.connexion);
 
 // Routes protégées
 router.post('/deconnexion', auth, authController.deconnexion);
-
+router.get('/me', auth, authController.getUtilisateurConnecte);
 module.exports = router;

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { ProductService } from '../../../services/produit.service';
+import { PanierService } from '../../../services/panier.service';
 import { Produit } from '../../../models/produit.model';
 import { EvaluationClient } from '../../../models/boutique.model';
 import { EvaluationService } from '../../../services/evaluation.service';
@@ -46,7 +47,8 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     private productService: ProductService,
     private route: ActivatedRoute,
     private evaluationService: EvaluationService,
-    private router: Router
+    private router: Router,
+    private panierService: PanierService,
   ) {}
 
   ngOnInit(): void {
@@ -169,23 +171,41 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
     this.quantite = 1; // Reset quantité
   }
 
-  /**
-   * Acheter maintenant
+   /**
+   * Ajoute au panier
    */
-  acheterMaintenant(): void {
-    if (!this.produit || !this.peutAcheter()) {
-      return;
-    }
-
-    // TODO: Ajouter au panier
-    // Rediriger vers le panier après un court délai
-    setTimeout(() => {
-      if (!this.ajoutEnCours) {
-        this.router.navigate(['/panier']);
+  ajouterAuPanier(): void {
+    if (!this.produit || this.ajoutEnCours) return;
+    
+    this.ajoutEnCours = true;
+    
+    const varianteId = this.varianteSelectionnee?._id || undefined;
+    
+    this.panierService.ajouterArticle(this.produit._id, this.quantite, varianteId).subscribe({
+      next: (panier) => {
+        this.ajoutEnCours = false;
+        alert(` ${this.quantite} ${this.produit!.nom} ajouté(s) au panier !`);
+      },
+      error: (err) => {
+        this.ajoutEnCours = false;
+        console.error('Erreur ajout panier:', err);
+        
+        if (err.status === 401) {
+          // Non connecté
+          alert(' Vous devez être connecté pour ajouter au panier');
+          this.router.navigate(['/connexion'], {
+            queryParams: { returnUrl: this.router.url }
+          });
+        } else if (err.error?.stock_disponible !== undefined) {
+          alert(`Stock insuffisant. Seulement ${err.error.stock_disponible} disponible(s)`);
+        } else {
+          alert(' Erreur lors de l\'ajout au panier. Réessayez.');
+        }
       }
-    }, 500);
+    });
   }
 
+  
   /**
    * Formate le prix
    */
@@ -222,19 +242,39 @@ export class ProductDetailComponent implements OnInit, OnDestroy {
    */
    getPrixFinal(): number {
     if (!this.produit) return 0;
-    
-    //  Utilise promotion_active_valide au lieu de prix_final
-    let prix = this.produit.promotion_active_valide 
-      ? (this.produit.prix_promo || this.produit.prix) 
-      : this.produit.prix;
-    
+
+    // 1. Prix de base + supplément variante
+    let prixBase = this.produit.prix;
     if (this.varianteSelectionnee?.prix_supplement) {
-      prix += this.varianteSelectionnee.prix_supplement;
+      prixBase += this.varianteSelectionnee.prix_supplement;
     }
-    
-    return prix;
+
+    // 2. Appliquer la promotion sur le prix TOTAL (base + supplément)
+    if (this.produit.promotion_active_valide && this.produit.promotion_active) {
+      const promo = this.produit.promotion_active;
+
+      if (promo.type === 'POURCENTAGE') {
+          const valeur = promo.valeur ?? 0;
+          return prixBase * (1 - valeur / 100);
+        }
+
+        if (promo.type === 'PRIX_FIXE') {
+          const supplement = this.varianteSelectionnee?.prix_supplement ?? 0;
+          return (promo.prix_fixe ?? prixBase) + supplement;
+        }
+    }
+
+    return prixBase;
   }
 
+  getPrixBaseAvecVariante(): number {
+      if (!this.produit) return 0;
+      let prix = this.produit.prix;
+      if (this.varianteSelectionnee?.prix_supplement) {
+        prix += this.varianteSelectionnee.prix_supplement;
+      }
+      return prix;
+    }
   /**
    * Génère les étoiles de notation
    */

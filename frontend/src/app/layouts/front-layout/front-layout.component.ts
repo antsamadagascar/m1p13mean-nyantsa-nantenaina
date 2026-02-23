@@ -5,6 +5,8 @@ import { AuthService } from '../../services/auth.service';
 import { AlertService } from '../../services/alert.service';
 import { FavoriService } from '../../services/favori.service';
 import { Subject, takeUntil } from 'rxjs';
+import { PanierService } from '../../services/panier.service';
+
 @Component({
   selector: 'app-front-layout',
   standalone: true,
@@ -17,6 +19,7 @@ export class FrontLayoutComponent implements OnInit{
   mobileMenuOpen = false;
   userMenuOpen = false;  
   currentUser: any = null;
+  nombreArticles = 0;
   
   navItems = [
     { path: '/', label: 'Accueil', exact: true },
@@ -27,17 +30,27 @@ export class FrontLayoutComponent implements OnInit{
   private destroy$ = new Subject<void>();
 
   constructor(public authService: AuthService , private router: Router,
-  private alertService: AlertService,private favoriService: FavoriService) {}
 
-  ngOnInit() {
+  private alertService: AlertService,private favoriService: FavoriService) {}
+  private alertService: AlertService, private panierService: PanierService) {}
+
+   ngOnInit() {
+    // Abonnement aux changements d'utilisateur
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
   
     this.favoriService.favorisIds.subscribe(ids => {
       this.nombreFavoris = ids.size;
     });
   
+
+    // Abonnement aux changements du nombre d'articles
+    this.panierService.nombreArticles$.subscribe(nombre => {
+      this.nombreArticles = nombre;
+    });
+
     this.checkUserAccess();
   }
   
@@ -67,11 +80,14 @@ export class FrontLayoutComponent implements OnInit{
 
   logout() {
     this.userMenuOpen = false;
+    
+    // Effacer le localStorage du panier
+    this.panierService.clearStorage();
+    
+    // Déconnexion
     this.authService.logout();
-
-    this.alertService.success('Vous êtes déconnecté ');
+    this.alertService.success('Vous êtes déconnecté');
     this.router.navigate(['/connexion']);
-
     this.closeMobileMenu();
   }
 
