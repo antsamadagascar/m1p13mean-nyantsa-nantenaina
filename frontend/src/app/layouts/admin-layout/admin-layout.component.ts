@@ -98,6 +98,7 @@ export class AdminLayoutComponent implements OnInit {
         { path: `/backoffice/boutiques/details/${boutiqueId}`, label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false },
         { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
+        { path: '/backoffice/paiements', label: 'Mes Factures', icon: 'fa-solid fa-receipt', exact: false },
       ];
 
       // this.configMenuItems = [
