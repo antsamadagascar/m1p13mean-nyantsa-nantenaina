@@ -167,4 +167,13 @@ export class LocationsComponent implements OnInit {
       }
     });
   }
+
+  onBoutiqueChange(boutiqueId: string) {
+    if (!boutiqueId) return;
+    const boutique = this.boutiques.find(b => b._id === boutiqueId);
+    if (boutique?.localisation?.zone) {
+        const zoneId = boutique.localisation.zone._id || boutique.localisation.zone;
+        this.form.patchValue({ zone: zoneId });
+    }
+}
 }
