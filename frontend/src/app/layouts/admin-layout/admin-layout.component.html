@@ -59,12 +59,12 @@
       
       <!-- Section: Configuration -->
       <div class="nav-section">
-        <button class="section-header" 
+        <!-- <button class="section-header" 
                 (click)="toggleSection('config')" 
                 *ngIf="sidebarOpen">
           <span class="section-title">Configuration</span>
           <span class="section-icon" [class.rotated]="!sections.config">›</span>
-        </button>
+        </button> -->
         
         <div class="section-content" [class.collapsed]="!sections.config">
           <a *ngFor="let item of configMenuItems" 

@@ -42,6 +42,8 @@ require('./models/Produit');
 require('./models/Promotion');
 require('./models/Panier');
 require('./models/Commande');
+require('./models/Location');
+
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -74,6 +76,9 @@ app.use('/api/boutiques/:boutiqueId/evaluations', boutiqueRouter);
 app.use('/api/produits/:produitId/evaluations', produitRouter);
 app.use('/api/evaluations', adminRouter);
 app.use('/api/favoris', require('./routes/favori.routes'));
+
+app.use('/api/locations', require('./routes/location.routes'));
+
 
 app.use('/uploads', express.static('uploads'));
 
