@@ -2,14 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AlertService } from '../../../services/alert.service';
 
 @Component({
   selector: 'app-locations',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  templateUrl: './locations.component.html',
+  templateUrl: './locations.component.html'
 })
-
 export class LocationsComponent implements OnInit {
   locations: any[] = [];
   filtered: any[] = [];
@@ -32,7 +32,11 @@ export class LocationsComponent implements OnInit {
   ];
   private api = 'http://localhost:5000/api';
 
-  constructor(private fb: FormBuilder, private http: HttpClient) {
+  constructor(
+    private fb: FormBuilder,
+    private http: HttpClient,
+    private alertService: AlertService
+  ) {
     this.form = this.fb.group({
       boutique: ['', Validators.required],
       zone: ['', Validators.required],
@@ -55,20 +59,30 @@ export class LocationsComponent implements OnInit {
   load() {
     this.loading = true;
     this.http.get<any>(`${this.api}/locations`, this.h()).subscribe({
-      next: (res) => { this.locations = res.locations || []; this.ca_total = res.ca_total || 0; this.filter(); this.loading = false; },
-      error: () => { this.loading = false; }
+      next: (res) => {
+        this.locations = res.locations || [];
+        this.ca_total = res.ca_total || 0;
+        this.filter();
+        this.loading = false;
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Erreur lors du chargement des contrats');
+        this.loading = false;
+      }
     });
   }
 
   loadBoutiques() {
     this.http.get<any>(`${this.api}/boutiques`, this.h()).subscribe({
-      next: (res) => { this.boutiques = res.boutiques || res.data || res || []; }
+      next: (res) => { this.boutiques = res.boutiques || res.data || res || []; },
+      error: () => { this.alertService.error('Erreur lors du chargement des boutiques'); }
     });
   }
 
   loadZones() {
     this.http.get<any>(`${this.api}/zones`, this.h()).subscribe({
-      next: (res) => { this.zones = res.zones || res.data || res || []; }
+      next: (res) => { this.zones = res.zones || res.data || res || []; },
+      error: () => { this.alertService.error('Erreur lors du chargement des zones'); }
     });
   }
 
@@ -120,27 +134,35 @@ export class LocationsComponent implements OnInit {
     this.saving = true;
     const data = { ...this.form.value };
     if (!data.date_fin) delete data.date_fin;
+
     const req = this.editMode
       ? this.http.put(`${this.api}/locations/${this.editId}`, data, this.h())
       : this.http.post(`${this.api}/locations`, data, this.h());
+
     req.subscribe({
-      next: () => { this.saving = false; this.closeModal(); this.load(); },
-      error: () => { this.saving = false; }
+      next: () => {
+        this.alertService.success(this.editMode ? 'Contrat modifie avec succes' : 'Contrat cree avec succes');
+        this.saving = false;
+        this.closeModal();
+        this.load();
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Erreur lors de l\'enregistrement');
+        this.saving = false;
+      }
     });
   }
 
   del(loc: any) {
     if (!confirm('Supprimer ce contrat ?')) return;
-    this.http.delete(`${this.api}/locations/${loc._id}`, this.h()).subscribe({ next: () => this.load() });
-  }
-
-  onBoutiqueChange(boutiqueId: string) {
-  const b = this.boutiques.find(b => b._id === boutiqueId);
-  if (b) {
-    this.form.patchValue({
-      zone: b.localisation?.zone?._id || b.localisation?.zone,
-      surface: b.localisation?.surface || null
+    this.http.delete(`${this.api}/locations/${loc._id}`, this.h()).subscribe({
+      next: () => {
+        this.alertService.success('Contrat supprime avec succes');
+        this.load();
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Erreur lors de la suppression');
+      }
     });
   }
-}
 }
