@@ -142,36 +142,64 @@
             <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-lg">x</button>
           </div>
           <form [formGroup]="form" (ngSubmit)="save()" class="p-6 space-y-4">
+
+            <!-- Boutique -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-600 mb-1">Boutique *</label>
+              <select formControlName="boutique"
+                (change)="onBoutiqueChange(form.get('boutique')?.value)"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
+                <option value="">-- Selectionner --</option>
+                <option *ngFor="let b of boutiques" [value]="b._id">{{ b.nom }}</option>
+              </select>
+            </div>
+
+            <!-- Zone + Emplacement -->
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label class="block text-xs font-semibold text-gray-600 mb-1">Boutique *</label>
-                <select formControlName="boutique" 
-                    (change)="onBoutiqueChange(form.get('boutique')?.value)"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
-                  <option value="">-- Selectionner --</option>
-                  <option *ngFor="let b of boutiques" [value]="b._id">{{ b.nom }}</option>
-                </select>
-              </div>
-              <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Zone *</label>
-                <select formControlName="zone" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
+                <select formControlName="zone"
+                  (change)="onZoneChange(form.get('zone')?.value)"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
                   <option value="">-- Selectionner --</option>
                   <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
                 </select>
               </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-600 mb-1">Emplacement disponible</label>
+                <select (change)="onEmplacementChange($any($event.target).value)"
+                  [disabled]="!emplacementsDisponibles.length"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 disabled:bg-gray-100 disabled:text-gray-400">
+                  <option value="">-- Selectionner --</option>
+                  <option *ngFor="let e of emplacementsDisponibles" [value]="e._id">
+                    {{ e.numero_local }} — {{ e.type }} {{ e.surface ? '(' + e.surface + ' m²)' : '' }}
+                  </option>
+                </select>
+                <p *ngIf="form.get('zone')?.value && !editMode && emplacementsDisponibles.length === 0"
+                  class="text-xs text-orange-500 mt-1">
+                  <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+                  Aucun emplacement disponible
+                </p>
+              </div>
             </div>
+
+            <!-- Numero local + Surface (auto-complétés) -->
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Numero local *</label>
                 <input type="text" formControlName="numero_local" placeholder="ex: A-12"
-                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+                  [readOnly]="!!emplacementSelectionne"
+                  [ngClass]="emplacementSelectionne ? 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed' : 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400'" />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Surface (m2)</label>
                 <input type="number" formControlName="surface"
-                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+                  [readOnly]="!!emplacementSelectionne"
+                  [ngClass]="emplacementSelectionne ? 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-100 cursor-not-allowed' : 'w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400'" />
               </div>
             </div>
+
+            <!-- Loyer + Statut -->
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Loyer mensuel (Ar) *</label>
@@ -180,13 +208,16 @@
               </div>
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Statut</label>
-                <select formControlName="statut" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
+                <select formControlName="statut"
+                  class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
                   <option value="actif">Actif</option>
                   <option value="expire">Expire</option>
                   <option value="resilie">Resilie</option>
                 </select>
               </div>
             </div>
+
+            <!-- Dates -->
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Date debut *</label>
@@ -199,17 +230,26 @@
                   class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
               </div>
             </div>
+
+            <!-- Notes -->
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1">Notes</label>
               <textarea formControlName="notes" rows="2"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400 resize-none"></textarea>
             </div>
+
+            <!-- Boutons -->
             <div class="flex gap-3 pt-2">
-              <button type="button" (click)="closeModal()" class="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
-              <button type="submit" [disabled]="form.invalid || saving" class="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition">
+              <button type="button" (click)="closeModal()"
+                class="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+                Annuler
+              </button>
+              <button type="submit" [disabled]="form.invalid || saving"
+                class="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition">
                 {{ saving ? "Enregistrement..." : (editMode ? "Modifier" : "Creer") }}
               </button>
             </div>
+
           </form>
         </div>
       </div>

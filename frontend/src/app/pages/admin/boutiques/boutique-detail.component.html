@@ -135,35 +135,46 @@
         <h3 class="text-lg font-semibold text-gray-700 mb-4">
           <i class="fa-solid fa-location-dot mr-2 text-blue-600"></i> Localisation
         </h3>
+
+        <!-- Champs readonly -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Zone <span class="text-red-500">*</span></label>
-            <select [(ngModel)]="editData.localisation.zone"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-              <option value="">-- Sélectionner --</option>
-              <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
-            <input type="text" [(ngModel)]="editData.localisation.adresse_complete"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Zone</label>
+            <input type="text" [value]="getZoneName()" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-500 cursor-not-allowed" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Surface (m²)</label>
-            <input type="number" [(ngModel)]="editData.localisation.surface" min="0"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <input type="text" [value]="editData.localisation?.surface ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-500 cursor-not-allowed" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Latitude</label>
-            <input type="number" step="any" [(ngModel)]="editData.localisation.latitude"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <input type="text" [value]="editData.localisation?.latitude ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-500 cursor-not-allowed" />
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Longitude</label>
-            <input type="number" step="any" [(ngModel)]="editData.localisation.longitude"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <input type="text" [value]="editData.localisation?.longitude ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-500 cursor-not-allowed" />
           </div>
+
+          <!-- Adresse complète : seul champ modifiable -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Adresse complète</label>
+            <input type="text" [(ngModel)]="editData.localisation.adresse_complete"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="Ex: Zone Analakely, 2ème étage, N°5" />
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+          <p class="text-xs text-blue-600">
+            <i class="fa-solid fa-circle-info mr-1"></i>
+            Pour changer l'emplacement, gérez les contrats depuis 
+            <a routerLink="/backoffice/locations" class="underline font-medium">Contrats & Locations</a>.
+          </p>
         </div>
       </div>
 

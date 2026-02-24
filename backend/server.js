@@ -44,7 +44,7 @@ require('./models/Panier');
 require('./models/Commande');
 require('./models/Location');
 require('./models/Paiement');
-
+require('./models/Emplacement');
 
 const userRoutes = require('./routes/user.routes');
 const authRoutes = require('./routes/auth.routes');
@@ -72,7 +72,7 @@ app.use('/api/produits',produitRoutes);
 app.use('/api/panier',panierRoutes);
 app.use('/api/commandes', commandeRoutes);
 app.use('/api', promotionRoutes);
-
+app.use('/api/emplacements', require('./routes/emplacement.routes'));
 app.use('/api/boutiques/:boutiqueId/evaluations', boutiqueRouter);
 app.use('/api/produits/:produitId/evaluations', produitRouter);
 app.use('/api/evaluations', adminRouter);

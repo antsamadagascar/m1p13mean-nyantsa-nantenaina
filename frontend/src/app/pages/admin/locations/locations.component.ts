@@ -31,7 +31,9 @@ export class LocationsComponent implements OnInit {
     { label: 'Expires', value: 'expire' },
     { label: 'Resilies', value: 'resilie' }
   ];
-
+  emplacementsDisponibles: any[] = [];
+  emplacementSelectionne: any = null;
+  
   private api = `${environment.apiUrl}/api`;
 
   constructor(
@@ -42,6 +44,7 @@ export class LocationsComponent implements OnInit {
     this.form = this.fb.group({
       boutique: ['', Validators.required],
       zone: ['', Validators.required],
+      emplacement: [''], 
       numero_local: ['', Validators.required],
       surface: [null],
       loyer_mensuel: [null, Validators.required],
@@ -115,6 +118,8 @@ export class LocationsComponent implements OnInit {
   openEdit(loc: any) {
     this.editMode = true;
     this.editId = loc._id;
+    this.emplacementsDisponibles = [];
+    this.emplacementSelectionne = null;
     this.form.patchValue({
       boutique: loc.boutique?._id,
       zone: loc.zone?._id,
@@ -208,5 +213,24 @@ export class LocationsComponent implements OnInit {
           this.alertService.error(err.error?.message || 'Erreur lors de la reactivation');
         }
       });
+  }
+
+  onZoneChange(zoneId: string) {
+    if (!zoneId) { this.emplacementsDisponibles = []; this.emplacementSelectionne = null; return; }
+    this.http.get<{emplacements: any[]}>(`${this.api}/emplacements/disponibles?zone=${zoneId}`, this.h()).subscribe({
+      next: (res) => { this.emplacementsDisponibles = res.emplacements; this.emplacementSelectionne = null; },
+      error: () => { this.alertService.error('Erreur chargement emplacements'); }
+    });
+  }
+
+  onEmplacementChange(id: string) {
+    const e = this.emplacementsDisponibles.find(l => l._id === id);
+    if (!e) return;
+    this.emplacementSelectionne = e;
+    this.form.patchValue({
+      numero_local: e.numero_local,
+      surface: e.surface,
+      emplacement: e._id
+    }, { emitEvent: false });
   }
 }

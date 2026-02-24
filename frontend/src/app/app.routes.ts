@@ -107,6 +107,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+      {
+        path: 'emplacements', 
+        loadComponent: () => import('./pages/admin/emplacements/emplacements.component')
+          .then(m => m.EmplacementsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
       
       // Gestion des utilisateurs
       {

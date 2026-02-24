@@ -64,11 +64,13 @@ export class AdminLayoutComponent implements OnInit {
 
       this.managementMenuItems = [
         { path: '/backoffice/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
-         { path: '/backoffice/zones', label: 'Emplacements', icon: 'fa-solid fa-location-dot', exact: false },
+        { path: '/backoffice/zones', label: 'Zones', icon: 'fa-solid fa-location-dot', exact: false },
+        { path: '/backoffice/emplacements', label: 'Emplacements', icon: 'fa-solid fa-door-open', exact: false },
         { path: '/backoffice/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
         { path: '/backoffice/locations', label: 'Contrats & Locations', icon: 'fa-solid fa-building', exact: false },
         { path: '/backoffice/paiements', label: 'Factures & Paiements', icon: 'fa-solid fa-receipt', exact: false },
-        { path: '/backoffice/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false }
+        { path: '/backoffice/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
+ 
         // { path: '/backoffice/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
 
       ];
@@ -96,6 +98,7 @@ export class AdminLayoutComponent implements OnInit {
 
       this.managementMenuItems = [
         { path: `/backoffice/boutiques/details/${boutiqueId}`, label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false },
+        { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
         { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
         { path: '/backoffice/paiements', label: 'Mes Factures', icon: 'fa-solid fa-receipt', exact: false },

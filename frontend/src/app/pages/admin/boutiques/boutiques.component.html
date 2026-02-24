@@ -420,85 +420,77 @@
           Localisation
         </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <!-- Zone -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Zone <span class="text-red-500">*</span>
             </label>
-            <select
-              [(ngModel)]="boutique.localisation.zone"
-              name="zone"
-              required
+            <select [(ngModel)]="boutique.localisation.zone" name="zone"
+              (change)="onZoneChange()" required
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="">-- Sélectionner une zone --</option>
               <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
             </select>
           </div>
-        </div>
 
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <!-- Surface -->
+          <!-- Emplacement disponible -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-ruler-combined mr-1"></i> Surface (m²)
+              Emplacement disponible
             </label>
-            <input
-              type="number"
-              [(ngModel)]="boutique.localisation.surface"
-              name="surface"
-              min="0"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: 50"
-            >
-          </div>
-
-          <!-- Adresse complète -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-location-dot mr-1"></i> Adresse complète
-            </label>
-            <input
-              type="text"
-              [(ngModel)]="boutique.localisation.adresse_complete"
-              name="adresse_complete"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: Zone Analakely, 2ème étage, N°5"
-            >
-          </div>
-
-          <!-- Latitude -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-map-pin mr-1"></i> Latitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              [(ngModel)]="boutique.localisation.latitude"
-              name="latitude"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: -18.8792"
-            >
-          </div>
-
-          <!-- Longitude -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-map-pin mr-1"></i> Longitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              [(ngModel)]="boutique.localisation.longitude"
-              name="longitude"
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="Ex: 47.5079"
-            >
+            <select (change)="onEmplacementChange($any($event.target).value)"
+              [disabled]="!locationsDisponibles.length"
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400">
+              <option value="">-- Sélectionner un emplacement --</option>
+              <option *ngFor="let loc of locationsDisponibles" [value]="loc._id">
+                {{ loc.numero_local }} — {{ loc.type }} {{ loc.surface ? '(' + loc.surface + ' m²)' : '' }}
+              </option>
+            </select>
+            <p *ngIf="boutique.localisation.zone && locationsDisponibles.length === 0"
+              class="text-xs text-orange-500 mt-1">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+              Aucun emplacement disponible dans cette zone
+            </p>
+            <p *ngIf="locationsDisponibles.length > 0" class="text-xs text-gray-400 mt-1">
+              {{ locationsDisponibles.length }} emplacement(s) disponible(s)
+            </p>
           </div>
         </div>
 
+        <!-- Champs auto-complétés readonly -->
+        <div *ngIf="locationSelectionnee" class="grid grid-cols-1 md:grid-cols-4 gap-4 mt-2">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Numéro local</label>
+            <input type="text" [value]="locationSelectionnee.numero_local" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-600 text-sm cursor-not-allowed" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Surface (m²)</label>
+            <input type="text" [value]="locationSelectionnee.surface ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-600 text-sm cursor-not-allowed" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Latitude</label>
+            <input type="text" [value]="locationSelectionnee.latitude ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-600 text-sm cursor-not-allowed" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Longitude</label>
+            <input type="text" [value]="locationSelectionnee.longitude ?? '—'" readonly
+              class="w-full rounded-lg border border-gray-200 bg-gray-100 px-4 py-2 text-gray-600 text-sm cursor-not-allowed" />
+          </div>
+        </div>
 
+        <!-- Adresse complète -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            <i class="fa-solid fa-location-dot mr-1"></i> Adresse complète
+          </label>
+          <input type="text" [(ngModel)]="boutique.localisation.adresse_complete" name="adresse_complete"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            placeholder="Ex: Zone Analakely, 2ème étage, N°5" />
+        </div>
       </div>
 
       <!-- ============================================ -->

@@ -10,6 +10,8 @@ import { AuthService } from '../../../services/auth.service';
 import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-boutiques',
@@ -48,6 +50,10 @@ export class BoutiquesComponent implements OnInit {
   sousCategories: any[] = [];
   selectedCategorie: string = '';
   selectedSousCategorie: string = '';
+
+  //vao2 
+  locationsDisponibles: any[] = [];
+  locationSelectionnee: any = null;
 
   boutique = {
     nom: '',
@@ -89,7 +95,8 @@ export class BoutiquesComponent implements OnInit {
     public authService: AuthService,
     private categoryService: CategoryService,
     private sousCategorieService: SousCategorieService,
-    private router: Router 
+    private router: Router ,
+    private http: HttpClient ,
   ) {}
 
    ngOnInit() {
@@ -99,7 +106,7 @@ export class BoutiquesComponent implements OnInit {
     this.loadBoutiques();
     this.loadZones(); 
   }
-
+  private api = `${environment.apiUrl}/api`;
   //  Charge tous  les zones actives (vao2)
   loadZones() {
     this.zoneService.getAllZones(true).subscribe({
@@ -415,5 +422,27 @@ export class BoutiquesComponent implements OnInit {
     this.router.navigate(['/backoffice/zones']);
   }
 
+  private h() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` }) };
+  }
+
+  onZoneChange() {
+    const zoneId = this.boutique.localisation.zone;
+    if (!zoneId) { this.locationsDisponibles = []; this.locationSelectionnee = null; return; }
+    this.http.get<{emplacements: any[]}>(`${this.api}/emplacements/disponibles?zone=${zoneId}`, this.h()).subscribe({
+      next: (res) => { this.locationsDisponibles = res.emplacements; this.locationSelectionnee = null; },
+      error: () => { this.alertService.error('Erreur chargement emplacements'); }
+    });
+  }
+
+  onEmplacementChange(id: string) {
+    const loc = this.locationsDisponibles.find(l => l._id === id);
+    if (!loc) return;
+    this.locationSelectionnee = loc;
+    this.boutique.localisation.surface    = loc.surface;
+    this.boutique.localisation.latitude   = loc.latitude;
+    this.boutique.localisation.longitude  = loc.longitude;
+    this.boutique.localisation.numero     = loc.numero_local;
+  }
 
 }
