@@ -43,6 +43,13 @@
       <option value="">Tous les mois</option>
       <option *ngFor="let m of moisOptions; let i = index" [value]="i + 1">{{ m }}</option>
     </select>
+    <select [(ngModel)]="filtreBoutique" (change)="load()" 
+      class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none">
+      <option value="">Toutes les boutiques</option>
+      <option *ngFor="let l of locations" [value]="l.boutique?._id">
+        {{ l.boutique?.nom }}
+      </option>
+    </select>
     <select [(ngModel)]="filtreAnnee" (change)="load()" class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none">
       <option *ngFor="let a of anneeOptions" [value]="a">{{ a }}</option>
     </select>

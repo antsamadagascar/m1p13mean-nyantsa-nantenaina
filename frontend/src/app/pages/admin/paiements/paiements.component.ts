@@ -39,6 +39,7 @@ export class PaiementsComponent implements OnInit {
     { label: 'Retard', value: 'en_retard' },
     { label: 'Partiel', value: 'partiel' }
   ];
+  filtreBoutique = '';
   private api = `${environment.apiUrl}/api`;
 
   constructor(
@@ -76,6 +77,7 @@ export class PaiementsComponent implements OnInit {
     let url = `${this.api}/paiements?annee=${this.filtreAnnee}`;
     if (this.filtreMois) url += `&mois=${this.filtreMois}`;
     if (this.filtreStatut) url += `&statut=${this.filtreStatut}`;
+     if (this.filtreBoutique) url += `&boutique=${this.filtreBoutique}`
     this.http.get<any>(url, this.h()).subscribe({
       next: (res) => { this.paiements = res.paiements; this.stats = res.stats; this.loading = false; },
       error: (err) => {
