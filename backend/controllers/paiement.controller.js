@@ -28,7 +28,7 @@ exports.update = async (req, res) => {
 
 exports.genererMois = async (req, res) => {
   try {
-    res.json(await paiementService.genererMois(req.body.mois, req.body.annee));
+    res.json(await paiementService.genererMois(req.body.mois, req.body.annee, req.body.locations));
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
   }
@@ -36,7 +36,7 @@ exports.genererMois = async (req, res) => {
 
 exports.genererAnnee = async (req, res) => {
   try {
-    res.json(await paiementService.genererAnnee(req.body.annee));
+    res.json(await paiementService.genererAnnee(req.body.annee, req.body.locations));
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });
   }

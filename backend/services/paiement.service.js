@@ -63,43 +63,49 @@ const paiementService = {
     return paiement;
   },
 
-  async genererMois(mois, annee) {
-    const locations = await Location.find({ statut: 'actif' });
+  async genererMois(mois, annee, locations) {
+    // Si locations fourni -> filtrer, sinon toutes les actives
+    const filter = { statut: 'actif' };
+    if (locations && locations.length > 0) {
+      filter._id = { $in: locations };
+    }
+    const locs = await Location.find(filter);
     const created = [];
 
-    for (const loc of locations) {
+    for (const loc of locs) {
       const existe = await Paiement.findOne({ location: loc._id, mois, annee });
       if (!existe) {
         const p = new Paiement({
           location: loc._id,
           boutique: loc.boutique,
-          mois,
-          annee,
+          mois, annee,
           montant_du: loc.loyer_mensuel,
           montant_paye: 0,
-          date_echeance: new Date(annee, mois, 5) //          // mois suivant, jour 5
+          date_echeance: new Date(annee, mois, 5)
         });
         await p.save();
         created.push(p);
       }
     }
-
-    return { message: `${created.length} paiement(s) générés`, created };
+    return { message: `${created.length} paiement(s) generes`, created };
   },
-  
-  async genererAnnee(annee) {
-    const locations = await Location.find({ statut: 'actif' });
+
+  async genererAnnee(annee, locations) {
+    const filter = { statut: 'actif' };
+    if (locations && locations.length > 0) {
+      filter._id = { $in: locations };
+    }
+    const locs = await Location.find(filter);
     let totalCreated = 0;
 
-    for (const loc of locations) {
+    for (const loc of locs) {
       for (let mois = 1; mois <= 12; mois++) {
         const existe = await Paiement.findOne({ location: loc._id, mois, annee });
         if (!existe) {
           const p = new Paiement({
             location: loc._id,
             boutique: loc.boutique,
-            mois,
-            annee,
+            mois, annee,
             montant_du: loc.loyer_mensuel,
             montant_paye: 0,
             date_echeance: new Date(annee, mois, 5)
@@ -109,7 +115,6 @@ const paiementService = {
         }
       }
     }
-
     return { message: `${totalCreated} paiement(s) generes pour ${annee}` };
   }
 };

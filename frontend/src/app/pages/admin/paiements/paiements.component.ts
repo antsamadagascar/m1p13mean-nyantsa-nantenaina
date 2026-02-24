@@ -40,6 +40,10 @@ export class PaiementsComponent implements OnInit {
     { label: 'Partiel', value: 'partiel' }
   ];
   filtreBoutique = '';
+  boutiquesActives: any[] = [];
+  boutiquesSelectionnees: string[] = [];
+  genMode: 'mois' | 'annee' = 'mois';
+
   private api = `${environment.apiUrl}/api`;
 
   constructor(
@@ -116,7 +120,11 @@ export class PaiementsComponent implements OnInit {
   }
 
   closeModal() { this.showModal = false; }
-  openGenererModal() { this.showGenererModal = true; }
+  openGenererModal() {
+    this.loadBoutiquesActives();
+    this.showGenererModal = true;
+  }
+
 
   save() {
     if (this.form.invalid) return;
@@ -141,34 +149,64 @@ export class PaiementsComponent implements OnInit {
   }
 
   genererMois() {
-    this.http.post(`${this.api}/paiements/generer-mois`, { mois: this.genMois, annee: this.genAnnee }, this.h())
-      .subscribe({
-        next: (res: any) => {
-          this.alertService.success(res.message || 'Paiements generes avec succes');
-          this.showGenererModal = false;
-          this.load();
-        },
-        error: (err) => {
-          this.alertService.error(err.error?.message || 'Erreur lors de la generation');
-        }
-      });
+    this.http.post(`${this.api}/paiements/generer-mois`,
+      { mois: this.genMois, annee: this.genAnnee, locations: this.boutiquesSelectionnees },
+      this.h()
+    ).subscribe({
+      next: (res: any) => {
+        this.alertService.success(res.message);
+        this.showGenererModal = false;
+        this.load();
+      },
+      error: (err) => { this.alertService.error(err.error?.message || 'Erreur'); }
+    });
   }
-  genMode: 'mois' | 'annee' = 'mois';
-
 
   genererAnnee() {
-    this.http.post(`${this.api}/paiements/generer-annee`, { annee: this.genAnnee }, this.h())
-      .subscribe({
-        next: (res: any) => {
-          this.alertService.success(res.message);
-          this.showGenererModal = false;
-          this.load();
-        },
-        error: (err) => {
-          this.alertService.error(err.error?.message || 'Erreur lors de la generation');
-        }
-      });
+    this.http.post(`${this.api}/paiements/generer-annee`,
+      { annee: this.genAnnee, locations: this.boutiquesSelectionnees },
+      this.h()
+    ).subscribe({
+      next: (res: any) => {
+        this.alertService.success(res.message);
+        this.showGenererModal = false;
+        this.load();
+      },
+      error: (err) => { this.alertService.error(err.error?.message || 'Erreur'); }
+    });
   }
+
+  loadBoutiquesActives() {
+    this.http.get<any>(`${this.api}/locations`, this.h()).subscribe({
+      next: (res) => {
+        this.boutiquesActives = (res.locations || []).filter((l: any) => l.statut === 'actif');
+        this.boutiquesSelectionnees = this.boutiquesActives.map((l: any) => l._id);
+      }
+    });
+  }
+
+
+  toggleBoutique(id: string) {
+    const idx = this.boutiquesSelectionnees.indexOf(id);
+    if (idx === -1) {
+      this.boutiquesSelectionnees.push(id);
+    } else {
+      this.boutiquesSelectionnees.splice(idx, 1);
+    }
+  }
+
+  isSelected(id: string) {
+    return this.boutiquesSelectionnees.includes(id);
+  }
+
+  toggleTout() {
+    if (this.boutiquesSelectionnees.length === this.boutiquesActives.length) {
+      this.boutiquesSelectionnees = [];
+    } else {
+      this.boutiquesSelectionnees = this.boutiquesActives.map((l: any) => l._id);
+    }
+  }
+
   formatAr(n: number) { return n ? new Intl.NumberFormat('fr-MG').format(n) + ' Ar' : '0 Ar'; }
   getMoisLabel(m: number) { return MOIS[m - 1] || ''; }
   getStatutLabel(s: string) { return ({ paye: 'Paye', impaye: 'Impaye', en_retard: 'Retard', partiel: 'Partiel' } as any)[s] || s; }
