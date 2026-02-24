@@ -77,7 +77,7 @@ const paiementService = {
           annee,
           montant_du: loc.loyer_mensuel,
           montant_paye: 0,
-          date_echeance: new Date(annee, mois - 1, 1)
+          date_echeance: new Date(annee, mois, 5) //          // mois suivant, jour 5
         });
         await p.save();
         created.push(p);

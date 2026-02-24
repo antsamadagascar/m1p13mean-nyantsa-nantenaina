@@ -61,14 +61,19 @@ paiementSchema.pre('save', function(next) {
 
   if (this.montant_paye >= this.montant_du) {
     this.statut = 'paye';
+    this.retard_jours = 0; // payé = plus de retard
   } else if (this.montant_paye > 0) {
     this.statut = 'partiel';
+    // retard calculé depuis échéance si date dépassée
+    if (now > this.date_echeance) {
+      this.retard_jours = Math.floor((now - this.date_echeance) / (1000 * 60 * 60 * 24));
+    }
   } else if (now > this.date_echeance) {
     this.statut = 'en_retard';
-    const diff = now - this.date_echeance;
-    this.retard_jours = Math.floor(diff / (1000 * 60 * 60 * 24));
+    this.retard_jours = Math.floor((now - this.date_echeance) / (1000 * 60 * 60 * 24));
   } else {
     this.statut = 'impaye';
+    this.retard_jours = 0;
   }
 
   next();

@@ -11,11 +11,15 @@ const locationService = {
     // Auto-update statut si date_fin dépassée
     const now = new Date();
     for (const loc of locations) {
-      if (loc.date_fin && new Date(loc.date_fin) < now && loc.statut === 'actif') {
-        loc.statut = 'expire';
-        await loc.save();
+      if (loc.date_fin && loc.statut === 'actif') {
+        const finStr = new Date(loc.date_fin).toISOString().substring(0, 10);
+        const nowStr = new Date().toISOString().substring(0, 10);
+        if (finStr < nowStr) {
+          loc.statut = 'expire';
+          await loc.save();
+        }
       }
-    }
+  }
 
     const ca_total = locations
       .filter(l => l.statut === 'actif')

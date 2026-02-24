@@ -50,10 +50,15 @@ const locationSchema = new mongoose.Schema({
 
 // Auto-expiration : vérifie si la date de fin est passée
 locationSchema.pre('save', function(next) {
-  if (this.date_fin && new Date(this.date_fin) < new Date() && this.statut === 'actif') {
-    this.statut = 'expire';
+  if (this.date_fin) {
+    const dateFin = new Date(this.date_fin);
+    // Compare uniquement les dates sans l'heure
+    const finStr = dateFin.toISOString().substring(0, 10);
+    const nowStr = new Date().toISOString().substring(0, 10);
+    if (finStr < nowStr && this.statut === 'actif') {
+      this.statut = 'expire';
+    }
   }
   next();
 });
-
 module.exports = mongoose.model('Location', locationSchema);
