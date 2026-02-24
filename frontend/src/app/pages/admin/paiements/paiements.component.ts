@@ -148,6 +148,23 @@ export class PaiementsComponent implements OnInit {
     });
   }
 
+  annulerPaiement(p: any) {
+    this.http.put(`${this.api}/paiements/${p._id}`, {
+      montant_paye: 0,
+      date_paiement: null,
+      note: '',
+      statut: 'impaye'
+    }, this.h()).subscribe({
+      next: () => {
+        this.alertService.success('Paiement annulé avec succès');
+        this.load();
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Erreur lors de l\'annulation');
+      }
+    });
+  }
+  
   genererMois() {
     this.http.post(`${this.api}/paiements/generer-mois`,
       { mois: this.genMois, annee: this.genAnnee, locations: this.boutiquesSelectionnees },
@@ -206,7 +223,7 @@ export class PaiementsComponent implements OnInit {
       this.boutiquesSelectionnees = this.boutiquesActives.map((l: any) => l._id);
     }
   }
-
+  
   formatAr(n: number) { return n ? new Intl.NumberFormat('fr-MG').format(n) + ' Ar' : '0 Ar'; }
   getMoisLabel(m: number) { return MOIS[m - 1] || ''; }
   getStatutLabel(s: string) { return ({ paye: 'Paye', impaye: 'Impaye', en_retard: 'Retard', partiel: 'Partiel' } as any)[s] || s; }

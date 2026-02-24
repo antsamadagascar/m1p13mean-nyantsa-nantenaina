@@ -104,9 +104,15 @@
             </span>
           </td>
           <td class="px-4 py-3" *ngIf="isAdmin">
-            <button (click)="openEditModal(p)" class="text-xs text-gray-400 hover:text-gray-700 font-medium transition">
-              Modifier
-            </button>
+            <div class="flex gap-3">
+              <button (click)="openEditModal(p)" class="text-xs text-gray-400 hover:text-gray-700 font-medium transition">
+                Modifier
+              </button>
+              <button *ngIf="p.statut !== 'impaye'" (click)="annulerPaiement(p)" 
+                class="text-xs text-red-400 hover:text-red-600 font-medium transition">
+                Annuler
+              </button>
+            </div>
           </td>
         </tr>
       </tbody>
