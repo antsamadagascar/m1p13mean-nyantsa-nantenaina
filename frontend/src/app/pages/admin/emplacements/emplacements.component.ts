@@ -131,4 +131,15 @@ export class EmplacementsComponent implements OnInit {
 
   getZoneNom(zone: any) { return zone?.nom || zone || '—'; }
   getTypeLabel(type: string) { return this.typeOptions.find(t => t.value === type)?.label || type; }
+
+  onZoneChange(zoneId: string) {
+  if (!zoneId) return;
+  const zone = this.zones.find(z => z._id === zoneId);
+  if (zone?.coordonnees?.latitude && zone?.coordonnees?.longitude) {
+    this.form.patchValue({
+      latitude: zone.coordonnees.latitude,
+      longitude: zone.coordonnees.longitude
+    }, { emitEvent: false });
+  }
+}
 }
