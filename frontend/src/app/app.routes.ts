@@ -55,6 +55,12 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },
+       {
+        path: 'paiements',
+        loadComponent: () => import('./pages/admin/paiements/paiements.component').then(m => m.PaiementsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'BOUTIQUE'] }
+      },
       
       // route pour la gestions boutiques
       {

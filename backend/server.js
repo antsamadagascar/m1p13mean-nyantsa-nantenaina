@@ -43,6 +43,7 @@ require('./models/Promotion');
 require('./models/Panier');
 require('./models/Commande');
 require('./models/Location');
+require('./models/Paiement');
 
 
 const userRoutes = require('./routes/user.routes');
@@ -78,7 +79,7 @@ app.use('/api/evaluations', adminRouter);
 app.use('/api/favoris', require('./routes/favori.routes'));
 
 app.use('/api/locations', require('./routes/location.routes'));
-
+app.use('/api/paiements', require('./routes/paiement.routes'));
 
 app.use('/uploads', express.static('uploads'));
 
