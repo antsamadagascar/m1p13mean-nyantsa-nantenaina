@@ -8,6 +8,15 @@ const locationService = {
       .populate('zone', 'nom')
       .sort({ date_creation: -1 });
 
+    // Auto-update statut si date_fin dépassée
+    const now = new Date();
+    for (const loc of locations) {
+      if (loc.date_fin && new Date(loc.date_fin) < now && loc.statut === 'actif') {
+        loc.statut = 'expire';
+        await loc.save();
+      }
+    }
+
     const ca_total = locations
       .filter(l => l.statut === 'actif')
       .reduce((sum, l) => sum + (l.loyer_mensuel || 0), 0);
