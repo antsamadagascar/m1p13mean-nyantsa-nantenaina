@@ -179,4 +179,34 @@ export class LocationsComponent implements OnInit {
       this.form.get('surface')?.setValue(boutique.localisation.surface, { emitEvent: false });
     }
   }
+
+  suspendre(loc: any) {
+    if (!confirm(`Suspendre la boutique "${loc.boutique?.nom}" ?`)) return;
+    this.http.patch(`${this.api}/boutiques/${loc.boutique._id}/suspendre`,
+      { motif: `Contrat local ${loc.numero_local} - suspension administrative` },
+      this.h()
+    ).subscribe({
+      next: () => {
+        this.alertService.success(`Boutique "${loc.boutique?.nom}" suspendue`);
+        this.load();
+      },
+      error: (err) => {
+        this.alertService.error(err.error?.message || 'Erreur lors de la suspension');
+      }
+    });
+  }
+
+  reactiver(loc: any) {
+    if (!confirm(`Reactiver la boutique "${loc.boutique?.nom}" ?`)) return;
+    this.http.patch(`${this.api}/boutiques/${loc.boutique._id}/reactiver`, {}, this.h())
+      .subscribe({
+        next: () => {
+          this.alertService.success(`Boutique "${loc.boutique?.nom}" reactivee`);
+          this.load();
+        },
+        error: (err) => {
+          this.alertService.error(err.error?.message || 'Erreur lors de la reactivation');
+        }
+      });
+  }
 }
