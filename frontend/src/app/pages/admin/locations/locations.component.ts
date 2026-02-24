@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AlertService } from '../../../services/alert.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-locations',
@@ -30,7 +31,8 @@ export class LocationsComponent implements OnInit {
     { label: 'Expires', value: 'expire' },
     { label: 'Resilies', value: 'resilie' }
   ];
-  private api = 'http://localhost:5000/api';
+
+  private api = `${environment.apiUrl}/api`;
 
   constructor(
     private fb: FormBuilder,
