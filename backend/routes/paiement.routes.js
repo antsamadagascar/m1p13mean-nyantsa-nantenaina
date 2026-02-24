@@ -8,5 +8,6 @@ router.post('/generer-annee', auth, paiementController.genererAnnee);
 router.get('/',    auth, paiementController.getAll);
 router.post('/',   auth, paiementController.create);
 router.put('/:id', auth, paiementController.update);
+router.delete('/:id/annuler', auth, paiementController.annuler);
 
 module.exports = router;

@@ -76,6 +76,7 @@
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Periode</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Montant du</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Montant paye</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Reste</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Date paiement</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Date Echeance</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Retard</th>
@@ -91,6 +92,12 @@
           <td class="px-4 py-3 text-gray-700 font-mono">{{ formatAr(p.montant_du) }}</td>
           <td class="px-4 py-3 font-mono" [class]="p.montant_paye >= p.montant_du ? 'text-emerald-600 font-semibold' : 'text-gray-700'">
             {{ formatAr(p.montant_paye) }}
+          </td>
+          <td class="px-4 py-3">
+            <span *ngIf="p.statut === 'partiel'" class="text-blue-600 font-mono font-semibold text-xs">
+              {{ formatAr(p.montant_du - p.montant_paye) }}
+            </span>
+            <span *ngIf="p.statut !== 'partiel'" class="text-gray-300">—</span>
           </td>
           <td class="px-4 py-3 text-gray-500">{{ p.date_paiement ? (p.date_paiement | date:'dd/MM/yyyy') : '—' }}</td>
           <td class="px-4 py-3 text-gray-500">{{ p.date_echeance | date:'dd/MM/yyyy' }}</td>
@@ -165,8 +172,10 @@
         <label class="block text-xs font-semibold text-gray-600 mb-1">Montant paye (Ar)</label>
         <input type="number" formControlName="montant_paye" placeholder="500000"
           class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+        <p *ngIf="editMode && currentPaiement?.statut === 'partiel'" class="text-xs text-blue-500 mt-1">
+          Reste à payer : {{ formatAr(currentPaiement.montant_du - currentPaiement.montant_paye) }}
+        </p>
       </div>
-
       <div>
         <label class="block text-xs font-semibold text-gray-600 mb-1">Date de paiement</label>
         <input type="date" formControlName="date_paiement" required

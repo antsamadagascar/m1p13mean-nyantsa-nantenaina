@@ -58,8 +58,38 @@ const paiementService = {
   async update(id, body) {
     const paiement = await Paiement.findById(id);
     if (!paiement) throw { status: 404, message: 'Paiement non trouvé' };
+
+    // ### Additionne si c'est un paiement partiel
+    if (body.montant_paye !== undefined) {
+      paiement.montant_paye = paiement.montant_paye + body.montant_paye;
+      delete body.montant_paye; 
+    }
+
     Object.assign(paiement, body);
-    await paiement.save(); // déclenche le pre('save') -> recalcul statut
+
+    // ### Calcul statut after la mise à jour
+    if (paiement.montant_paye <= 0) {
+      paiement.statut = 'impaye';
+    } else if (paiement.montant_paye >= paiement.montant_du) {
+      paiement.statut = 'paye';
+    } else {
+      paiement.statut = 'partiel';
+    }
+
+    await paiement.save();
+    return paiement;
+  },
+
+  async annuler(id) {
+    const paiement = await Paiement.findById(id);
+    if (!paiement) throw { status: 404, message: 'Paiement non trouvé' };
+
+    paiement.montant_paye = 0;
+    paiement.date_paiement = null;
+    paiement.note = '';
+    paiement.statut = 'impaye';
+
+    await paiement.save();
     return paiement;
   },
 

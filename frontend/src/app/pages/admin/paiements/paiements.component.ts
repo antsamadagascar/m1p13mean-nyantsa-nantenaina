@@ -43,6 +43,8 @@ export class PaiementsComponent implements OnInit {
   boutiquesActives: any[] = [];
   boutiquesSelectionnees: string[] = [];
   genMode: 'mois' | 'annee' = 'mois';
+  currentPaiement: any = null
+  
 
   private api = `${environment.apiUrl}/api`;
 
@@ -109,8 +111,10 @@ export class PaiementsComponent implements OnInit {
   openEditModal(p: any) {
     this.editMode = true;
     this.editId = p._id;
+    const reste = p.montant_du - p.montant_paye;
+    this.currentPaiement = p;
     this.form.patchValue({
-      montant_paye: p.montant_paye,
+      montant_paye: p.statut === 'partiel' ? reste : p.montant_paye,
       date_paiement: p.date_paiement?.substring(0, 10) || '',
       note: p.note || '',
       mois: p.mois,
@@ -149,12 +153,7 @@ export class PaiementsComponent implements OnInit {
   }
 
   annulerPaiement(p: any) {
-    this.http.put(`${this.api}/paiements/${p._id}`, {
-      montant_paye: 0,
-      date_paiement: null,
-      note: '',
-      statut: 'impaye'
-    }, this.h()).subscribe({
+    this.http.delete(`${this.api}/paiements/${p._id}/annuler`, this.h()).subscribe({
       next: () => {
         this.alertService.success('Paiement annulé avec succès');
         this.load();
@@ -164,7 +163,7 @@ export class PaiementsComponent implements OnInit {
       }
     });
   }
-  
+
   genererMois() {
     this.http.post(`${this.api}/paiements/generer-mois`,
       { mois: this.genMois, annee: this.genAnnee, locations: this.boutiquesSelectionnees },

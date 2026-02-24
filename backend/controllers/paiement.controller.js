@@ -26,6 +26,15 @@ exports.update = async (req, res) => {
   }
 };
 
+exports.annuler = async (req, res) => {
+  try {
+    const paiement = await paiementService.annuler(req.params.id);
+    res.json({ message: 'Paiement annulé avec succès', paiement });
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
+};
+
 exports.genererMois = async (req, res) => {
   try {
     res.json(await paiementService.genererMois(req.body.mois, req.body.annee, req.body.locations));
