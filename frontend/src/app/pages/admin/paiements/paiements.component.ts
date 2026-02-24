@@ -55,7 +55,7 @@ export class PaiementsComponent implements OnInit {
       note: ['']
     });
     const year = new Date().getFullYear();
-    this.anneeOptions = [year - 1, year, year + 1];
+    this.anneeOptions = Array.from({ length: 5 }, (_, i) => year - 2 + i);
   }
 
   ngOnInit() {

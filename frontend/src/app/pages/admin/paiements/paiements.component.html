@@ -70,6 +70,7 @@
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Montant du</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Montant paye</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Date paiement</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Date Echeance</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Retard</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Statut</th>
           <th *ngIf="isAdmin" class="px-4 py-3"></th>
@@ -84,6 +85,7 @@
             {{ formatAr(p.montant_paye) }}
           </td>
           <td class="px-4 py-3 text-gray-500">{{ p.date_paiement ? (p.date_paiement | date:'dd/MM/yyyy') : '—' }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ p.date_echeance | date:'dd/MM/yyyy' }}</td>
           <td class="px-4 py-3">
             <span *ngIf="p.retard_jours > 0" class="text-red-500 font-medium text-xs">{{ p.retard_jours }}j</span>
             <span *ngIf="!p.retard_jours || p.retard_jours === 0" class="text-gray-300">—</span>

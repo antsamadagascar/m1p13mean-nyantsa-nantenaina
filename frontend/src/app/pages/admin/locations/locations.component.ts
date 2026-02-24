@@ -172,8 +172,11 @@ export class LocationsComponent implements OnInit {
     if (!boutiqueId) return;
     const boutique = this.boutiques.find(b => b._id === boutiqueId);
     if (boutique?.localisation?.zone) {
-        const zoneId = boutique.localisation.zone._id || boutique.localisation.zone;
-        this.form.patchValue({ zone: zoneId });
+      const zoneId = boutique.localisation.zone._id || boutique.localisation.zone;
+      this.form.get('zone')?.setValue(zoneId, { emitEvent: false });
     }
-}
+    if (boutique?.localisation?.surface) {
+      this.form.get('surface')?.setValue(boutique.localisation.surface, { emitEvent: false });
+    }
+  }
 }
