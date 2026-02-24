@@ -153,7 +153,22 @@ export class PaiementsComponent implements OnInit {
         }
       });
   }
+  genMode: 'mois' | 'annee' = 'mois';
 
+
+  genererAnnee() {
+    this.http.post(`${this.api}/paiements/generer-annee`, { annee: this.genAnnee }, this.h())
+      .subscribe({
+        next: (res: any) => {
+          this.alertService.success(res.message);
+          this.showGenererModal = false;
+          this.load();
+        },
+        error: (err) => {
+          this.alertService.error(err.error?.message || 'Erreur lors de la generation');
+        }
+      });
+  }
   formatAr(n: number) { return n ? new Intl.NumberFormat('fr-MG').format(n) + ' Ar' : '0 Ar'; }
   getMoisLabel(m: number) { return MOIS[m - 1] || ''; }
   getStatutLabel(s: string) { return ({ paye: 'Paye', impaye: 'Impaye', en_retard: 'Retard', partiel: 'Partiel' } as any)[s] || s; }

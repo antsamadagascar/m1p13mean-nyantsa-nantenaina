@@ -85,6 +85,32 @@ const paiementService = {
     }
 
     return { message: `${created.length} paiement(s) générés`, created };
+  },
+  
+  async genererAnnee(annee) {
+    const locations = await Location.find({ statut: 'actif' });
+    let totalCreated = 0;
+
+    for (const loc of locations) {
+      for (let mois = 1; mois <= 12; mois++) {
+        const existe = await Paiement.findOne({ location: loc._id, mois, annee });
+        if (!existe) {
+          const p = new Paiement({
+            location: loc._id,
+            boutique: loc.boutique,
+            mois,
+            annee,
+            montant_du: loc.loyer_mensuel,
+            montant_paye: 0,
+            date_echeance: new Date(annee, mois, 5)
+          });
+          await p.save();
+          totalCreated++;
+        }
+      }
+    }
+
+    return { message: `${totalCreated} paiement(s) generes pour ${annee}` };
   }
 };
 

@@ -33,3 +33,11 @@ exports.genererMois = async (req, res) => {
     res.status(err.status || 500).json({ message: err.message });
   }
 };
+
+exports.genererAnnee = async (req, res) => {
+  try {
+    res.json(await paiementService.genererAnnee(req.body.annee));
+  } catch (err) {
+    res.status(err.status || 500).json({ message: err.message });
+  }
+};

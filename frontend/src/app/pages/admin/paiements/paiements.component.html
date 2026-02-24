@@ -8,7 +8,7 @@
     </div>
     <div class="flex gap-2" *ngIf="isAdmin">
       <button (click)="openGenererModal()" class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 transition">
-        Generer le mois
+        Generer le paiements
       </button>
       <button (click)="openModal()" class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
         Enregistrer un paiement
@@ -186,9 +186,24 @@
 <!-- MODAL GENERER -->
 <div *ngIf="showGenererModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="showGenererModal = false">
   <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl p-6" (click)="$event.stopPropagation()">
-    <h2 class="font-bold text-gray-900 mb-2">Generer les paiements du mois</h2>
-    <p class="text-sm text-gray-400 mb-4">Cree une fiche de paiement pour chaque location active.</p>
-    <div class="grid grid-cols-2 gap-3 mb-4">
+    <h2 class="font-bold text-gray-900 mb-4">Generer les paiements</h2>
+
+    <!-- ONGLETS -->
+    <div class="flex gap-1 mb-4 bg-gray-100 p-1 rounded-lg">
+      <button (click)="genMode = 'mois'"
+        class="flex-1 py-1.5 text-xs font-semibold rounded-md transition"
+        [class]="genMode === 'mois' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">
+        Par mois
+      </button>
+      <button (click)="genMode = 'annee'"
+        class="flex-1 py-1.5 text-xs font-semibold rounded-md transition"
+        [class]="genMode === 'annee' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500'">
+        Annee complete
+      </button>
+    </div>
+
+    <!-- MODE MOIS -->
+    <div *ngIf="genMode === 'mois'" class="grid grid-cols-2 gap-3 mb-4">
       <div>
         <label class="block text-xs font-semibold text-gray-600 mb-1">Mois</label>
         <select [(ngModel)]="genMois" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none">
@@ -202,9 +217,25 @@
         </select>
       </div>
     </div>
+
+    <!-- MODE ANNEE -->
+    <div *ngIf="genMode === 'annee'" class="mb-4">
+      <label class="block text-xs font-semibold text-gray-600 mb-1">Annee</label>
+      <select [(ngModel)]="genAnnee" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none">
+        <option *ngFor="let a of anneeOptions" [value]="a">{{ a }}</option>
+      </select>
+      <p class="text-xs text-gray-400 mt-2">Genere 12 fiches de paiement pour toutes les locations actives.</p>
+    </div>
+
     <div class="flex gap-3">
-      <button (click)="showGenererModal = false" class="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">Annuler</button>
-      <button (click)="genererMois()" class="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700">Generer</button>
+      <button (click)="showGenererModal = false" 
+        class="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+        Annuler
+      </button>
+      <button (click)="genMode === 'mois' ? genererMois() : genererAnnee()"
+        class="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700">
+        Generer
+      </button>
     </div>
   </div>
 </div>
