@@ -398,9 +398,9 @@ async function seedProduitsComplet() {
     ];
 
     // ============================================
-    // INSERTION
+    // INSERTION inventaires
     // ============================================
-    console.log('🌱 Création des produits...\n');
+    console.log(' Création des produits...\n');
     let compteur = 0;
     const boutiquesStats = {};
 
@@ -410,8 +410,16 @@ async function seedProduitsComplet() {
         const sousCategorie = getSCat(data.sousCategorieNom);
 
         if (!categorie) {
-          console.log(`⚠️  Catégorie "${data.categorieNom}" introuvable pour ${data.nom}`);
+          console.log(` Catégorie "${data.categorieNom}" introuvable pour ${data.nom}`);
           continue;
+        }
+
+        // ── Calculer la quantité totale correctement ──
+        const modeGestion = data.gestion_stock || 'SIMPLE';
+        let quantiteTotale = data.quantite || 0;
+
+        if (modeGestion === 'VARIANTES' && data.variantes?.length) {
+          quantiteTotale = data.variantes.reduce((sum, v) => sum + (v.quantite || 0), 0);
         }
 
         const produit = await Produit.create({
@@ -424,49 +432,80 @@ async function seedProduitsComplet() {
           boutique:           data.boutiqueRef._id,
           categorie:          categorie._id,
           sous_categorie:     sousCategorie?._id,
-          quantite:           data.quantite,
+          quantite:           quantiteTotale,  
           statut:             'ACTIF',
           condition:          'NEUF',
-          tags:               data.tags || [],
+          tags:               data.tags   || [],
           images:             data.images || [],
-          gestion_stock:      data.gestion_stock || 'SIMPLE',
+          gestion_stock:      modeGestion,
           variantes:          data.variantes || [],
         });
 
-        await MouvementStock.create({
-          produit:  produit._id,
-          type:     'ENTREE',
-          quantite: data.quantite,
-          motif:    'Stock initial (seed)',
-          boutique: data.boutiqueRef._id,
-        });
+        // ── Créer les mouvements de stock initiaux ──
+        if (modeGestion === 'VARIANTES' && data.variantes?.length) {
+          // Un mouvement PAR variante
+          const mouvements = data.variantes
+            .filter(v => v.quantite > 0)
+            .map(v => ({
+              produit:            produit._id,
+              type:               'ENTREE',
+              quantite:           v.quantite,
+              motif:              'Stock initial (seed)',
+              boutique:           data.boutiqueRef._id,
+              variante_sku:       v.sku       || null,
+              variante_nom:       v.nom       || null,
+              variante_attributs: v.attributs || [],
+              quantite_avant:     0,
+              quantite_apres:     v.quantite,
+            }));
+
+          await MouvementStock.insertMany(mouvements);
+          console.log(`     └─ ${mouvements.length} variante(s) : ${data.variantes.map(v => `${v.sku}(${v.quantite})`).join(', ')}`);
+
+        } else {
+          // Produit simple — un seul mouvement
+          await MouvementStock.create({
+            produit:        produit._id,
+            type:           'ENTREE',
+            quantite:       quantiteTotale,
+            motif:          'Stock initial (seed)',
+            boutique:       data.boutiqueRef._id,
+            variante_sku:   null,
+            variante_nom:   null,
+            quantite_avant: 0,
+            quantite_apres: quantiteTotale,
+          });
+        }
 
         compteur++;
         if (!boutiquesStats[data.boutiqueRef.nom]) boutiquesStats[data.boutiqueRef.nom] = 0;
         boutiquesStats[data.boutiqueRef.nom]++;
 
-        const emoji = { 'Vêtements':'👕','Électronique':'📱','Maison et Déco':'🛋️' }[data.categorieNom] || '📦';
-        console.log(`  ${emoji} [${data.boutiqueRef.nom}] ${produit.nom} — ${produit.prix.toLocaleString()} Ar`);
+        const emoji = { 'Vêtements': '👕', 'Électronique': '📱', 'Maison et Déco': '🛋️' }[data.categorieNom] || '📦';
+        const stockInfo = modeGestion === 'VARIANTES'
+          ? `${data.variantes?.length} variantes — stock total: ${quantiteTotale}`
+          : `stock: ${quantiteTotale}`;
+        console.log(`  ${emoji} [${data.boutiqueRef.nom}] ${produit.nom} (${stockInfo})`);
 
       } catch (err) {
-        console.error(`  ❌ ${data.nom}: ${err.message}`);
+        console.error(`  ${data.nom}: ${err.message}`);
       }
     }
 
     console.log('\n═══════════════════════════════════════════════════════');
-    console.log(`✅ ${compteur}/${produitsData.length} produits créés\n`);
-    console.log('📊 Répartition par boutique :');
+    console.log(` ${compteur}/${produitsData.length} produits créés\n`);
+    console.log(' Répartition par boutique :');
     Object.entries(boutiquesStats).forEach(([nom, count]) => {
-      const star = nom === 'Fashion Shop' ? ' ⭐ (boutique test prof)' : '';
-      console.log(`   🏪 ${nom} : ${count} produits${star}`);
+      const star = nom === 'Fashion Shop' ? '  (boutique test prof)' : '';
+      console.log(` ${nom} : ${count} produits${star}`);
     });
     console.log('═══════════════════════════════════════════════════════\n');
-    console.log('🔑 Connexion test prof : jean@fashion.mg');
+    console.log(' Connexion test prof : jean@fashion.mg');
     console.log('═══════════════════════════════════════════════════════\n');
 
     process.exit(0);
   } catch (err) {
-    console.error('❌ Erreur seed:', err.message);
+    console.error(' Erreur seed:', err.message);
     process.exit(1);
   }
 }
