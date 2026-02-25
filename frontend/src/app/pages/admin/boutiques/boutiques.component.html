@@ -342,6 +342,51 @@
           </div>
         </div>
       </div>
+
+
+     
+      
+      <!-- ============================================ -->
+      <!-- CONTACT -->
+      <!-- ============================================ -->
+      <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
+          <i class="fa-solid fa-address-book mr-2 text-blue-600"></i>
+          Contact
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-phone mr-1"></i> Téléphone <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              [(ngModel)]="boutique.contact.telephone"
+              name="contactTelephone"
+              (input)="formatPhoneNumber($event, 'contact')"
+              (focus)="onPhoneFocus('contact')"
+              maxlength="17"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="+261 32 00 000 00">
+            <small class="text-xs text-gray-500">Format automatique: +261 32 00 000 00</small>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fa-solid fa-envelope mr-1"></i> Email <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              [(ngModel)]="boutique.contact.email"
+              name="contactEmail"
+              required
+              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              placeholder="contact@boutique.com">
+          </div>
+        </div>
+      </div>
        <!-- ============================================ -->
       <!-- CATÉGORIE & SOUS-CATÉGORIES -->
       <!-- ============================================ -->
@@ -537,49 +582,6 @@
         </div>
       </div>
 
-     
-      
-      <!-- ============================================ -->
-      <!-- CONTACT -->
-      <!-- ============================================ -->
-      <div class="bg-gray-50 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-gray-700 mb-4 flex items-center">
-          <i class="fa-solid fa-address-book mr-2 text-blue-600"></i>
-          Contact
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-phone mr-1"></i> Téléphone <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              [(ngModel)]="boutique.contact.telephone"
-              name="contactTelephone"
-              (input)="formatPhoneNumber($event, 'contact')"
-              (focus)="onPhoneFocus('contact')"
-              maxlength="17"
-              required
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="+261 32 00 000 00">
-            <small class="text-xs text-gray-500">Format automatique: +261 32 00 000 00</small>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-              <i class="fa-solid fa-envelope mr-1"></i> Email <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              [(ngModel)]="boutique.contact.email"
-              name="contactEmail"
-              required
-              class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              placeholder="contact@boutique.com">
-          </div>
-        </div>
-      </div>
       <!-- Section Contrat -->
       <div class="bg-gray-50 p-4 rounded-lg">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">
