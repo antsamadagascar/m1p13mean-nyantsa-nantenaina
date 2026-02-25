@@ -1,3 +1,12 @@
+// mouvement_stock.routes.js
 const express = require('express');
 const router = express.Router();
-const zoneController = require('../controllers/mouvement_stock.controller');
+const auth = require('../middleware/auth');
+const stockController = require('../controllers/stockMovementsController');
+
+// Vérif rapide
+console.log('stockController:', stockController);
+
+router.get('/', auth, stockController.getMouvements);
+
+module.exports = router;

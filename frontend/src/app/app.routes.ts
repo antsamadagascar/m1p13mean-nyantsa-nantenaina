@@ -138,6 +138,13 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['BOUTIQUE'] }
       },
+      {
+        path: 'stock-movements',
+        loadComponent: () => import('./pages/admin/stock-movements/stock-movements.component')
+          .then(m => m.StockMovementsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['BOUTIQUE'] }
+      },
 
     ]
   },
