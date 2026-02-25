@@ -55,7 +55,7 @@
             <tr>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Boutique</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Local</th>
-              <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zone</th>
+              <!-- <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Zone</th> -->
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Surface</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Loyer / mois</th>
               <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Debut</th>
@@ -79,7 +79,7 @@
               <td class="px-4 py-3">
                 <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded font-mono text-xs font-semibold">{{ loc.numero_local }}</span>
               </td>
-              <td class="px-4 py-3 text-gray-600">{{ loc.zone?.nom }}</td>
+              <!-- <td class="px-4 py-3 text-gray-600">{{ loc.zone?.nom }}</td> -->
               <td class="px-4 py-3 text-gray-500">{{ loc.surface ? loc.surface + " m2" : "—" }}</td>
               <td class="px-4 py-3 font-mono font-semibold text-emerald-600">{{ formatAr(loc.loyer_mensuel) }}</td>
               <td class="px-4 py-3 text-gray-500">{{ loc.date_debut | date:"dd/MM/yyyy" }}</td>
@@ -96,12 +96,12 @@
               <!-- Actions location -->
               <td class="px-4 py-3">
                 <div class="flex gap-3">
-                  <button (click)="openEdit(loc)" 
+                  <button (click)="openEdit(loc)"
                     class="text-xs text-gray-400 hover:text-gray-700 font-medium transition">
                     Modifier
                   </button>
 
-                  <button (click)="del(loc)" 
+                  <button (click)="del(loc)"
                     class="text-xs text-gray-400 hover:text-red-500 font-medium transition">
                     Supprimer
                   </button>
@@ -157,8 +157,8 @@
             </div>
 
             <!-- Zone + Emplacement -->
-            <div class="grid grid-cols-2 gap-4">
-              <div>
+            <div>
+              <!-- <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Zone *</label>
                 <select formControlName="zone"
                   (change)="onZoneChange(form.get('zone')?.value)"
@@ -166,7 +166,7 @@
                   <option value="">-- Selectionner --</option>
                   <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
                 </select>
-              </div>
+              </div> -->
               <div>
                 <label class="block text-xs font-semibold text-gray-600 mb-1">Emplacement disponible</label>
                 <select (change)="onEmplacementChange($any($event.target).value)"
@@ -177,11 +177,11 @@
                     {{ e.numero_local }} — {{ e.type }} {{ e.surface ? '(' + e.surface + ' m²)' : '' }}
                   </option>
                 </select>
-                <p *ngIf="form.get('zone')?.value && !editMode && emplacementsDisponibles.length === 0"
+                <!-- <p *ngIf="form.get('zone')?.value && !editMode && emplacementsDisponibles.length === 0"
                   class="text-xs text-orange-500 mt-1">
                   <i class="fa-solid fa-triangle-exclamation mr-1"></i>
                   Aucun emplacement disponible
-                </p>
+                </p> -->
               </div>
             </div>
 

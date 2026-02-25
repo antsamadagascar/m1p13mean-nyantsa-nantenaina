@@ -28,8 +28,10 @@ exports.create = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
+    console.log("CHAMPS EN ERREUR");
     res.json(await locationService.update(req.params.id, req.body));
   } catch (err) {
+    console.error("ERREUR COMPLETE:", err);
     res.status(err.status || 500).json({ message: err.message });
   }
 };

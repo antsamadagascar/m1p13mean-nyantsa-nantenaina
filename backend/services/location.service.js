@@ -5,7 +5,7 @@ const locationService = {
   async getAll() {
     const locations = await Location.find()
       .populate('boutique', 'nom logo statut')
-      .populate('zone', 'nom')
+      // .populate('zone', 'nom')
       .sort({ date_creation: -1 });
 
     // Auto-update statut si date_fin dépassée
@@ -38,17 +38,16 @@ const locationService = {
 
   async create(data) {
     const location = await Location.create(data);
-    return location.populate(['boutique', 'zone']);
+    return location.populate('boutique');
   },
-
+  
   async update(id, data) {
     const location = await Location.findByIdAndUpdate(id, data, { new: true, runValidators: true })
-      .populate('boutique', 'nom')
-      .populate('zone', 'nom');
+      .populate('boutique', 'nom');
     if (!location) throw { status: 404, message: 'Contrat non trouvé' };
     return location;
   },
-
+  
   async remove(id) {
     const location = await Location.findByIdAndDelete(id);
     if (!location) throw { status: 404, message: 'Contrat non trouvé' };

@@ -33,7 +33,7 @@ export class LocationsComponent implements OnInit {
   ];
   emplacementsDisponibles: any[] = [];
   emplacementSelectionne: any = null;
-  
+
   private api = `${environment.apiUrl}/api`;
 
   constructor(
@@ -43,8 +43,8 @@ export class LocationsComponent implements OnInit {
   ) {
     this.form = this.fb.group({
       boutique: ['', Validators.required],
-      zone: ['', Validators.required],
-      emplacement: [''], 
+      // zone: ['', Validators.required],
+      emplacement: [''],
       numero_local: ['', Validators.required],
       surface: [null],
       loyer_mensuel: [null, Validators.required],
@@ -55,7 +55,7 @@ export class LocationsComponent implements OnInit {
     });
   }
 
-  ngOnInit() { this.load(); this.loadBoutiques(); this.loadZones(); }
+  ngOnInit() { this.load(); this.loadBoutiques(); }
 
   private h() {
     return { headers: new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` }) };
@@ -84,12 +84,12 @@ export class LocationsComponent implements OnInit {
     });
   }
 
-  loadZones() {
-    this.http.get<any>(`${this.api}/zones`, this.h()).subscribe({
-      next: (res) => { this.zones = res.zones || res.data || res || []; },
-      error: () => { this.alertService.error('Erreur lors du chargement des zones'); }
-    });
-  }
+  // loadZones() {
+  //   this.http.get<any>(`${this.api}/zones`, this.h()).subscribe({
+  //     next: (res) => { this.zones = res.zones || res.data || res || []; },
+  //     error: () => { this.alertService.error('Erreur lors du chargement des zones'); }
+  //   });
+  // }
 
   filter() {
     let r = [...this.locations];
@@ -120,6 +120,7 @@ export class LocationsComponent implements OnInit {
     this.editId = loc._id;
     this.emplacementsDisponibles = [];
     this.emplacementSelectionne = null;
+    this.chargeEmplacement();
     this.form.patchValue({
       boutique: loc.boutique?._id,
       zone: loc.zone?._id,
@@ -215,11 +216,26 @@ export class LocationsComponent implements OnInit {
       });
   }
 
-  onZoneChange(zoneId: string) {
-    if (!zoneId) { this.emplacementsDisponibles = []; this.emplacementSelectionne = null; return; }
-    this.http.get<{emplacements: any[]}>(`${this.api}/emplacements/disponibles?zone=${zoneId}`, this.h()).subscribe({
-      next: (res) => { this.emplacementsDisponibles = res.emplacements; this.emplacementSelectionne = null; },
-      error: () => { this.alertService.error('Erreur chargement emplacements'); }
+  // onZoneChange(zoneId: string) {
+  //   if (!zoneId) { this.emplacementsDisponibles = []; this.emplacementSelectionne = null; return; }
+  //   this.http.get<{emplacements: any[]}>(`${this.api}/emplacements/disponibles?zone=${zoneId}`, this.h()).subscribe({
+  //     next: (res) => { this.emplacementsDisponibles = res.emplacements; this.emplacementSelectionne = null; },
+  //     error: () => { this.alertService.error('Erreur chargement emplacements'); }
+  //   });
+  // }
+  chargeEmplacement() {
+    this.http.get<{ emplacements: any[] }>(
+      `${this.api}/emplacements/disponibles`,
+      this.h()
+    ).subscribe({
+      next: (res) => {
+        this.emplacementsDisponibles = res.emplacements || [];
+        console.log("isa",this.emplacementsDisponibles.length);
+        console.log("OBJET COMPLET:", JSON.stringify(this.emplacementsDisponibles[0], null, 2));
+      },
+      error: (err) => {
+        console.error("ERREUR API:", err);
+      }
     });
   }
 
@@ -228,7 +244,7 @@ export class LocationsComponent implements OnInit {
     if (!e) return;
     this.emplacementSelectionne = e;
     this.form.patchValue({
-      numero_local: e.numero_local,
+      numero_local: e.numero_local,  // ← était e.numero
       surface: e.surface,
       emplacement: e._id
     }, { emitEvent: false });
