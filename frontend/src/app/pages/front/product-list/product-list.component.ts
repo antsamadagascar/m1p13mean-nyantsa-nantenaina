@@ -63,7 +63,7 @@ export class ProductListComponent implements OnInit, OnDestroy {
     { value: 'nouveaute', label: 'Nouveautés' },
     { value: 'prix_asc', label: 'Prix croissant' },
     { value: 'prix_desc', label: 'Prix décroissant' },
-    { value: 'populaire', label: 'Les plus populaires' },
+    // { value: 'populaire', label: 'Les plus populaires' },
     { value: 'meilleures_notes', label: 'Meilleures notes' }
   ];
   

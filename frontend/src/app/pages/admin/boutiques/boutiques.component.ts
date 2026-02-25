@@ -3,18 +3,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BoutiqueService } from '../../../services/boutique.service';
-import { ZoneService } from '../../../services/zone.service'; 
+import { ZoneService } from '../../../services/zone.service';
 import { Boutique } from '../../../models/boutique.model';
 import { AlertService } from '../../../services/alert.service';
 import { AuthService } from '../../../services/auth.service';
 import { CategoryService } from '../../../services/category.service';
 import { SousCategorieService } from '../../../services/sous-categorie.service';
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-boutiques',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink], 
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './boutiques.component.html',
   styleUrls: ['./boutiques.component.css']
 })
@@ -49,6 +51,10 @@ export class BoutiquesComponent implements OnInit {
   selectedCategorie: string = '';
   selectedSousCategorie: string = '';
 
+  //vao2
+  locationsDisponibles: any[] = [];
+  locationSelectionnee: any = null;
+
   boutique = {
     nom: '',
     description: '',
@@ -59,12 +65,18 @@ export class BoutiquesComponent implements OnInit {
       telephone: ''
     },
     localisation: {
-     zone: '' as any, 
+    //  zone: '' as any,
       numero: '',
       surface: null,
       latitude: null,
       longitude: null,
       adresse_complete: ''
+    },
+    contrat: {
+      loyer_mensuel: null,
+      date_debut: '',
+      date_fin: '',
+      notes:''
     },
     contact: {
       telephone: '',
@@ -84,12 +96,13 @@ export class BoutiquesComponent implements OnInit {
 
   constructor(
     private boutiqueService: BoutiqueService,
-    private zoneService: ZoneService, 
+    private zoneService: ZoneService,
     private alertService: AlertService,
     public authService: AuthService,
     private categoryService: CategoryService,
     private sousCategorieService: SousCategorieService,
-    private router: Router 
+    private router: Router ,
+    private http: HttpClient ,
   ) {}
 
    ngOnInit() {
@@ -97,22 +110,23 @@ export class BoutiquesComponent implements OnInit {
   //   console.log(' Utilisateur:', this.authService.getUserFullName());
   //   console.log(' Rôle:', this.authService.getUserRole());
     this.loadBoutiques();
-    this.loadZones(); 
+    // this.loadZones();
+    this.chargeEmplacement();
   }
-
+  private api = `${environment.apiUrl}/api`;
   //  Charge tous  les zones actives (vao2)
-  loadZones() {
-    this.zoneService.getAllZones(true).subscribe({
-      next: (res: any) => 
-      {   this.zones = res.data || []; console.log(' Zones chargées:', this.zones); 
+  // loadZones() {
+  //   this.zoneService.getAllZones(true).subscribe({
+  //     next: (res: any) =>
+  //     {   this.zones = res.data || []; console.log(' Zones chargées:', this.zones);
 
-      },
-      error: (err) => {
-        console.error(' Erreur chargement zones:', err);
-        this.alertService.error('Erreur lors du chargement des zones');
-      }
-    });
-  }
+  //     },
+  //     error: (err) => {
+  //       console.error(' Erreur chargement zones:', err);
+  //       this.alertService.error('Erreur lors du chargement des zones');
+  //     }
+  //   });
+  // }
 
   getCategorieNom(categorie: any): string {
     return typeof categorie === 'string' ? categorie : categorie.nom;
@@ -141,13 +155,13 @@ export class BoutiquesComponent implements OnInit {
 
   calculateStats() {
     this.stats.total = this.boutiques.length;
-    this.stats.actives = this.boutiques.filter(b => 
-      b.statut.actif 
+    this.stats.actives = this.boutiques.filter(b =>
+      b.statut.actif
     ).length;
-    this.stats.en_attente = this.boutiques.filter(b => 
+    this.stats.en_attente = this.boutiques.filter(b =>
       b.statut.en_attente_validation
     ).length;
-    this.stats.suspendues = this.boutiques.filter(b => 
+    this.stats.suspendues = this.boutiques.filter(b =>
       b.statut.suspendu
     ).length;
   }
@@ -156,15 +170,15 @@ export class BoutiquesComponent implements OnInit {
     this.boutiquesFiltered = this.boutiques.filter(boutique => {
       // Filtre par statut
       if (this.filters.statut) {
-        if (this.filters.statut === 'actif' && 
+        if (this.filters.statut === 'actif' &&
             (!boutique.statut.actif)) {
           return false;
         }
-        if (this.filters.statut === 'en_attente' && 
+        if (this.filters.statut === 'en_attente' &&
             !boutique.statut.en_attente_validation) {
           return false;
         }
-        if (this.filters.statut === 'suspendu' && 
+        if (this.filters.statut === 'suspendu' &&
             !boutique.statut.suspendu) {
           return false;
         }
@@ -288,13 +302,14 @@ export class BoutiquesComponent implements OnInit {
         telephone: ''
       },
       localisation: {
-        zone: '',
+        // zone: '',
         numero: '',
         surface: null,
         latitude: null,
         longitude: null,
         adresse_complete: ''
       },
+      contrat: { loyer_mensuel: null, date_debut: '', date_fin: '', notes: '' },
       contact: {
         telephone: '',
         email: ''
@@ -315,7 +330,7 @@ export class BoutiquesComponent implements OnInit {
   formatPhoneNumber(event: any, field: 'gerant' | 'contact') {
     let input = event.target.value;
     let cleaned = input.replace(/[^\d+]/g, '');
-    
+
     if (cleaned === '' || cleaned === '+') {
       if (field === 'gerant') {
         this.boutique.gerant.telephone = '+261 ';
@@ -324,7 +339,7 @@ export class BoutiquesComponent implements OnInit {
       }
       return;
     }
-    
+
     if (!cleaned.startsWith('+261')) {
       if (cleaned.startsWith('3') || cleaned.startsWith('0')) {
         cleaned = '+261' + cleaned.replace(/^0/, '');
@@ -334,12 +349,12 @@ export class BoutiquesComponent implements OnInit {
         cleaned = '+261' + cleaned;
       }
     }
-    
+
     const afterPrefix = cleaned.substring(4);
     const digitsOnly = afterPrefix.replace(/\D/g, '');
-    
+
     let formatted = '+261';
-    
+
     if (digitsOnly.length > 0) {
       formatted += ' ' + digitsOnly.substring(0, 2);
     }
@@ -352,7 +367,7 @@ export class BoutiquesComponent implements OnInit {
     if (digitsOnly.length > 7) {
       formatted += ' ' + digitsOnly.substring(7, 9);
     }
-    
+
     if (digitsOnly.length <= 9) {
       if (field === 'gerant') {
         this.boutique.gerant.telephone = formatted;
@@ -360,17 +375,17 @@ export class BoutiquesComponent implements OnInit {
         this.boutique.contact.telephone = formatted;
       }
     }
-    
+
     setTimeout(() => {
       event.target.setSelectionRange(formatted.length, formatted.length);
     }, 0);
   }
-  
+
   onPhoneFocus(field: 'gerant' | 'contact') {
-    const currentValue = field === 'gerant' 
-      ? this.boutique.gerant.telephone 
+    const currentValue = field === 'gerant'
+      ? this.boutique.gerant.telephone
       : this.boutique.contact.telephone;
-      
+
     if (!currentValue || currentValue.trim() === '') {
       if (field === 'gerant') {
         this.boutique.gerant.telephone = '+261 ';
@@ -385,8 +400,7 @@ export class BoutiquesComponent implements OnInit {
 
     const localisationData = {
       ...this.boutique.localisation,
-      adresse_complete: this.boutique.localisation.adresse_complete || 
-                      `${this.getZoneNom(this.boutique.localisation.zone)}`
+      adresse_complete: this.boutique.localisation.adresse_complete
     };
 
     const data = {
@@ -415,5 +429,44 @@ export class BoutiquesComponent implements OnInit {
     this.router.navigate(['/backoffice/zones']);
   }
 
+  private h() {
+    return { headers: new HttpHeaders({ Authorization: `Bearer ${localStorage.getItem('token')}` }) };
+  }
+
+  // onZoneChange() {
+  //   const zoneId = this.boutique.localisation.zone;
+  //   if (!zoneId) { this.locationsDisponibles = []; this.locationSelectionnee = null; return; }
+  //   this.http.get<{emplacements: any[]}>(`${this.api}/emplacements/disponibles?zone=${zoneId}`, this.h()).subscribe({
+  //     next: (res) => { this.locationsDisponibles = res.emplacements; this.locationSelectionnee = null; },
+  //     error: () => { this.alertService.error('Erreur chargement emplacements'); }
+  //   });
+  // }
+
+  chargeEmplacement() {
+    this.http.get<{ emplacements: any[] }>(
+      `${this.api}/emplacements/disponibles`,
+      this.h()
+    ).subscribe({
+      next: (res) => {
+        this.locationsDisponibles = res.emplacements;
+        this.locationSelectionnee = null;
+      },
+      error: () => {
+        this.alertService.error('Erreur chargement emplacements');
+      }
+    });
+  }
+
+
+  onEmplacementChange(id: string) {
+    const loc = this.locationsDisponibles.find(l => l._id === id);
+    if (!loc) return;
+    this.locationSelectionnee = loc;
+    this.boutique.localisation.surface    = loc.surface;
+    this.boutique.localisation.latitude   = loc.latitude;
+    this.boutique.localisation.longitude  = loc.longitude;
+    this.boutique.localisation.numero     = loc.numero_local;
+    (this.boutique.localisation as any).emplacement = loc._id;
+  }
 
 }

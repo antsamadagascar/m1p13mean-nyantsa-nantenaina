@@ -48,7 +48,20 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'BOUTIQUE'] }
       },
-
+      {
+        path: 'locations',
+        loadComponent: () => import('./pages/admin/locations/locations.component')
+          .then(m => m.LocationsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+       {
+        path: 'paiements',
+        loadComponent: () => import('./pages/admin/paiements/paiements.component').then(m => m.PaiementsComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'BOUTIQUE'] }
+      },
+      
       // route pour la gestions boutiques
       {
         path: 'boutiques',
@@ -91,6 +104,13 @@ export const routes: Routes = [
         path: 'zones',
         loadComponent: () => import('./pages/admin/zones/zones.component')
           .then(m => m.ZonesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] }
+      },
+      {
+        path: 'emplacements', 
+        loadComponent: () => import('./pages/admin/emplacements/emplacements.component')
+          .then(m => m.EmplacementsComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] }
       },

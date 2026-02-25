@@ -82,35 +82,21 @@ const boutiqueSchema = new mongoose.Schema({
   // LOCALISATION 
   // ============================================
   localisation: {
-    // Zone dynamique référençant le modèle Zone
     zone: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Zone',
-      required: [true, 'La zone est requise']
+      required: [false]
     },
-    
-
+    emplacement: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Emplacement',
+      default: null
+    }, 
+    numero: String, 
     emplacement_complet: String,
-    
-    // Coordonnées GPS précises de la boutique
-    latitude: {
-      type: Number,
-      min: -90,
-      max: 90
-    },
-    
-    longitude: {
-      type: Number,
-      min: -180,
-      max: 180
-    },
-    
-    surface: {
-      type: Number,
-      min: 0
-    },
-    
-    // Adresse complète (optionnel)
+    latitude: { type: Number, min: -90, max: 90 },
+    longitude: { type: Number, min: -180, max: 180 },
+    surface: { type: Number, min: 0 },
     adresse_complete: {
       type: String,
       maxlength: [500, 'L\'adresse ne peut pas dépasser 500 caractères']

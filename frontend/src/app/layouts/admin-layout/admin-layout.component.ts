@@ -28,7 +28,7 @@ export class AdminLayoutComponent implements OnInit {
   sidebarOpen = true;
   mobileMenuOpen = false;
   userMenuOpen = false;
-  
+
   sections: SectionState = {
     main: true,
     management: true,
@@ -62,17 +62,22 @@ export class AdminLayoutComponent implements OnInit {
         { path: '/backoffice', label: 'Tableau de bord', icon: 'fa-solid fa-chart-line', exact: true },
       ];
 
-      this.managementMenuItems = [
+     this.managementMenuItems = [
         { path: '/backoffice/users', label: 'Utilisateurs', icon: 'fa-solid fa-users', exact: false },
+        // { path: '/backoffice/zones', label: 'Zones', icon: 'fa-solid fa-location-dot', exact: false },
+        // { path: '/backoffice/emplacements', label: 'Emplacements', icon: 'fa-solid fa-door-open', exact: false },
+        { path: '/backoffice/emplacements', label: 'Emplacements', icon: 'fa-solid fa-location-dot', exact: false },
         { path: '/backoffice/boutiques', label: 'Boutiques', icon: 'fa-solid fa-store', exact: false },
+        { path: '/backoffice/locations', label: 'Contrats & Locations', icon: 'fa-solid fa-file-signature', exact: false },
+        { path: '/backoffice/paiements', label: 'Factures & Paiements', icon: 'fa-solid fa-receipt', exact: false },
         { path: '/backoffice/products', label: 'Produits', icon: 'fa-solid fa-box', exact: false },
-        { path: '/backoffice/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false }
+        { path: '/backoffice/orders', label: 'Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
       ];
 
-      this.configMenuItems = [
-        { path: '/backoffice/reports', label: 'Rapports', icon: 'fa-solid fa-file-lines', exact: false },
-        { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
-      ];
+      // this.configMenuItems = [
+      //   { path: '/backoffice/reports', label: 'Rapports', icon: 'fa-solid fa-file-lines', exact: false },
+      //   { path: '/backoffice/settings', label: 'Paramètres', icon: 'fa-solid fa-gear', exact: false }
+      // ];
 
       return;
     }
@@ -92,13 +97,15 @@ export class AdminLayoutComponent implements OnInit {
 
       this.managementMenuItems = [
         { path: `/backoffice/boutiques/details/${boutiqueId}`, label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false },
+        { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
         { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
+        { path: '/backoffice/paiements', label: 'Mes Factures', icon: 'fa-solid fa-receipt', exact: false },
       ];
 
-      this.configMenuItems = [
-        { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
-      ];
+      // this.configMenuItems = [
+      //   { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
+      // ];
 
       return;
     }

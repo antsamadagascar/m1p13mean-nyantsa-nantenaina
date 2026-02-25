@@ -3,8 +3,21 @@
   <!-- HEADER -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <h1 class="text-2xl font-bold text-slate-800">Chiffre d'affaires</h1>
-      <p class="text-sm text-slate-400 mt-1" *ngIf="stats">
+      <!-- Titre différencié admin / boutique -->
+      <h1 class="text-2xl font-bold text-slate-800">
+        <ng-container *ngIf="isAdmin">Pilotage CA des boutiques</ng-container>
+        <ng-container *ngIf="!isAdmin">Mon Chiffre d'affaires</ng-container>
+      </h1>
+      <!-- Sous-titre analytique visible seulement admin -->
+      <p class="text-sm text-blue-400 mt-1 flex items-center gap-1" *ngIf="isAdmin">
+        <i class="fa-solid fa-circle-info text-xs"></i>
+        Analysez les performances pour ajuster les loyers en conséquence
+      </p>
+      <p class="text-sm text-slate-400 mt-1" *ngIf="stats && !isAdmin">
+        Du {{ stats.periode.debut | date:'dd/MM/yyyy' }}
+        au {{ stats.periode.fin   | date:'dd/MM/yyyy' }}
+      </p>
+      <p class="text-sm text-slate-400 mt-1" *ngIf="stats && isAdmin">
         Du {{ stats.periode.debut | date:'dd/MM/yyyy' }}
         au {{ stats.periode.fin   | date:'dd/MM/yyyy' }}
       </p>
@@ -24,7 +37,9 @@
   <div class="flex flex-wrap gap-4 items-end bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
     <!-- Filtre boutique (admin uniquement) -->
     <div class="flex flex-col gap-1" *ngIf="isAdmin">
-      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Boutique</label>
+      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">
+        Boutique à analyser
+      </label>
       <select [(ngModel)]="boutiqueIdFiltreAdmin" (change)="chargerStats()"
         class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-400 bg-white">
         <option value="">Toutes les boutiques</option>
@@ -69,6 +84,21 @@
 
   <ng-container *ngIf="stats && !loading">
 
+    <!-- BANDEAU CONTEXTE ADMIN -->
+    <div *ngIf="isAdmin"
+      class="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700">
+      <i class="fa-solid fa-magnifying-glass-chart text-blue-400 text-base"></i>
+      <span>
+        <strong>Vue analytique admin</strong> —
+        <ng-container *ngIf="boutiqueIdFiltreAdmin">
+          Boutique sélectionnée · CA utilisable pour révision de loyer
+        </ng-container>
+        <ng-container *ngIf="!boutiqueIdFiltreAdmin">
+          Consolidé toutes boutiques · Sélectionnez une boutique pour une analyse ciblée
+        </ng-container>
+      </span>
+    </div>
+
     <!-- KPI CARDS : 3 réel + 3 prévisionnel -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
@@ -76,8 +106,16 @@
       <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
-          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">CA Encaissé</h2>
+          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <ng-container *ngIf="isAdmin">CA Réel boutique</ng-container>
+            <ng-container *ngIf="!isAdmin">CA Encaissé</ng-container>
+          </h2>
           <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">LIVREE + PAYÉ</span>
+          <!-- Badge admin : base loyer -->
+          <span *ngIf="isAdmin"
+            class="text-xs text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full font-medium">
+            <i class="fa-solid fa-key mr-1"></i>Base loyer
+          </span>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div class="text-center">
@@ -100,8 +138,16 @@
       <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
-          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">CA Prévisionnel</h2>
+          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <ng-container *ngIf="isAdmin">CA Potentiel boutique</ng-container>
+            <ng-container *ngIf="!isAdmin">CA Prévisionnel</ng-container>
+          </h2>
           <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">EN_COURS</span>
+          <!-- Badge admin : projection -->
+          <span *ngIf="isAdmin"
+            class="text-xs text-orange-500 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-medium">
+            <i class="fa-solid fa-chart-line mr-1"></i>Projection
+          </span>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div class="text-center">
@@ -124,15 +170,19 @@
 
     <!-- ONGLETS vue graphique -->
     <div class="flex gap-2 border-b border-slate-100">
-      <button (click)="vueActive = 'reel'"
+      <button (click)="changerVue('reel')"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-all"
         [class]="vueActive === 'reel' ? 'border-green-500 text-green-600' : 'border-transparent text-slate-400 hover:text-slate-600'">
-        <span class="w-2 h-2 rounded-full bg-green-400 inline-block mr-1.5"></span>CA Encaissé
+        <span class="w-2 h-2 rounded-full bg-green-400 inline-block mr-1.5"></span>
+        <ng-container *ngIf="isAdmin">CA Réel — Base loyer</ng-container>
+        <ng-container *ngIf="!isAdmin">CA Encaissé</ng-container>
       </button>
-      <button (click)="vueActive = 'previsionnel'"
+      <button (click)="changerVue('previsionnel')"
         class="px-4 py-2 text-sm font-medium border-b-2 transition-all"
         [class]="vueActive === 'previsionnel' ? 'border-orange-500 text-orange-500' : 'border-transparent text-slate-400 hover:text-slate-600'">
-        <span class="w-2 h-2 rounded-full bg-orange-400 inline-block mr-1.5"></span>CA Prévisionnel
+        <span class="w-2 h-2 rounded-full bg-orange-400 inline-block mr-1.5"></span>
+        <ng-container *ngIf="isAdmin">CA Potentiel — Projection</ng-container>
+        <ng-container *ngIf="!isAdmin">CA Prévisionnel</ng-container>
       </button>
     </div>
 
@@ -140,7 +190,10 @@
     <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"
       *ngIf="evolutionActive.length > 0">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-base font-semibold text-slate-700">Évolution</h2>
+        <h2 class="text-base font-semibold text-slate-700">
+          <ng-container *ngIf="isAdmin">Évolution CA — Aide à la décision loyer</ng-container>
+          <ng-container *ngIf="!isAdmin">Évolution</ng-container>
+        </h2>
         <span class="text-xs text-slate-400 flex items-center gap-1">
           <i class="fa-solid fa-hand-pointer"></i> Cliquez sur un point
         </span>
@@ -174,7 +227,13 @@
         <span class="w-2 h-2 rounded-full"
           [class]="vueActive === 'reel' ? 'bg-green-400' : 'bg-orange-400'"></span>
         <h2 class="text-base font-semibold text-slate-700">
-          Détail — {{ vueActive === 'reel' ? 'CA Encaissé' : 'CA Prévisionnel' }}
+          <ng-container *ngIf="isAdmin">
+            Détail {{ vueActive === 'reel' ? 'CA Réel' : 'CA Potentiel' }} —
+            {{ boutiqueIdFiltreAdmin ? 'Boutique sélectionnée' : 'Toutes boutiques' }}
+          </ng-container>
+          <ng-container *ngIf="!isAdmin">
+            Détail — {{ vueActive === 'reel' ? 'CA Encaissé' : 'CA Prévisionnel' }}
+          </ng-container>
         </h2>
       </div>
       <div class="overflow-x-auto">
@@ -182,7 +241,10 @@
           <thead>
             <tr class="bg-slate-50">
               <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Période</th>
-              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">CA (Ar)</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <ng-container *ngIf="isAdmin">CA Boutique (Ar)</ng-container>
+                <ng-container *ngIf="!isAdmin">CA (Ar)</ng-container>
+              </th>
               <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Commandes</th>
               <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Articles</th>
             </tr>
@@ -217,7 +279,11 @@
     <div *ngIf="evolutionActive.length === 0"
       class="flex flex-col items-center justify-center py-20 text-slate-400">
       <i class="fa-solid fa-inbox text-5xl mb-4"></i>
-      <p>Aucune commande sur cette période.</p>
+      <p *ngIf="isAdmin">
+        Aucune commande sur cette période
+        {{ boutiqueIdFiltreAdmin ? 'pour cette boutique' : 'pour l\'ensemble des boutiques' }}.
+      </p>
+      <p *ngIf="!isAdmin">Aucune commande sur cette période.</p>
     </div>
 
   </ng-container>

@@ -191,16 +191,6 @@ export class BoutiqueDetailComponent implements OnInit, OnDestroy {
     return this.estOuverte() && !produit.en_rupture;
   }
 
-  getMessageAchat(produit: Produit): string {
-    if (!this.estOuverte()) {
-      return 'Boutique fermée';
-    }
-    if (produit.en_rupture) {
-      return 'Rupture de stock';
-    }
-    return 'Ajouter au panier';
-  }
-
   getImagePrincipale(produit: Produit): string {
     const imagePrincipale = produit.images.find(img => img.principale);
     return imagePrincipale?.url || produit.images[0]?.url || 'assets/images/placeholder-product.png';
