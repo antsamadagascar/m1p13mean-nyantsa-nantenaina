@@ -59,17 +59,79 @@
 
   <!-- Toolbar -->
   <div class="toolbar">
-    <div class="search-wrap">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input type="text" placeholder="Rechercher un produit..." [(ngModel)]="recherche" (input)="onRecherche()"/>
-    </div>
+
+    <!-- Type -->
     <div class="type-btns">
       <button [class.active]="filtreType === ''"       (click)="setType('')">Tous</button>
       <button [class.active]="filtreType === 'ENTREE'" (click)="setType('ENTREE')" class="btn-green">↑ Entrées</button>
       <button [class.active]="filtreType === 'SORTIE'" (click)="setType('SORTIE')" class="btn-red">↓ Sorties</button>
     </div>
+
+    <!-- Select produit -->
+    <div class="filter-group">
+      <label>Produit</label>
+      <div class="select-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+        </svg>
+        <select [(ngModel)]="filtreProduit" (ngModelChange)="onProduitChange()">
+          <option value="">Tous les produits</option>
+          <option *ngFor="let p of produits" [value]="p._id">{{ p.nom }} · {{ p.reference }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Select variante (visible si produit sélectionné avec variantes) -->
+    <div class="filter-group" *ngIf="filtreProduit && variantesDisponibles.length > 0">
+      <label>Variante</label>
+      <div class="select-wrap select-wrap--purple">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+        </svg>
+        <select [(ngModel)]="filtreVariante" (ngModelChange)="onVarianteChange()">
+          <option value="">Toutes les variantes</option>
+          <option *ngFor="let v of variantesDisponibles" [value]="v.sku">
+            {{ v.nom }} · {{ v.sku }}
+            <ng-container *ngIf="v.attributs?.length"> · {{ formatAttributs(v.attributs) }}</ng-container>
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Info produit simple -->
+    <div class="info-simple" *ngIf="filtreProduit && variantesDisponibles.length === 0 && produitSelectionne">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+      </svg>
+      Produit simple — pas de variante
+    </div>
+
+    <!-- Reset -->
+    <button class="btn-reset" (click)="resetFiltres()" *ngIf="filtreProduit || filtreVariante || filtreType">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+      </svg>
+      Réinitialiser
+    </button>
+
+  </div>
+
+  <!-- Tags filtres actifs -->
+  <div class="active-filters" *ngIf="filtreProduit || filtreVariante">
+    <span class="filter-tag" *ngIf="filtreProduit">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+      </svg>
+      {{ produitSelectionne?.nom }}
+      <button (click)="clearProduit()">×</button>
+    </span>
+    <span class="filter-tag filter-tag--purple" *ngIf="filtreVariante">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18"/>
+      </svg>
+      Variante : {{ filtreVariante }}
+      <button (click)="clearVariante()">×</button>
+    </span>
   </div>
 
   <!-- Loading -->
@@ -82,8 +144,8 @@
     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
       <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
     </svg>
-    <p>Aucun mouvement de stock</p>
-    <span>Les entrées et sorties apparaîtront ici</span>
+    <p>Aucun mouvement trouvé</p>
+    <span>Essayez de modifier vos filtres</span>
   </div>
 
   <!-- Table -->
@@ -103,22 +165,15 @@
       </thead>
       <tbody>
         <ng-container *ngFor="let m of mouvements(); let i = index; trackBy: trackById">
-
-          <!-- Séparateur de date -->
           <tr class="tr-date" *ngIf="isNewDate(m, i)">
             <td colspan="8"><span>{{ labelDate(m.createdAt) }}</span></td>
           </tr>
-
-          <!-- Ligne -->
           <tr class="tr-row" [class.tr--entree]="m.type==='ENTREE'" [class.tr--sortie]="m.type==='SORTIE'">
-
             <td class="td-date">{{ formatTime(m.createdAt) }}</td>
-
             <td class="td-produit">
               <div class="produit-nom">{{ m.produit?.nom || '—' }}</div>
               <div class="produit-ref">{{ m.produit?.reference }}</div>
             </td>
-
             <td class="td-variante">
               <ng-container *ngIf="m.variante_sku; else simple">
                 <span class="pill pill--purple">Variante</span>
@@ -130,24 +185,19 @@
                   <span *ngFor="let a of m.variante_attributs" class="attr-chip">{{ a.nom }}: <b>{{ a.valeur }}</b></span>
                 </div>
               </ng-container>
-              <ng-template #simple>
-                <span class="pill pill--gray">Simple</span>
-              </ng-template>
+              <ng-template #simple><span class="pill pill--gray">Simple</span></ng-template>
             </td>
-
             <td class="td-type">
               <span class="op-badge" [ngClass]="m.type==='ENTREE' ? 'op--green' : 'op--red'">
                 <span class="op-dot"></span>
                 {{ m.type === 'ENTREE' ? 'Entrée' : 'Sortie' }}
               </span>
             </td>
-
             <td class="td-qty th-right">
               <span [ngClass]="m.type==='ENTREE' ? 'qty-pos' : 'qty-neg'">
                 {{ m.type === 'ENTREE' ? '+' : '-' }}{{ m.quantite }}
               </span>
             </td>
-
             <td class="td-stock th-right">
               <div class="stock-flow" *ngIf="m.quantite_avant !== null && m.quantite_avant !== undefined; else noflow">
                 <span class="sf-before">{{ m.quantite_avant }}</span>
@@ -158,14 +208,11 @@
               </div>
               <ng-template #noflow><span class="na">—</span></ng-template>
             </td>
-
             <td class="td-motif">{{ m.motif || '—' }}</td>
-
             <td class="td-user">
               <span *ngIf="m.cree_par">{{ m.cree_par.prenom }} {{ m.cree_par.nom }}</span>
               <span *ngIf="!m.cree_par" class="na">Système</span>
             </td>
-
           </tr>
         </ng-container>
       </tbody>

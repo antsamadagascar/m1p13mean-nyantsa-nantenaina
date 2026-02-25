@@ -8,13 +8,20 @@ exports.getMouvements = async (req, res) => {
       return res.status(403).json({ message: 'Accès réservé aux boutiques' });
     }
 
-    const { type, recherche, page = 1, limite = 15 } = req.query;
+    const { type, recherche, produit_id, variante_sku, page = 1, limite = 15 } = req.query;
     const boutiqueId = new mongoose.Types.ObjectId(req.user.boutiqueId);
     const filtre = { boutique: boutiqueId };
 
     if (type) filtre.type = type;
 
-    if (recherche) {
+    //  Cast en ObjectId obligatoire sinon aucun résultat
+    if (produit_id) filtre.produit = new mongoose.Types.ObjectId(produit_id);
+
+    // Filtre variante SKU
+    if (variante_sku) filtre.variante_sku = variante_sku;
+
+    // Recherche texte (ignorée si produit_id déjà défini)
+    if (recherche && !produit_id) {
       const produitsTrouves = await Produit.find({
         boutique: boutiqueId,
         $or: [
@@ -46,9 +53,18 @@ exports.getMouvements = async (req, res) => {
       ENTREE: { count: 0, quantite: 0 },
       SORTIE: { count: 0, quantite: 0 }
     };
-    statsAgg.forEach(s => { if (stats[s._id] !== undefined) stats[s._id] = { count: s.count, quantite: s.quantite }; });
+    statsAgg.forEach(s => {
+      if (stats[s._id] !== undefined) stats[s._id] = { count: s.count, quantite: s.quantite };
+    });
 
-    res.json({ mouvements, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limite)), limite: parseInt(limite), stats });
+    res.json({
+      mouvements,
+      total,
+      page:   parseInt(page),
+      pages:  Math.ceil(total / parseInt(limite)),
+      limite: parseInt(limite),
+      stats
+    });
 
   } catch (error) {
     console.error('Erreur getMouvements:', error);

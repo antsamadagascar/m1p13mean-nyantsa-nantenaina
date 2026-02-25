@@ -7,7 +7,7 @@ import { environment } from '../../../../environments/environment';
 
 export interface MouvementStock {
   _id: string;
-  produit: { _id: string; nom: string; reference: string; images?: any[] };
+  produit: { _id: string; nom: string; reference: string };
   type: 'ENTREE' | 'SORTIE' | 'AJUSTEMENT';
   quantite: number;
   motif: string;
@@ -18,6 +18,14 @@ export interface MouvementStock {
   variante_attributs: { nom: string; valeur: string }[];
   cree_par: { nom: string; prenom: string } | null;
   createdAt: string;
+}
+
+export interface ProduitSimple {
+  _id: string;
+  nom: string;
+  reference: string;
+  gestion_stock: string;
+  variantes: { _id: string; nom: string; sku: string; attributs: { nom: string; valeur: string }[] }[];
 }
 
 export interface MouvementsResponse {
@@ -40,32 +48,60 @@ export interface MouvementsResponse {
 })
 export class StockMovementsComponent implements OnInit {
 
-  mouvements = signal<MouvementStock[]>([]);
-  loading    = false;
-  total      = 0;
+  mouvements  = signal<MouvementStock[]>([]);
+  produits:   ProduitSimple[] = [];
+  loading     = false;
+  total       = 0;
   stats: MouvementsResponse['stats'] | null = null;
 
-  filtreType  = '';
-  recherche   = '';
+  filtreType     = '';
+  filtreProduit  = '';
+  filtreVariante = '';
+
   currentPage = 1;
   totalPages  = 1;
   limite      = 15;
 
-  private searchTimeout: any;
+  private headers!: HttpHeaders;
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
-  ngOnInit() { this.loadMouvements(); }
+  ngOnInit() {
+    const token  = localStorage.getItem('token');
+    this.headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    this.loadProduits();
+    this.loadMouvements();
+  }
 
+  // ── Charger la liste des produits de la boutique ──
+  loadProduits() {
+    this.http.get<ProduitSimple[]>(`${environment.apiUrl}/api/produits/mes-produits`, { headers: this.headers })
+      .subscribe({
+        next: (data) => { this.produits = data; },
+        error: (err)  => { console.error('Erreur chargement produits:', err); }
+      });
+  }
+
+  // ── Variantes du produit sélectionné ──
+  get variantesDisponibles() {
+    if (!this.filtreProduit) return [];
+    const p = this.produits.find(p => p._id === this.filtreProduit);
+    return p?.variantes || [];
+  }
+
+  get produitSelectionne(): ProduitSimple | undefined {
+    return this.produits.find(p => p._id === this.filtreProduit);
+  }
+
+  // ── Chargement mouvements ──
   loadMouvements() {
     this.loading = true;
-    const token   = localStorage.getItem('token');
-    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
     const params: any = { page: this.currentPage, limite: this.limite };
-    if (this.filtreType) params.type      = this.filtreType;
-    if (this.recherche)  params.recherche = this.recherche;
+    if (this.filtreType)     params.type         = this.filtreType;
+    if (this.filtreProduit)  params.produit_id   = this.filtreProduit;
+    if (this.filtreVariante) params.variante_sku = this.filtreVariante;
 
-    this.http.get<MouvementsResponse>(`${environment.apiUrl}/api/stock-movements`, { headers, params })
+    this.http.get<MouvementsResponse>(`${environment.apiUrl}/api/stock-movements`, { headers: this.headers, params })
       .subscribe({
         next: (data) => {
           this.mouvements.set(data.mouvements);
@@ -81,45 +117,67 @@ export class StockMovementsComponent implements OnInit {
       });
   }
 
-  // Retourne true si ce mouvement est le premier de sa journée
-  isNewDate(m: MouvementStock, index: number): boolean {
-    if (index === 0) return true;
-    const prev = this.mouvements()[index - 1];
-    const d1 = new Date(m.createdAt).toDateString();
-    const d2 = new Date(prev.createdAt).toDateString();
-    return d1 !== d2;
-  }
-
-  // Libellé date humain
-  labelDate(dateStr: string): string {
-    const date  = new Date(dateStr);
-    const today = new Date();
-    const hier  = new Date(); hier.setDate(hier.getDate() - 1);
-
-    if (date.toDateString() === today.toDateString()) return "Aujourd'hui";
-    if (date.toDateString() === hier.toDateString())  return 'Hier';
-
-    return date.toLocaleDateString('fr-FR', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-    });
-  }
-
-  formatTime(dateStr: string): string {
-    return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  }
-
+  // ── Événements filtres ──
   setType(type: string) {
     this.filtreType  = type;
     this.currentPage = 1;
     this.loadMouvements();
   }
 
-  onRecherche() {
-    clearTimeout(this.searchTimeout);
-    this.searchTimeout = setTimeout(() => {
-      this.currentPage = 1;
-      this.loadMouvements();
-    }, 350);
+  onProduitChange() {
+    this.filtreVariante = ''; // reset variante quand on change de produit
+    this.currentPage    = 1;
+    this.loadMouvements();
+  }
+
+  onVarianteChange() {
+    this.currentPage = 1;
+    this.loadMouvements();
+  }
+
+  clearProduit() {
+    this.filtreProduit  = '';
+    this.filtreVariante = '';
+    this.currentPage    = 1;
+    this.loadMouvements();
+  }
+
+  clearVariante() {
+    this.filtreVariante = '';
+    this.currentPage    = 1;
+    this.loadMouvements();
+  }
+
+  resetFiltres() {
+    this.filtreType     = '';
+    this.filtreProduit  = '';
+    this.filtreVariante = '';
+    this.currentPage    = 1;
+    this.loadMouvements();
+  }
+
+  // ── Helpers affichage ──
+  formatAttributs(attributs: { nom: string; valeur: string }[]): string {
+    return attributs.map(a => `${a.nom}: ${a.valeur}`).join(', ');
+  }
+
+  isNewDate(m: MouvementStock, index: number): boolean {
+    if (index === 0) return true;
+    const prev = this.mouvements()[index - 1];
+    return new Date(m.createdAt).toDateString() !== new Date(prev.createdAt).toDateString();
+  }
+
+  labelDate(dateStr: string): string {
+    const date  = new Date(dateStr);
+    const today = new Date();
+    const hier  = new Date(); hier.setDate(hier.getDate() - 1);
+    if (date.toDateString() === today.toDateString()) return "Aujourd'hui";
+    if (date.toDateString() === hier.toDateString())  return 'Hier';
+    return date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
+
+  formatTime(dateStr: string): string {
+    return new Date(dateStr).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   }
 
   goToPage(p: number) {
