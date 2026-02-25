@@ -9,7 +9,7 @@
           <span class="dot-live"></span> Mise à jour : {{ formatHeureFn(derniereMaj) }}
         </p>
       </div>
-      
+
       <a routerLink="/produits" class="btn-shop">Continuer mes achats</a>
     </div>
     <!-- Chargement -->
@@ -147,6 +147,7 @@
                         <th>Total</th>
                         <th>Statut</th>
                         <th>Paiement</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -165,6 +166,15 @@
                           <span class="paiement-badge" [ngClass]="getStatutPaiementClass(commande.statut_paiement)">
                             {{ getStatutPaiementLabel(commande.statut_paiement) }}
                           </span>
+                        </td>
+                        <td>
+                          <!-- Téléchargement facture -->
+                              <div class="detail-section">
+                              <button class="btn-facture"
+                                  (click)="telechargerFacture(commande)">
+                              📄
+                              </button>
+                              </div>
                         </td>
                       </tr>
                     </tbody>
@@ -209,6 +219,7 @@
                       <th>Total</th>
                       <th>Livraison</th>
                       <th>Paiement</th>
+
                     </tr>
                   </thead>
                   <tbody>
@@ -229,6 +240,7 @@
                           {{ getStatutPaiementLabel(commande.statut_paiement) }}
                         </span>
                       </td>
+
                     </tr>
                   </tbody>
                 </table>

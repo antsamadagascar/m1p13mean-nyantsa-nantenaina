@@ -313,3 +313,17 @@ tbody td { padding: 11px 14px; color: #374151; vertical-align: middle; }
   border-radius: 999px;
   padding: 0.15rem 0.6rem;
 }
+.btn-facture {
+  background: #111;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+.btn-facture:hover {
+  background: #333;
+}

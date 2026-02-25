@@ -2,6 +2,8 @@ const Commande = require('../models/Commande');
 const Panier = require('../models/Panier');
 const Produit = require('../models/Produit');
 
+const PDFDocument = require('pdfkit');
+const path = require('path');
 // ============================================
 // CRÉER COMMANDE
 // ============================================
@@ -404,4 +406,106 @@ exports.getStatsClient = async (req, res) => {
   }
 };
 
+exports.exportFacture = async (req, res) => {
+  try {
+    const commande = await Commande.findOne({
+      _id: req.params.id,
+      utilisateur: req.user._id
+    })
+    .populate('adresse_livraison.zone');
+
+    if (!commande) {
+      return res.status(404).json({ message: 'Commande introuvable' });
+    }
+
+    if (!commande.est_terminee) {
+      return res.status(400).json({ message: 'Facture disponible uniquement pour commande livrée et payée' });
+    }
+
+    const doc = new PDFDocument({ margin: 50 });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=Facture_${commande.reference}.pdf`
+    );
+
+    doc.pipe(res);
+
+    // ==============================
+    // LOGO
+    // ==============================
+    const logoPath = path.join(__dirname, '../logos/logo-lacity-mall.png');
+    doc.image(logoPath, 50, 45, { width: 120 });
+
+    doc.fontSize(20)
+       .text('FACTURE', 400, 50, { align: 'right' });
+
+    doc.moveDown(2);
+
+    // ==============================
+    // INFOS CLIENT & COMMANDE
+    // ==============================
+    doc.fontSize(12);
+    doc.text(`Référence : ${commande.reference}`);
+    doc.text(`Date : ${new Date(commande.date_creation).toLocaleDateString()}`);
+    doc.text(`Nom : ${commande.adresse_livraison.nom}`);
+    doc.text(`Téléphone : ${commande.adresse_livraison.telephone}`);
+    doc.text(`Adresse : ${commande.adresse_livraison.adresse}, ${commande.adresse_livraison.ville}`);
+    if (commande.adresse_livraison.zone) {
+      doc.text(`Zone : ${commande.adresse_livraison.zone.nom}`);
+    }
+
+    doc.moveDown();
+    doc.text('---------------------------------------------');
+    doc.moveDown();
+
+    // ==============================
+    // TABLEAU ARTICLES
+    // ==============================
+    doc.fontSize(13).text(`Articles (${commande.nombre_articles}) :`);
+    doc.moveDown(0.5);
+
+    commande.articles.forEach(article => {
+      const prix = article.prix_promo_unitaire || article.prix_unitaire;
+      const totalLigne = prix * article.quantite;
+
+      doc.fontSize(11)
+        .text(`${article.nom_produit}`)
+        .text(`   Quantité : ${article.quantite}`)
+        .text(`   Prix unitaire : ${prix.toFixed(2)} DH`)
+        .text(`   Total ligne : ${totalLigne.toFixed(2)} DH`);
+      
+      if (article.variante) {
+        doc.text(`   Variante : ${article.variante}`);
+      }
+
+      doc.moveDown(0.5);
+    });
+
+    doc.moveDown();
+    doc.text('---------------------------------------------');
+    doc.moveDown();
+
+    // ==============================
+    // TOTAUX
+    // ==============================
+    doc.fontSize(12);
+    doc.text(`Sous-total : ${commande.sous_total.toFixed(2)} DH`);
+    doc.text(`Remise : -${commande.total_remise.toFixed(2)} DH`);
+    doc.text(`Total payé : ${commande.total.toFixed(2)} DH`);
+    doc.moveDown(2);
+
+    doc.text(`Paiement confirmé le : ${new Date(commande.date_paiement).toLocaleDateString()}`);
+    doc.moveDown(2);
+
+    doc.text('Merci pour votre confiance.', { align: 'center' });
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Erreur exportFacture:', error);
+    res.status(500).json({ message: 'Erreur génération facture', error: error.message });
+  }
+};
 module.exports = exports;

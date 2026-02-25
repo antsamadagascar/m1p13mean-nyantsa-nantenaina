@@ -154,14 +154,14 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
   toggleHistorique(): void {
     this.afficherHistorique = !this.afficherHistorique;
     if (this.afficherHistorique) {
-      this.chargerStatsHistorique(); 
+      this.chargerStatsHistorique();
     } else {
       this.commandeSelectionnee = null;
     }
   }
 
   onFiltreHistoriqueChange(): void {
-    this.chargerStatsHistorique(); 
+    this.chargerStatsHistorique();
   }
 
   reinitialiserFiltresHistorique(): void {
@@ -186,7 +186,7 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
         if (this.commandeSelectionnee?._id === commande._id) {
           this.commandeSelectionnee = { ...this.commandeSelectionnee, ...updated };
         }
-        this.chargerStatsTempsReel(); 
+        this.chargerStatsTempsReel();
       },
       error: (err) => {
         this.annulationEnCours.delete(commande._id);
@@ -216,5 +216,24 @@ export class MesCommandesComponent implements OnInit, OnDestroy {
 
   getStatutPaiementClass(p: string): string { return p === 'PAYE' ? 'paiement-paid' : 'paiement-unpaid'; }
   getStatutPaiementLabel(p: string): string { return p === 'PAYE' ? 'Payée' : 'Impayée'; }
+
+  telechargerFacture(commande: any): void {
+    this.http.get(
+      `${environment.apiUrl}/api/commandes/${commande._id}/facture`,
+      { responseType: 'blob' }
+    ).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Facture_${commande.reference}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        alert('Impossible de télécharger la facture');
+      }
+    });
+  }
 
 }
