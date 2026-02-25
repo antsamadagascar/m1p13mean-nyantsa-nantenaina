@@ -9,5 +9,5 @@ router.get('/',    auth, paiementController.getAll);
 router.post('/',   auth, paiementController.create);
 router.put('/:id', auth, paiementController.update);
 router.delete('/:id/annuler', auth, paiementController.annuler);
-
+router.get('/:id/facture', auth, paiementController.exportFacture);
 module.exports = router;
