@@ -8,9 +8,20 @@ const emplacementService = {
     const filter = {};
     if (zone) filter.zone = zone;
     if (actif !== undefined) filter.actif = actif === 'true';
-    return await Emplacement.find(filter)
+    
+    const emplacements = await Emplacement.find(filter)
       .populate('zone', 'nom')
       .sort({ numero_local: 1 });
+
+    // Récupére les emplacements occupés via contrats actifs
+    const occupes = await Location.find({ statut: 'actif' }).distinct('emplacement');
+    const occupesStr = occupes.map(id => id.toString());
+
+    // Ajoute le champ virtuel 'occupe'
+    return emplacements.map(e => ({
+      ...e.toObject(),
+      occupe: occupesStr.includes(e._id.toString())
+    }));
   },
 
   async getDisponibles(zone) {

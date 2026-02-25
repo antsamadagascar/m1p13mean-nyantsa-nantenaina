@@ -1,5 +1,8 @@
 const Boutique = require('../models/Boutique');
 const Zone = require('../models/Zone');
+const Location = require('../models/Location');
+const Emplacement = require('../models/Emplacement');
+
 const slugify = require('slugify');
 const { sendBoutiqueCreationEmail } = require('../services/email.service');
 // IMPORT DE L'UTILITAIRE
@@ -14,6 +17,10 @@ const fs = require('fs');
 // @access  Private
 const createBoutique = async (req, res) => {
   try {
+    console.log('=== BODY RECU ===');
+    console.log('localisation:', JSON.stringify(req.body.localisation, null, 2));
+    console.log('contrat:', JSON.stringify(req.body.contrat, null, 2));
+
     const { 
       nom, 
       description, 
@@ -22,7 +29,8 @@ const createBoutique = async (req, res) => {
       contact, 
       categorie, 
       sous_categories,
-      horaires 
+      horaires ,
+      contrat
     } = req.body;
 
     // Vérifier que la zone existe et est active
@@ -41,6 +49,7 @@ const createBoutique = async (req, res) => {
       });
     }
 
+
     // Générer le slug
     const slug = slugify(nom, { 
       lower: true, 
@@ -51,6 +60,7 @@ const createBoutique = async (req, res) => {
     // Données de localisation
     const localisationData = {
       zone: localisation.zone,
+      emplacement: localisation.emplacement || null,  
       numero: localisation.numero,
       surface: localisation.surface || null,
       latitude: localisation.latitude || null,
@@ -76,6 +86,30 @@ const createBoutique = async (req, res) => {
     }
 
     const boutique = await Boutique.create(boutiqueData);
+
+    if (contrat && contrat.loyer_mensuel && contrat.date_debut) {
+ 
+      await Location.create({
+        boutique: boutique._id,
+        zone: localisation.zone,
+        emplacement: localisation.emplacement,
+        numero_local: localisation.numero,
+        surface: localisation.surface,
+        loyer_mensuel: contrat.loyer_mensuel,
+        date_debut: contrat.date_debut,
+        date_fin: contrat.date_fin || null,
+        statut: 'actif',
+        notes: contrat.notes || ''
+      });
+
+      // Emplacement occupé + boutique active (base de tous contrat activites )
+      if (localisation.emplacement) {
+        console.log('>>> Marquage emplacement occupé:', localisation.emplacement);
+        await Emplacement.findByIdAndUpdate(localisation.emplacement, { actif: false });
+        console.log('>>> OK');
+      }
+            await boutique.save();
+    }
 
     // Peupler les références
     await boutique.populate('categorie sous_categories localisation.zone');

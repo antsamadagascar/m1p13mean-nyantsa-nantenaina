@@ -72,6 +72,11 @@ export class BoutiquesComponent implements OnInit {
       longitude: null,
       adresse_complete: ''
     },
+    contrat: {
+      loyer_mensuel: null,
+      date_debut: '',
+      date_fin: ''
+    },
     contact: {
       telephone: '',
       email: ''
@@ -302,6 +307,7 @@ export class BoutiquesComponent implements OnInit {
         longitude: null,
         adresse_complete: ''
       },
+      contrat: { loyer_mensuel: null, date_debut: '', date_fin: '' },
       contact: {
         telephone: '',
         email: ''
@@ -443,6 +449,7 @@ export class BoutiquesComponent implements OnInit {
     this.boutique.localisation.latitude   = loc.latitude;
     this.boutique.localisation.longitude  = loc.longitude;
     this.boutique.localisation.numero     = loc.numero_local;
+    (this.boutique.localisation as any).emplacement = loc._id;
   }
 
 }
