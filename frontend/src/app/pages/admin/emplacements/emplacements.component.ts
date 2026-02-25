@@ -40,7 +40,7 @@ export class EmplacementsComponent implements OnInit {
     private alertService: AlertService
   ) {
     this.form = this.fb.group({
-      zone: ['', Validators.required],
+      // zone: ['', Validators.required],
       numero_local: ['', Validators.required],
       type: ['box', Validators.required],
       surface: [null],
@@ -52,7 +52,7 @@ export class EmplacementsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.loadZones();
+    // this.loadZones();
     this.load();
   }
 
@@ -70,12 +70,12 @@ export class EmplacementsComponent implements OnInit {
     });
   }
 
-  loadZones() {
-    this.http.get<any>(`${this.api}/zones`, this.h()).subscribe({
-      next: (res) => { this.zones = res.data || []; },
-      error: () => { this.alertService.error('Erreur chargement zones'); }
-    });
-  }
+  // loadZones() {
+  //   this.http.get<any>(`${this.api}/zones`, this.h()).subscribe({
+  //     next: (res) => { this.zones = res.data || []; },
+  //     error: () => { this.alertService.error('Erreur chargement zones'); }
+  //   });
+  // }
 
   openModal() {
     this.editMode = false;
@@ -87,7 +87,7 @@ export class EmplacementsComponent implements OnInit {
     this.editMode = true;
     this.editId = e._id;
     this.form.patchValue({
-      zone: e.zone?._id || e.zone,
+      // zone: e.zone?._id || e.zone,
       numero_local: e.numero_local,
       type: e.type,
       surface: e.surface,
@@ -132,14 +132,14 @@ export class EmplacementsComponent implements OnInit {
   getZoneNom(zone: any) { return zone?.nom || zone || '—'; }
   getTypeLabel(type: string) { return this.typeOptions.find(t => t.value === type)?.label || type; }
 
-  onZoneChange(zoneId: string) {
-  if (!zoneId) return;
-  const zone = this.zones.find(z => z._id === zoneId);
-  if (zone?.coordonnees?.latitude && zone?.coordonnees?.longitude) {
-    this.form.patchValue({
-      latitude: zone.coordonnees.latitude,
-      longitude: zone.coordonnees.longitude
-    }, { emitEvent: false });
-  }
-}
+//   onZoneChange(zoneId: string) {
+//   if (!zoneId) return;
+//   const zone = this.zones.find(z => z._id === zoneId);
+//   if (zone?.coordonnees?.latitude && zone?.coordonnees?.longitude) {
+//     this.form.patchValue({
+//       latitude: zone.coordonnees.latitude,
+//       longitude: zone.coordonnees.longitude
+//     }, { emitEvent: false });
+//   }
+// }
 }

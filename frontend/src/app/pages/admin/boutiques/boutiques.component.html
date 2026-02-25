@@ -13,12 +13,12 @@
   <!-- Boutons groupés -->
   <div class="flex gap-2">
     <!-- Bouton Ajouter un emplacement -->
-    <button
+    <!-- <button
       (click)="goToZones()"
       class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow transition">
       <i class="fa-solid fa-plus"></i>
       Ajouter une zone
-    </button>
+    </button> -->
 
     <!-- Bouton Ajouter une boutique -->
     <button
@@ -106,7 +106,7 @@
       </div>
 
       <!-- Zone -->
-      <div>
+      <!-- <div>
         <label class="block text-sm font-medium text-gray-700 mb-2">
           <i class="fa-solid fa-location-dot mr-1"></i> Zone
         </label>
@@ -117,7 +117,7 @@
           <option value="">Toutes les zones</option>
           <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
         </select>
-      </div>
+      </div> -->
 
       <!-- Bouton Reset -->
       <div class="flex items-end">
@@ -149,9 +149,9 @@
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Gérant
             </th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <!-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Localisation
-            </th>
+            </th> -->
             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
               Adresse complète
             </th>
@@ -215,11 +215,11 @@
             </td>
 
             <!-- Zone -->
-            <td class="px-6 py-4 whitespace-nowrap">
+            <!-- <td class="px-6 py-4 whitespace-nowrap">
               <div class="text-sm text-gray-900">
                 {{ getZoneNom(boutique.localisation.zone) }}
               </div>
-            </td>
+            </td> -->
 
 
             <!-- Adresse complète (concaténée si emplacement_complet vide) -->
@@ -420,9 +420,9 @@
           Localisation
         </h3>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
           <!-- Zone -->
-          <div>
+          <!-- <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">
               Zone <span class="text-red-500">*</span>
             </label>
@@ -432,7 +432,7 @@
               <option value="">-- Sélectionner une zone --</option>
               <option *ngFor="let zone of zones" [value]="zone._id">{{ zone.nom }}</option>
             </select>
-          </div>
+          </div> -->
 
           <!-- Emplacement disponible -->
           <div>
@@ -447,11 +447,11 @@
                 {{ loc.numero_local }} — {{ loc.type }} {{ loc.surface ? '(' + loc.surface + ' m²)' : '' }}
               </option>
             </select>
-            <p *ngIf="boutique.localisation.zone && locationsDisponibles.length === 0"
+            <!-- <p *ngIf="boutique.localisation.zone && locationsDisponibles.length === 0"
               class="text-xs text-orange-500 mt-1">
               <i class="fa-solid fa-triangle-exclamation mr-1"></i>
               Aucun emplacement disponible dans cette zone
-            </p>
+            </p> -->
             <p *ngIf="locationsDisponibles.length > 0" class="text-xs text-gray-400 mt-1">
               {{ locationsDisponibles.length }} emplacement(s) disponible(s)
             </p>
@@ -537,7 +537,7 @@
           </div>
         </div>
       </div>
-      
+
       <!-- ============================================ -->
       <!-- CONTACT -->
       <!-- ============================================ -->

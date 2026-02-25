@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const emplacementSchema = new mongoose.Schema({
-  zone: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Zone',
-    required: [true, 'La zone est requise']
-  },
+  // zone: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'Zone',
+  //   required: [true, 'La zone est requise']
+  // },
   numero_local: {
     type: String,
     required: [true, 'Le numéro du local est requis'],

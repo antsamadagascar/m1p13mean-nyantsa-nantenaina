@@ -9,9 +9,18 @@ exports.getAll = async (req, res) => {
   }
 };
 
+// exports.getDisponibles = async (req, res) => {
+//   try {
+//     const emplacements = await emplacementService.getDisponibles(req.query.zone);
+//     res.json({ emplacements });
+//   } catch (err) {
+//     res.status(err.status || 500).json({ message: err.message });
+//   }
+// };
+
 exports.getDisponibles = async (req, res) => {
   try {
-    const emplacements = await emplacementService.getDisponibles(req.query.zone);
+    const emplacements = await emplacementService.getDisponibles();
     res.json({ emplacements });
   } catch (err) {
     res.status(err.status || 500).json({ message: err.message });

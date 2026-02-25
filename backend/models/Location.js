@@ -10,7 +10,7 @@ const locationSchema = new mongoose.Schema({
   zone: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Zone',
-    required: [true, 'La zone est requise']
+    required: [false]
   },
   numero_local: {
     type: String,

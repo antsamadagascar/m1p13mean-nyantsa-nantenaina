@@ -34,20 +34,20 @@ const createBoutique = async (req, res) => {
     } = req.body;
 
     // Vérifier que la zone existe et est active
-    const zone = await Zone.findById(localisation.zone);
-    if (!zone) {
-      return res.status(404).json({
-        success: false,
-        message: 'Zone non trouvée'
-      });
-    }
+    // const zone = await Zone.findById(localisation.zone);
+    // if (!zone) {
+    //   return res.status(404).json({
+    //     success: false,
+    //     message: 'Zone non trouvée'
+    //   });
+    // }
 
-    if (!zone.actif) {
-      return res.status(400).json({
-        success: false,
-        message: 'Cette zone n\'est pas active actuellement'
-      });
-    }
+    // if (!zone.actif) {
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: 'Cette zone n\'est pas active actuellement'
+    //   });
+    // }
 
 
     // Générer le slug
@@ -59,7 +59,7 @@ const createBoutique = async (req, res) => {
 
     // Données de localisation
     const localisationData = {
-      zone: localisation.zone,
+      // zone: localisation.zone,
       emplacement: localisation.emplacement || null,  
       numero: localisation.numero,
       surface: localisation.surface || null,
@@ -84,14 +84,12 @@ const createBoutique = async (req, res) => {
     if (horaires) {
       boutiqueData.horaires = horaires;
     }
-
     const boutique = await Boutique.create(boutiqueData);
-
     if (contrat && contrat.loyer_mensuel && contrat.date_debut) {
  
       await Location.create({
         boutique: boutique._id,
-        zone: localisation.zone,
+        // zone: localisation.zone,
         emplacement: localisation.emplacement,
         numero_local: localisation.numero,
         surface: localisation.surface,
@@ -112,7 +110,7 @@ const createBoutique = async (req, res) => {
     }
 
     // Peupler les références
-    await boutique.populate('categorie sous_categories localisation.zone');
+    await boutique.populate('categorie sous_categories');
 
     // ENVOYER L'EMAIL AU GÉRANT
     try {

@@ -10,7 +10,7 @@ const emplacementService = {
     if (actif !== undefined) filter.actif = actif === 'true';
     
     const emplacements = await Emplacement.find(filter)
-      .populate('zone', 'nom')
+      // .populate('zone', 'nom')
       .sort({ numero_local: 1 });
 
     // Récupére les emplacements occupés via contrats actifs
@@ -24,15 +24,28 @@ const emplacementService = {
     }));
   },
 
-  async getDisponibles(zone) {
-    // chearch les emplacements qui ont un contrat actif
-    const occupes = await Location.find({ statut: 'actif' }).distinct('emplacement');
-    const filter = { actif: true, _id: { $nin: occupes } };
-    if (zone) filter.zone = zone;
+  // async getDisponibles(zone) {
+  //   // chearch les emplacements qui ont un contrat actif
+  //   const occupes = await Location.find({ statut: 'actif' }).distinct('emplacement');
+  //   const filter = { actif: true, _id: { $nin: occupes } };
+  //   if (zone) filter.zone = zone;
+  //   return await Emplacement.find(filter)
+  //     // .populate('zone', 'nom')
+  //     .sort({ numero_local: 1 });
+  // },
+  async getDisponibles() {
+    // chercher les emplacements qui ont un contrat actif
+    const occupes = await Location.find({ statut: 'actif' })
+      .distinct('emplacement');
+  
+    const filter = {
+      actif: true,
+      _id: { $nin: occupes }
+    };
+  
     return await Emplacement.find(filter)
-      .populate('zone', 'nom')
       .sort({ numero_local: 1 });
-  },
+  },  
 
   async create(body) {
     const emplacement = new Emplacement(body);

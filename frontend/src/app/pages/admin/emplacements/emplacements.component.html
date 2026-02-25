@@ -28,13 +28,13 @@
 </div>
 
   <!-- FILTRE -->
-  <div class="flex gap-3 mb-4">
+  <!-- <div class="flex gap-3 mb-4">
     <select [(ngModel)]="filtreZone" (change)="load()"
       class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none">
       <option value="">Toutes les zones</option>
       <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
     </select>
-  </div>
+  </div> -->
 
   <!-- TABLE -->
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -45,7 +45,7 @@
     <table *ngIf="!loading && emplacements.length > 0" class="w-full text-sm">
       <thead class="bg-gray-50 border-b border-gray-100">
         <tr>
-          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Zone</th>
+          <!-- <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Zone</th> -->
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Numéro</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Type</th>
           <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Surface</th>
@@ -56,7 +56,7 @@
       </thead>
       <tbody class="divide-y divide-gray-50">
         <tr *ngFor="let e of emplacements" class="hover:bg-gray-50 transition">
-          <td class="px-4 py-3 font-medium text-gray-900">{{ getZoneNom(e.zone) }}</td>
+          <!-- <td class="px-4 py-3 font-medium text-gray-900">{{ getZoneNom(e.zone) }}</td> -->
           <td class="px-4 py-3 text-gray-700">{{ e.numero_local }}</td>
           <td class="px-4 py-3 text-gray-600">{{ getTypeLabel(e.type) }}</td>
           <td class="px-4 py-3 text-gray-600">{{ e.surface ? e.surface + ' m²' : '—' }}</td>
@@ -98,8 +98,8 @@
     </div>
 
     <form [formGroup]="form" (ngSubmit)="save()" class="p-6 space-y-4">
-      <div class="grid grid-cols-2 gap-4">
-        <div>
+      <div>
+        <!-- <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Zone *</label>
           <select formControlName="zone"
             (change)="onZoneChange(form.get('zone')?.value)"
@@ -107,7 +107,7 @@
             <option value="">-- Sélectionner --</option>
             <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
           </select>
-        </div>
+        </div> -->
         <div>
           <label class="block text-xs font-semibold text-gray-600 mb-1">Numéro local *</label>
           <input type="text" formControlName="numero_local" placeholder="Ex: B-12"
