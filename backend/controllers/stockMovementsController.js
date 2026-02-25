@@ -10,17 +10,13 @@ exports.getMouvements = async (req, res) => {
 
     const { type, recherche, produit_id, variante_sku, page = 1, limite = 15 } = req.query;
     const boutiqueId = new mongoose.Types.ObjectId(req.user.boutiqueId);
+
+    // ── Filtre principal ──
     const filtre = { boutique: boutiqueId };
+    if (type)         filtre.type          = type;
+    if (produit_id)   filtre.produit       = new mongoose.Types.ObjectId(produit_id);
+    if (variante_sku) filtre.variante_sku  = variante_sku;
 
-    if (type) filtre.type = type;
-
-    //  Cast en ObjectId obligatoire sinon aucun résultat
-    if (produit_id) filtre.produit = new mongoose.Types.ObjectId(produit_id);
-
-    // Filtre variante SKU
-    if (variante_sku) filtre.variante_sku = variante_sku;
-
-    // Recherche texte (ignorée si produit_id déjà défini)
     if (recherche && !produit_id) {
       const produitsTrouves = await Produit.find({
         boutique: boutiqueId,
@@ -44,9 +40,16 @@ exports.getMouvements = async (req, res) => {
       MouvementStock.countDocuments(filtre)
     ]);
 
+    // ── Stats selon le filtre actif (pas sur toute la boutique) ──
     const statsAgg = await MouvementStock.aggregate([
-      { $match: { boutique: boutiqueId } },
-      { $group: { _id: '$type', count: { $sum: 1 }, quantite: { $sum: '$quantite' } } }
+      { $match: filtre }, 
+      {
+        $group: {
+          _id:      '$type',
+          count:    { $sum: 1 },
+          quantite: { $sum: '$quantite' }
+        }
+      }
     ]);
 
     const stats = {
@@ -54,7 +57,9 @@ exports.getMouvements = async (req, res) => {
       SORTIE: { count: 0, quantite: 0 }
     };
     statsAgg.forEach(s => {
-      if (stats[s._id] !== undefined) stats[s._id] = { count: s.count, quantite: s.quantite };
+      if (stats[s._id] !== undefined) {
+        stats[s._id] = { count: s.count, quantite: s.quantite };
+      }
     });
 
     res.json({
@@ -63,7 +68,7 @@ exports.getMouvements = async (req, res) => {
       page:   parseInt(page),
       pages:  Math.ceil(total / parseInt(limite)),
       limite: parseInt(limite),
-      stats
+      stats  
     });
 
   } catch (error) {
