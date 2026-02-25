@@ -606,6 +606,19 @@
             <input type="date" [(ngModel)]="boutique.contrat.date_fin" name="date_fin"
               class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
           </div>
+          <!-- Champ Note -->
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            notes
+          </label>
+          <textarea
+            [(ngModel)]="boutique.contrat.notes"
+            name="notes"
+            rows="3"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            placeholder="Ajouter une remarque ou condition particulière..."
+          ></textarea>
+        </div>
         </div>
       </div>
       <!-- Boutons -->

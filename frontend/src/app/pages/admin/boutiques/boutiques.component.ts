@@ -75,7 +75,8 @@ export class BoutiquesComponent implements OnInit {
     contrat: {
       loyer_mensuel: null,
       date_debut: '',
-      date_fin: ''
+      date_fin: '',
+      notes:''
     },
     contact: {
       telephone: '',
@@ -307,7 +308,7 @@ export class BoutiquesComponent implements OnInit {
         longitude: null,
         adresse_complete: ''
       },
-      contrat: { loyer_mensuel: null, date_debut: '', date_fin: '' },
+      contrat: { loyer_mensuel: null, date_debut: '', date_fin: '', notes: '' },
       contact: {
         telephone: '',
         email: ''
