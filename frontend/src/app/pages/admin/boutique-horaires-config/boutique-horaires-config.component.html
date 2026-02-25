@@ -58,28 +58,24 @@
       <div class="jour-body" [class.disabled]="!horaires[jour].ouvert">
         <div class="time-group">
           <label>Ouverture</label>
-          <input
-            type="time"
-            [(ngModel)]="horaires[jour].debut"
-            [disabled]="!horaires[jour].ouvert"
-          />
+          <input type="time" [(ngModel)]="horaires[jour].debut" [disabled]="!horaires[jour].ouvert" />
         </div>
         <span class="sep">—</span>
         <div class="time-group">
           <label>Fermeture</label>
-          <input
-            type="time"
-            [(ngModel)]="horaires[jour].fin"
-            [disabled]="!horaires[jour].ouvert"
-          />
+          <input type="time" [(ngModel)]="horaires[jour].fin" [disabled]="!horaires[jour].ouvert" />
         </div>
       </div>
 
       <!-- Badge statut -->
       <div class="jour-badge" [class.open]="horaires[jour].ouvert">
-        <i class="fa-solid" [class.fa-door-open]="horaires[jour].ouvert" [class.fa-door-closed]="!horaires[jour].ouvert"></i>
+        <i class="fa-solid"
+          [class.fa-door-open]="horaires[jour].ouvert"
+          [class.fa-door-closed]="!horaires[jour].ouvert">
+        </i>
         {{ horaires[jour].ouvert ? (horaires[jour].debut + ' – ' + horaires[jour].fin) : 'Fermé' }}
       </div>
+
     </div>
   </div>
 
