@@ -49,8 +49,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ];
 
   isAdmin = false;
-  boutiqueIdFiltreAdmin = ''; // 👈 ajout (filtre admin uniquement)
-  boutiquesDispos: { _id: string; nom: string }[] = []; // 👈 liste des boutiques
+  boutiqueIdFiltreAdmin = ''; //  ajout (filtre admin uniquement)
+  boutiquesDispos: { _id: string; nom: string }[] = []; //  liste des boutiques
 
   constructor(private statsService: BoutiqueStatsService,private boutiqueService: BoutiqueService) {}
 
@@ -69,7 +69,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.boutiqueId = user.boutiqueId || '';
     } else {
       this.boutiqueService.getBoutiques().subscribe(res => {
-        console.log('boutiques res:', res); // 👈 regarde la structure dans la console
+        console.log('boutiques res:', res); 
         this.boutiquesDispos = Array.isArray(res) ? res : (res as any).data || [];
       });
     }
