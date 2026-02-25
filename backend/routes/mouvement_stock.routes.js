@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const stockController = require('../controllers/stockMovementsController');
+const stockController = require('../controllers/stockMovements.controller');
 
 // Vérif rapide
 console.log('stockController:', stockController);
