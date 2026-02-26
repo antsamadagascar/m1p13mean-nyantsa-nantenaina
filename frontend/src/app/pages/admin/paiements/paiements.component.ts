@@ -44,7 +44,7 @@ export class PaiementsComponent implements OnInit {
   boutiquesSelectionnees: string[] = [];
   genMode: 'mois' | 'annee' = 'mois';
   currentPaiement: any = null
-  
+
 
   private api = `${environment.apiUrl}/api`;
 
@@ -222,7 +222,7 @@ export class PaiementsComponent implements OnInit {
       this.boutiquesSelectionnees = this.boutiquesActives.map((l: any) => l._id);
     }
   }
-  
+
   formatAr(n: number) { return n ? new Intl.NumberFormat('fr-MG').format(n) + ' Ar' : '0 Ar'; }
   getMoisLabel(m: number) { return MOIS[m - 1] || ''; }
   getStatutLabel(s: string) { return ({ paye: 'Paye', impaye: 'Impaye', en_retard: 'Retard', partiel: 'Partiel' } as any)[s] || s; }
@@ -234,4 +234,26 @@ export class PaiementsComponent implements OnInit {
       partiel:  'bg-blue-50 text-blue-600'
     } as any)[s] || 'bg-gray-100 text-gray-600';
   }
+  exportFacture(p: any) {
+    this.http.get(
+      `${this.api}/paiements/${p._id}/facture`,
+      {
+        ...this.h(),
+        responseType: 'blob'
+      }
+    ).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Facture_${p.mois}_${p.annee}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.alertService.error('Impossible de télécharger la facture');
+      }
+    });
+  }
+
 }

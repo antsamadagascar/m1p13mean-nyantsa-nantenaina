@@ -12,5 +12,6 @@ router.patch('/:id/annuler', auth, commandeCtrl.annulerCommande);
 router.patch('/:id/statut', auth, commandeCtrl.mettreAJourStatut);
 router.patch('/:id/confirmer-paiement', auth, commandeCtrl.confirmerPaiement);
 router.get('/:id', auth, commandeCtrl.getCommandeDetail);
+router.get('/:id/facture', auth, commandeCtrl.exportFacture);
 
 module.exports = router;
