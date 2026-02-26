@@ -10,21 +10,21 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 async function seedProduitsComplet() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log('✅ MongoDB connecté\n');
+    console.log('MongoDB connecté\n');
 
     await MouvementStock.deleteMany({});
     await Produit.deleteMany({});
-    console.log('🗑️  Produits et mouvements supprimés\n');
+    console.log('  Produits et mouvements supprimés\n');
 
     const boutiques = await Boutique.find();
     if (!boutiques.length) {
-      console.log('❌ Aucune boutique trouvée. Lancez d\'abord 02-boutique.seed.js');
+      console.log(' Aucune boutique trouvée. Lancez d\'abord 02-boutique.seed.js');
       process.exit(1);
     }
 
     const getBoutique = (nom) => {
       const b = boutiques.find(b => b.nom === nom);
-      if (!b) { console.log(`⚠️  Boutique "${nom}" introuvable`); process.exit(1); }
+      if (!b) { console.log(`  Boutique "${nom}" introuvable`); process.exit(1); }
       return b;
     };
 
@@ -34,7 +34,7 @@ async function seedProduitsComplet() {
     const kidsShop      = getBoutique('Kids Fashion');
     const computerWorld = getBoutique('Computer World');
 
-    console.log('🏪 Boutiques trouvées :');
+    console.log(' Boutiques trouvées :');
     boutiques.forEach(b => console.log(`   - ${b.nom} (${b._id})`));
     console.log('');
 
@@ -199,7 +199,7 @@ async function seedProduitsComplet() {
         reference: 'ELEC-AIRPODS-PRO2', marque: 'Apple', prix: 1200000,
         categorieNom: 'Électronique', sousCategorieNom: 'Accessoires', quantite: 15,
         tags: ['ecouteurs','airpods','apple','anc'],
-        images: [{ url: 'https://images.unsplash.com/photo-1606741965509-717536b0cb3b?w=800', principale: true, alt: 'AirPods Pro', ordre: 0 }],
+        images: [{ url: 'https://images.unsplash.com/photo-1606841837239-c5a1a4a07af7?w=800', principale: true, alt: 'AirPods Pro 2', ordre: 0 }],
       },
       {
         boutiqueRef: fashionShop,
@@ -231,7 +231,8 @@ async function seedProduitsComplet() {
         reference: 'DECO-CHAN-N5', marque: 'Chanel', prix: 950000,
         categorieNom: 'Maison et Déco', sousCategorieNom: 'Décoration', quantite: 12,
         tags: ['parfum','chanel','femme','luxe'],
-        images: [{ url: 'https://images.unsplash.com/photo-1541643600914-78b084683702?w=800', principale: true, alt: 'Chanel N°5', ordre: 0 }],
+        images: [{ url: 'https://images.unsplash.com/photo-1590156562745-5c4dde706b1c?w=800', principale: true, alt: 'Parfum Chanel N°5', ordre: 0 }]
+
       },
 
       // ════════════════════════════════════════════
@@ -414,7 +415,7 @@ async function seedProduitsComplet() {
           continue;
         }
 
-        // ── Calculer la quantité totale correctement ──
+        // ── Calcul la quantité totale  ──
         const modeGestion = data.gestion_stock || 'SIMPLE';
         let quantiteTotale = data.quantite || 0;
 
@@ -441,7 +442,7 @@ async function seedProduitsComplet() {
           variantes:          data.variantes || [],
         });
 
-        // ── Créer les mouvements de stock initiaux ──
+        // ── Crée les mouvements de stock initiaux ──
         if (modeGestion === 'VARIANTES' && data.variantes?.length) {
           // Un mouvement PAR variante
           const mouvements = data.variantes
@@ -481,11 +482,10 @@ async function seedProduitsComplet() {
         if (!boutiquesStats[data.boutiqueRef.nom]) boutiquesStats[data.boutiqueRef.nom] = 0;
         boutiquesStats[data.boutiqueRef.nom]++;
 
-        const emoji = { 'Vêtements': '👕', 'Électronique': '📱', 'Maison et Déco': '🛋️' }[data.categorieNom] || '📦';
         const stockInfo = modeGestion === 'VARIANTES'
           ? `${data.variantes?.length} variantes — stock total: ${quantiteTotale}`
           : `stock: ${quantiteTotale}`;
-        console.log(`  ${emoji} [${data.boutiqueRef.nom}] ${produit.nom} (${stockInfo})`);
+        console.log(` [${data.boutiqueRef.nom}] ${produit.nom} (${stockInfo})`);
 
       } catch (err) {
         console.error(`  ${data.nom}: ${err.message}`);
@@ -499,15 +499,11 @@ async function seedProduitsComplet() {
       const star = nom === 'Fashion Shop' ? '  (boutique test prof)' : '';
       console.log(` ${nom} : ${count} produits${star}`);
     });
-    console.log('═══════════════════════════════════════════════════════\n');
-    console.log(' Connexion test prof : jean@fashion.mg');
-    console.log('═══════════════════════════════════════════════════════\n');
 
-    process.exit(0);
+    // process.exit(0);
   } catch (err) {
     console.error(' Erreur seed:', err.message);
     process.exit(1);
   }
 }
-
-seedProduitsComplet();
+module.exports = seedProduitsComplet
