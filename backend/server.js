@@ -91,13 +91,5 @@ app.use('/api/paiements', require('./routes/paiement.routes'));
 app.use('/uploads', express.static('uploads'));
 
 
-app.use(express.static(path.join(__dirname, '../frontend/dist/frontend/browser')));
-
-
-// Fallback Angular (si frontend servi par Express)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/frontend/browser/index.html'));
-});
-
 // Démarrage du serveur
 app.listen(PORT, () => console.log(`✓ Serveur sur port ${PORT}`));
