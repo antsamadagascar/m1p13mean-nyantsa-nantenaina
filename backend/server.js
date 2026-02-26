@@ -62,7 +62,8 @@ const { boutiqueRouter, produitRouter, adminRouter } = require('./routes/evaluat
 const panierRoutes = require('./routes/panier.routes');
 const commandeRoutes = require('./routes/commande.routes');
 
-
+// server.js ou app.js
+app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
 app.use('/api/boutiques', boutiqueRoutes);
 app.use('/api/users', userRoutes);
