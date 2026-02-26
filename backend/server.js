@@ -55,11 +55,13 @@ const sousCategorieRoutes = require('./routes/sousCategorie.routes');
 const zoneRoutes = require('./routes/zone.routes'); 
 const produitRoutes = require('./routes/produit.routes');
 const promotionRoutes = require('./routes/promotion.routes');
+const mouvementStockRoutes = require('./routes/mouvement_stock.routes');
 
 const { boutiqueRouter, produitRouter, adminRouter } = require('./routes/evaluation.routes');
 
 const panierRoutes = require('./routes/panier.routes');
 const commandeRoutes = require('./routes/commande.routes');
+
 
 
 app.use('/api/boutiques', boutiqueRoutes);
@@ -69,6 +71,7 @@ app.use('/api/categories', categorieRoutes);
 app.use('/api/sous-categories', sousCategorieRoutes);    
 app.use('/api/zones', zoneRoutes);
 app.use('/api/produits',produitRoutes);
+app.use('/api/stock-movements', mouvementStockRoutes);
 app.use('/api/panier',panierRoutes);
 app.use('/api/commandes', commandeRoutes);
 app.use('/api', promotionRoutes);
@@ -77,7 +80,7 @@ app.use('/api/boutiques/:boutiqueId/evaluations', boutiqueRouter);
 app.use('/api/produits/:produitId/evaluations', produitRouter);
 app.use('/api/evaluations', adminRouter);
 app.use('/api/favoris', require('./routes/favori.routes'));
-
+app.use('/api/stock-movements', require('./routes/mouvement_stock.routes'));
 app.use('/api/locations', require('./routes/location.routes'));
 app.use('/api/paiements', require('./routes/paiement.routes'));
 

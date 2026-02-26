@@ -1,0 +1,236 @@
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <button class="btn-back" routerLink="/backoffice/products/boutique">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+        </svg>
+      </button>
+      <div>
+        <h1>Mouvements de stock</h1>
+        <p class="subtitle">Suivi en temps réel de vos entrées et sorties</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card stat--green">
+      <div class="stat-top">
+        <span class="stat-label">Total entrées</span>
+        <div class="stat-icon stat-icon--green">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 5v14M5 12l7-7 7 7"/>
+          </svg>
+        </div>
+      </div>
+      <div class="stat-value green">+{{ stats?.ENTREE?.quantite || 0 }}</div>
+      <div class="stat-meta">{{ stats?.ENTREE?.count || 0 }} opération(s)</div>
+    </div>
+
+    <div class="stat-card stat--red">
+      <div class="stat-top">
+        <span class="stat-label">Total sorties</span>
+        <div class="stat-icon stat-icon--red">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 19V5M5 12l7 7 7-7"/>
+          </svg>
+        </div>
+      </div>
+      <div class="stat-value red">-{{ stats?.SORTIE?.quantite || 0 }}</div>
+      <div class="stat-meta">{{ stats?.SORTIE?.count || 0 }} opération(s)</div>
+    </div>
+
+    <div class="stat-card stat--blue">
+      <div class="stat-top">
+        <span class="stat-label">Total mouvements</span>
+        <div class="stat-icon stat-icon--blue">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M4 6h16M4 12h16M4 18h7"/>
+          </svg>
+        </div>
+      </div>
+      <div class="stat-value blue">{{ total }}</div>
+      <div class="stat-meta">toutes opérations</div>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+
+    <!-- Type -->
+    <div class="type-btns">
+      <button [class.active]="filtreType === ''"       (click)="setType('')">Tous</button>
+      <button [class.active]="filtreType === 'ENTREE'" (click)="setType('ENTREE')" class="btn-green">↑ Entrées</button>
+      <button [class.active]="filtreType === 'SORTIE'" (click)="setType('SORTIE')" class="btn-red">↓ Sorties</button>
+    </div>
+
+    <!-- Select produit -->
+    <div class="filter-group">
+      <label>Produit</label>
+      <div class="select-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+        </svg>
+        <select [(ngModel)]="filtreProduit" (ngModelChange)="onProduitChange()">
+          <option value="">Tous les produits</option>
+          <option *ngFor="let p of produits" [value]="p._id">{{ p.nom }} · {{ p.reference }}</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Select variante (visible si produit sélectionné avec variantes) -->
+    <div class="filter-group" *ngIf="filtreProduit && variantesDisponibles.length > 0">
+      <label>Variante</label>
+      <div class="select-wrap select-wrap--purple">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/>
+        </svg>
+        <select [(ngModel)]="filtreVariante" (ngModelChange)="onVarianteChange()">
+          <option value="">Toutes les variantes</option>
+          <option *ngFor="let v of variantesDisponibles" [value]="v.sku">
+            {{ v.nom }} · {{ v.sku }}
+            <ng-container *ngIf="v.attributs?.length"> · {{ formatAttributs(v.attributs) }}</ng-container>
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Info produit simple -->
+    <div class="info-simple" *ngIf="filtreProduit && variantesDisponibles.length === 0 && produitSelectionne">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+      </svg>
+      Produit simple — pas de variante
+    </div>
+
+    <!-- Reset -->
+    <button class="btn-reset" (click)="resetFiltres()" *ngIf="filtreProduit || filtreVariante || filtreType">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+      </svg>
+      Réinitialiser
+    </button>
+
+  </div>
+
+  <!-- Tags filtres actifs -->
+  <div class="active-filters" *ngIf="filtreProduit || filtreVariante">
+    <span class="filter-tag" *ngIf="filtreProduit">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-4 0v2"/>
+      </svg>
+      {{ produitSelectionne?.nom }}
+      <button (click)="clearProduit()">×</button>
+    </span>
+    <span class="filter-tag filter-tag--purple" *ngIf="filtreVariante">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18"/>
+      </svg>
+      Variante : {{ filtreVariante }}
+      <button (click)="clearVariante()">×</button>
+    </span>
+  </div>
+
+  <!-- Loading -->
+  <div class="state-loading" *ngIf="loading">
+    <div class="spinner"></div><span>Chargement...</span>
+  </div>
+
+  <!-- Vide -->
+  <div class="state-empty" *ngIf="!loading && mouvements().length === 0">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+    </svg>
+    <p>Aucun mouvement trouvé</p>
+    <span>Essayez de modifier vos filtres</span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" *ngIf="!loading && mouvements().length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Produit</th>
+          <th>Variante</th>
+          <th>Opération</th>
+          <th class="th-right">Quantité</th>
+          <th class="th-right">Stock</th>
+          <th>Motif</th>
+          <th>Opérateur</th>
+        </tr>
+      </thead>
+      <tbody>
+        <ng-container *ngFor="let m of mouvements(); let i = index; trackBy: trackById">
+          <tr class="tr-date" *ngIf="isNewDate(m, i)">
+            <td colspan="8"><span>{{ labelDate(m.createdAt) }}</span></td>
+          </tr>
+          <tr class="tr-row" [class.tr--entree]="m.type==='ENTREE'" [class.tr--sortie]="m.type==='SORTIE'">
+            <td class="td-date">{{ formatTime(m.createdAt) }}</td>
+            <td class="td-produit">
+              <div class="produit-nom">{{ m.produit?.nom || '—' }}</div>
+              <div class="produit-ref">{{ m.produit?.reference }}</div>
+            </td>
+            <td class="td-variante">
+              <ng-container *ngIf="m.variante_sku; else simple">
+                <span class="pill pill--purple">Variante</span>
+                <div class="var-detail">
+                  <span class="var-nom">{{ m.variante_nom }}</span>
+                  <span class="var-sku">{{ m.variante_sku }}</span>
+                </div>
+                <div class="var-attrs" *ngIf="m.variante_attributs?.length">
+                  <span *ngFor="let a of m.variante_attributs" class="attr-chip">{{ a.nom }}: <b>{{ a.valeur }}</b></span>
+                </div>
+              </ng-container>
+              <ng-template #simple><span class="pill pill--gray">Simple</span></ng-template>
+            </td>
+            <td class="td-type">
+              <span class="op-badge" [ngClass]="m.type==='ENTREE' ? 'op--green' : 'op--red'">
+                <span class="op-dot"></span>
+                {{ m.type === 'ENTREE' ? 'Entrée' : 'Sortie' }}
+              </span>
+            </td>
+            <td class="td-qty th-right">
+              <span [ngClass]="m.type==='ENTREE' ? 'qty-pos' : 'qty-neg'">
+                {{ m.type === 'ENTREE' ? '+' : '-' }}{{ m.quantite }}
+              </span>
+            </td>
+            <td class="td-stock th-right">
+              <div class="stock-flow" *ngIf="m.quantite_avant !== null && m.quantite_avant !== undefined; else noflow">
+                <span class="sf-before">{{ m.quantite_avant }}</span>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+                <span class="sf-after">{{ m.quantite_apres }}</span>
+              </div>
+              <ng-template #noflow><span class="na">—</span></ng-template>
+            </td>
+            <td class="td-motif">{{ m.motif || '—' }}</td>
+            <td class="td-user">
+              <span *ngIf="m.cree_par">{{ m.cree_par.prenom }} {{ m.cree_par.nom }}</span>
+              <span *ngIf="!m.cree_par" class="na">Système</span>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1 && !loading">
+    <span class="pag-info">{{ total }} résultats</span>
+    <div class="pag-btns">
+      <button [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button *ngFor="let p of pageNumbers" [class.active]="p === currentPage" (click)="goToPage(p)">{{ p }}</button>
+      <button [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+  </div>
+
+</div>

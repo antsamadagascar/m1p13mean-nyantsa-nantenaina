@@ -1,6 +1,7 @@
 const Commande = require('../models/Commande');
 const Panier = require('../models/Panier');
 const Produit = require('../models/Produit');
+const MouvementStock = require('../models/MouvementStock');
 
 const PDFDocument = require('pdfkit');
 const path = require('path');
@@ -27,6 +28,8 @@ exports.creerCommande = async (req, res) => {
     }
 
     const articlesSnapshot = [];
+    const mouvementsACreer = []; // <- on collecte tous les mouvements
+
     for (const article of panier.articles) {
       const produit = await Produit.findById(article.produit._id);
       if (!produit) return res.status(404).json({ message: 'Produit introuvable' });
@@ -37,43 +40,81 @@ exports.creerCommande = async (req, res) => {
         if (variante.quantite < article.quantite) {
           return res.status(400).json({ message: `Stock insuffisant pour ${produit.nom} - ${variante.nom}` });
         }
+
+        const qAvant = variante.quantite;
         variante.quantite -= article.quantite;
+        const qApres = variante.quantite;
+
+        mouvementsACreer.push({
+          produit:           produit._id,
+          type:              'SORTIE',
+          quantite:          article.quantite,
+          motif:             'Vente (commande)',
+          boutique:          produit.boutique,
+          variante_sku:      variante.sku      || null,
+          variante_nom:      variante.nom      || null,
+          variante_attributs: variante.attributs || [],
+          quantite_avant:    qAvant,
+          quantite_apres:    qApres,
+          cree_par:          null // action client
+        });
+
       } else {
         if (produit.quantite < article.quantite) {
           return res.status(400).json({ message: `Stock insuffisant pour ${produit.nom}` });
         }
+
+        const qAvant = produit.quantite;
         produit.quantite -= article.quantite;
+        const qApres = produit.quantite;
+
+        mouvementsACreer.push({
+          produit:        produit._id,
+          type:           'SORTIE',
+          quantite:       article.quantite,
+          motif:          'Vente (commande)',
+          boutique:       produit.boutique,
+          quantite_avant: qAvant,
+          quantite_apres: qApres,
+          cree_par:       null
+        });
       }
+
       await produit.save();
 
       articlesSnapshot.push({
-        produit: produit._id,
-        variante: article.variante || null,
-        nom_produit: produit.nom,
-        sku: article.variante ? produit.variantes.id(article.variante)?.sku : produit.reference,
-        quantite: article.quantite,
-        prix_unitaire: article.prix_unitaire,
+        produit:             produit._id,
+        variante:            article.variante || null,
+        nom_produit:         produit.nom,
+        sku:                 article.variante ? produit.variantes.id(article.variante)?.sku : produit.reference,
+        quantite:            article.quantite,
+        prix_unitaire:       article.prix_unitaire,
         prix_promo_unitaire: article.prix_promo_unitaire || null
       });
     }
 
     const commande = await Commande.create({
-      utilisateur: userId,
-      panier: panier._id,
-      articles: articlesSnapshot,
+      utilisateur:      userId,
+      panier:           panier._id,
+      articles:         articlesSnapshot,
       adresse_livraison,
-      sous_total: panier.sous_total,
-      total_remise: panier.total_remise,
-      total: panier.total,
-      statut: 'EN_ATTENTE',
-      statut_paiement: 'IMPAYE',   // toujours impayé à la création
-      reference: `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+      sous_total:       panier.sous_total,
+      total_remise:     panier.total_remise,
+      total:            panier.total,
+      statut:           'EN_ATTENTE',
+      statut_paiement:  'IMPAYE',
+      reference:        `CMD-${Date.now()}-${Math.floor(Math.random() * 1000)}`
     });
 
-    panier.statut = 'CONVERTI';
-    panier.date_conversion = new Date();
-    panier.commande = commande._id;
+    panier.statut           = 'CONVERTI';
+    panier.date_conversion  = new Date();
+    panier.commande         = commande._id;
     await panier.save();
+
+    // ── Enregistrements de tous les mouvements de sortie ──
+    if (mouvementsACreer.length > 0) {
+      await MouvementStock.insertMany(mouvementsACreer);
+    }
 
     res.status(201).json(commande);
   } catch (error) {
@@ -81,6 +122,7 @@ exports.creerCommande = async (req, res) => {
     res.status(500).json({ message: 'Erreur création commande', error: error.message });
   }
 };
+
 
 // ============================================
 // MES COMMANDES (client)
@@ -178,6 +220,55 @@ exports.getCommandesBoutique = async (req, res) => {
 };
 
 // ============================================
+// HELPER — restituer stock + créer mouvements
+// ============================================
+async function restituerStock(articles, motif, operateurId = null) {
+  for (const article of articles) {
+    const produit = await Produit.findById(article.produit);
+    if (!produit) continue;
+
+    if (article.variante) {
+      const v = produit.variantes.id(article.variante);
+      if (!v) continue;
+
+      const qAvant = v.quantite;
+      v.quantite  += article.quantite;
+      await produit.save();
+
+      await MouvementStock.create({
+        produit:           produit._id,
+        type:              'ENTREE',
+        quantite:          article.quantite,
+        motif,
+        boutique:          produit.boutique,
+        variante_sku:      v.sku       || null,
+        variante_nom:      v.nom       || null,
+        variante_attributs: v.attributs || [],
+        quantite_avant:    qAvant,
+        quantite_apres:    v.quantite,
+        cree_par:          operateurId
+      });
+
+    } else {
+      const qAvant        = produit.quantite;
+      produit.quantite   += article.quantite;
+      await produit.save();
+
+      await MouvementStock.create({
+        produit:        produit._id,
+        type:           'ENTREE',
+        quantite:       article.quantite,
+        motif,
+        boutique:       produit.boutique,
+        quantite_avant: qAvant,
+        quantite_apres: produit.quantite,
+        cree_par:       operateurId
+      });
+    }
+  }
+}
+
+// ============================================
 // ANNULER COMMANDE (client)
 // ============================================
 exports.annulerCommande = async (req, res) => {
@@ -188,22 +279,17 @@ exports.annulerCommande = async (req, res) => {
       return res.status(400).json({ message: 'Cette commande ne peut plus être annulée' });
     }
 
-    // Restituer le stock
-    for (const article of commande.articles) {
-      const produit = await Produit.findById(article.produit);
-      if (!produit) continue;
-      if (article.variante) {
-        const v = produit.variantes.id(article.variante);
-        if (v) v.quantite += article.quantite;
-      } else {
-        produit.quantite += article.quantite;
-      }
-      await produit.save();
-    }
+    // Restituer stock + mouvement
+    await restituerStock(
+      commande.articles,
+      `Restitution stock — annulation commande ${commande.reference}`,
+      null // annulation client, pas d'opérateur
+    );
 
-    commande.statut = 'ANNULEE';
+    commande.statut          = 'ANNULEE';
     commande.date_annulation = new Date();
     await commande.save();
+
     res.json(commande);
   } catch (error) {
     res.status(500).json({ message: 'Erreur', error: error.message });
@@ -226,12 +312,9 @@ exports.mettreAJourStatut = async (req, res) => {
     const commande = await Commande.findById(req.params.id);
     if (!commande) return res.status(404).json({ message: 'Commande introuvable' });
 
-    //  Règle simple : impossible d'annuler si déjà payé
     if (statut === 'ANNULEE' && commande.statut_paiement === 'PAYE') {
       return res.status(400).json({ message: 'Impossible d\'annuler une commande déjà payée' });
     }
-
-    //  Transitions normales restent bloquées
     if (statut === 'LIVREE' && !['EN_ATTENTE', 'EN_COURS'].includes(commande.statut)) {
       return res.status(400).json({ message: 'Transition invalide' });
     }
@@ -242,23 +325,19 @@ exports.mettreAJourStatut = async (req, res) => {
     commande.statut = statut;
 
     if (statut === 'LIVREE') {
-      commande.date_livraison = new Date();
+      commande.date_livraison  = new Date();
       commande.statut_paiement = 'IMPAYE';
     }
 
     if (statut === 'ANNULEE') {
       commande.date_annulation = new Date();
-      for (const article of commande.articles) {
-        const produit = await Produit.findById(article.produit);
-        if (!produit) continue;
-        if (article.variante) {
-          const v = produit.variantes.id(article.variante);
-          if (v) v.quantite += article.quantite;
-        } else {
-          produit.quantite += article.quantite;
-        }
-        await produit.save();
-      }
+
+      // Restitue le stock + mouvement (annulation par la boutique)
+      await restituerStock(
+        commande.articles,
+        `Restitution stock — annulation boutique (${commande.reference})`,
+        req.user._id
+      );
     }
 
     await commande.save();
