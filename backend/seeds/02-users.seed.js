@@ -6,6 +6,11 @@ const Boutique = require('../models/Boutique');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
+// Total 26 utilisateurs 
+// 1 admin 
+// 6 boutique
+// 19 acheteurs (clients)
+
 const usersTest = [
     {
       email: "admin@citymall.mg",
