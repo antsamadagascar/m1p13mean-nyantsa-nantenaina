@@ -8,23 +8,15 @@ require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const usersTest = [
   {
     email: "admin@citymall.mg",
-    motDePasse: "admin1",
+    motDePasse: "Admin1234",
     nom: "Rakoto",
     prenom: "Jean",
     role: "ADMIN",
     emailVerifie: true
   },
   {
-    email: "antsamadagascar@gmail.com",
-    motDePasse: "admin2",
-    nom: "Ratovonandrasana",
-    prenom: "Aina Ny Antsa",
-    role: "ADMIN",
-    emailVerifie: true
-  },
-  {
     email: "jean@fashion.mg",
-    motDePasse: "shop1",
+    motDePasse: "Shop1234",
     nom: "Rakoto",
     prenom: "Jean",
     role: "BOUTIQUE",
@@ -33,7 +25,7 @@ const usersTest = [
   },
   {
     email: "sarah@tech.mg",
-    motDePasse: "shop2",
+    motDePasse: "Shop1234",
     nom: "Rabe",
     prenom: "Sarah",
     role: "BOUTIQUE",
@@ -42,7 +34,7 @@ const usersTest = [
   },
   {
     email: "paul@home.mg",
-    motDePasse: "shop3",
+    motDePasse: "Shop1234",
     nom: "Razafy",
     prenom: "Paul",
     role: "BOUTIQUE",
@@ -51,7 +43,7 @@ const usersTest = [
   },
   {
     email: "claudine@beauty.mg",
-    motDePasse: "shop4",
+    motDePasse: "Shop1234",
     nom: "Ratsimba",
     prenom: "Claudine",
     role: "BOUTIQUE",
@@ -60,7 +52,7 @@ const usersTest = [
   },
   {
     email: "sophie@kids.mg",
-    motDePasse: "shop5",
+    motDePasse: "Shop1234",
     nom: "Randria",
     prenom: "Sophie",
     role: "BOUTIQUE",
@@ -69,7 +61,7 @@ const usersTest = [
   },
   {
     email: "marc@computer.mg",
-    motDePasse: "shop6",
+    motDePasse: "Shop1234",
     nom: "Razafy",
     prenom: "Marc",
     role: "BOUTIQUE",
@@ -78,12 +70,28 @@ const usersTest = [
   },
   {
     email: "client@mail.mg",
-    motDePasse: "buy1",
+    motDePasse: "Buy1234",
     nom: "Randria",
     prenom: "Pierre",
     role: "ACHETEUR",
     emailVerifie: true
-  }
+  } //,
+  // {
+  //   email: "antsamadagascar@gmail.com",
+  //   motDePasse: "Buy1234",
+  //   nom: "Ratovonandrasana",
+  //   prenom: "Aina Ny Antsa",
+  //   role: "ACHETEUR",
+  //   emailVerifie: true
+  // },
+  // {
+  //   email: "nantenaina@gmail.com",
+  //   motDePasse: "Buy1234",
+  //   nom: "Raherimalala",
+  //   prenom: "Nantenaina",
+  //   role: "ACHETEUR",
+  //   emailVerifie: true
+  // }
 ];
 
 async function seedUsers() {
@@ -118,18 +126,17 @@ async function seedUsers() {
     }
 
     console.log('\n🎉 SEED USERS TERMINÉ !');
-    console.log('┌─────────────────────────────────────┬──────────┬──────────┐');
-    console.log('│ Email                               │ Rôle     │ MDP      │');
-    console.log('├─────────────────────────────────────┼──────────┼──────────┤');
-    console.log('│ admin@citymall.mg                   │ ADMIN    │ admin1   │');
-    console.log('│ antsamadagascar@gmail.com           │ ADMIN    │ admin2   │');
-    console.log('│ jean@fashion.mg                     │ BOUTIQUE │ shop1    │');
-    console.log('│ sarah@tech.mg                       │ BOUTIQUE │ shop2    │');
-    console.log('│ paul@home.mg                        │ BOUTIQUE │ shop3    │');
-    console.log('│ claudine@beauty.mg                  │ BOUTIQUE │ shop4    │');
-    console.log('│ sophie@kids.mg                      │ BOUTIQUE │ shop5    │');
-    console.log('│ marc@computer.mg                    │ BOUTIQUE │ shop6    │');
-    console.log('│ client@mail.mg                      │ ACHETEUR │ buy1     │');
+    console.log('┌─────────────────────────────────────┬──────────┬──────────---┐');
+    console.log('│ Email                               │ Rôle     │ MDP         │');
+    console.log('├─────────────────────────────────────┼──────────┼──────────---┤');
+    console.log('│ admin@citymall.mg                   │ ADMIN    │ Admin1234   │');
+    console.log('│ jean@fashion.mg                     │ BOUTIQUE │ Shop1234    │');
+    console.log('│ sarah@tech.mg                       │ BOUTIQUE │ Shop1234    │');
+    console.log('│ paul@home.mg                        │ BOUTIQUE │ Shop1234    │');
+    console.log('│ claudine@beauty.mg                  │ BOUTIQUE │ Shop1234    │');
+    console.log('│ sophie@kids.mg                      │ BOUTIQUE │ Shop1234    │');
+    console.log('│ marc@computer.mg                    │ BOUTIQUE │ Shop1234    │');
+    console.log('│ client@mail.mg                      │ ACHETEUR │ Buy1234    │');
     console.log('└─────────────────────────────────────┴──────────┴──────────┘');
 
     process.exit(0);

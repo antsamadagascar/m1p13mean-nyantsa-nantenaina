@@ -99,6 +99,7 @@ export class AdminLayoutComponent implements OnInit {
         { path: `/backoffice/boutiques/details/${boutiqueId}`, label: 'Ma Boutique', icon: 'fa-solid fa-store', exact: false },
         { path: '/backoffice/boutiques/config', label: 'Horaires', icon: 'fa-solid fa-clock', exact: false },
         { path: '/backoffice/products/boutique', label: 'Mes Produits', icon: 'fa-solid fa-box', exact: false },
+        { path: '/backoffice/stock-movements', label: 'Mouvement de stock', icon: 'fa-solid fa-right-left', exact: false },
         { path: '/backoffice/orders', label: 'Mes Commandes', icon: 'fa-solid fa-cart-shopping', exact: false },
         { path: '/backoffice/paiements', label: 'Mes Factures', icon: 'fa-solid fa-receipt', exact: false },
       ];

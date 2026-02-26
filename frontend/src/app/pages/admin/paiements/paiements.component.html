@@ -115,11 +115,19 @@
               <button (click)="openEditModal(p)" class="text-xs text-gray-400 hover:text-gray-700 font-medium transition">
                 Modifier
               </button>
-              <button *ngIf="p.statut !== 'impaye'" (click)="annulerPaiement(p)" 
+              <button *ngIf="p.statut !== 'impaye'" (click)="annulerPaiement(p)"
                 class="text-xs text-red-400 hover:text-red-600 font-medium transition">
                 Annuler
               </button>
             </div>
+          </td>
+          <td class="px-4 py-3" *ngIf="!isAdmin">
+            <button
+                *ngIf="p.statut !== 'impaye'"
+                (click)="exportFacture(p)"
+              class="text-xs text-blue-600 hover:text-blue-800 font-semibold transition">
+              Télécharger facture
+            </button>
           </td>
         </tr>
       </tbody>
@@ -128,7 +136,7 @@
     <div *ngIf="!loading && paiements.length === 0" class="text-center py-16 text-gray-400">
       <p class="text-sm">Aucun factures trouve</p>
       <button *ngIf="isAdmin" (click)="openGenererModal()" class="mt-3 text-xs text-gray-900 underline">
-        Générer les factures 
+        Générer les factures
       </button>
     </div>
 

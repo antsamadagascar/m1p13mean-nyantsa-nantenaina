@@ -65,15 +65,15 @@ export class ConnexionComponent {
     switch(role) {
       case 'admin':
         this.credentials.email = 'admin@citymall.mg';
-        this.credentials.motDePasse = 'admin1';
+        this.credentials.motDePasse = 'Admin1234';
         break;
       case 'boutique':
         this.credentials.email = 'jean@fashion.mg';
-        this.credentials.motDePasse = 'shop1';
+        this.credentials.motDePasse = 'Shop1234';
         break;
       case 'client':
         this.credentials.email = 'client@mail.mg';
-        this.credentials.motDePasse = 'buy1';
+        this.credentials.motDePasse = 'Buy1234';
         break;
     }
   }

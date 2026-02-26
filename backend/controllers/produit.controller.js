@@ -405,7 +405,7 @@ exports.getMesProduits = async (req, res) => {
 
   exports.createProduit = async (req, res) => {
     try {
-      // 🔐 Vérification rôle
+      //  Vérification rôle
       if (req.user.role !== 'BOUTIQUE') {
         return res.status(403).json({ message: 'Accès réservé aux boutiques' });
       }
@@ -552,7 +552,7 @@ exports.getMesProduits = async (req, res) => {
         quantiteTotale = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
       }
   
-      // 🏗 Création produit
+      // Création produit
       const produit = new Produit({
         nom,
         description:       description        || '',
@@ -580,17 +580,42 @@ exports.getMesProduits = async (req, res) => {
   
       // Création mouvement stock initial
       if (quantiteTotale > 0) {
-        await MouvementStock.create({
-          produit:  produit._id,
-          type:     'ENTREE',
-          quantite: quantiteTotale,
-          motif:    modeGestionStock === 'VARIANTES'
-                      ? 'Stock initial (variantes)'
-                      : 'Stock initial',
-          boutique: req.user.boutiqueId
-        });
+
+        if (modeGestionStock === 'VARIANTES' && variantesParsed.length > 0) {
+          // Un mouvement PAR variante pour traçabilité fine
+          const mouvements = variantesParsed
+            .filter(v => v.quantite > 0)
+            .map(v => ({
+              produit:           produit._id,
+              type:              'ENTREE',
+              quantite:          v.quantite,
+              motif:             'Stock initial (variante)',
+              boutique:          req.user.boutiqueId,
+              variante_sku:      v.sku || null,
+              variante_nom:      v.nom || null,
+              variante_attributs: v.attributs || [],
+              quantite_avant:    0,
+              quantite_apres:    v.quantite,
+              cree_par:          req.user._id
+            }));
+
+          await MouvementStock.insertMany(mouvements);
+
+        } else {
+          // Produit simple -> un seul mouvement
+          await MouvementStock.create({
+            produit:        produit._id,
+            type:           'ENTREE',
+            quantite:       quantiteTotale,
+            motif:          'Stock initial',
+            boutique:       req.user.boutiqueId,
+            quantite_avant: 0,
+            quantite_apres: quantiteTotale,
+            cree_par:       req.user._id
+          });
+        }
       }
-  
+        
       //  Retourner le produit populé
       const produitPopulate = await Produit.findById(produit._id)
         .populate('categorie',     'nom')
@@ -708,37 +733,63 @@ exports.updateProduit = async (req, res) => {
         }
       }
 
-      //  Gérer les variantes (remplacer même si vide)
+      //  Géstion  des variantes 
             if (variantes !== undefined) {
-              try {
-                let variantesParsed = typeof variantes === 'string' 
-                  ? JSON.parse(variantes) 
-                  : variantes;
+            try {
+              let variantesParsed = typeof variantes === 'string'
+                ? JSON.parse(variantes)
+                : variantes;
 
-                // Nettoyer et valider
-                variantesParsed = (variantesParsed || []).map(v => ({
-                  nom:             v.nom?.trim()           || '',
-                  sku:             v.sku?.trim()           || '',
-                  prix_supplement: Number(v.prix_supplement) || 0,
-                  quantite:        Number(v.quantite)        || 0,
-                  image:           v.image                   || '',
-                  attributs: (v.attributs || [])
-                    .filter(a => a.nom?.trim() && a.valeur?.trim())
-                    .map(a => ({
-                      nom:    a.nom.trim(),
-                      valeur: a.valeur.trim()
-                    }))
-                }));
+              variantesParsed = variantesParsed.map(v => ({
+                nom:             v.nom?.trim()            || '',
+                sku:             v.sku?.trim()            || '',
+                prix_supplement: Number(v.prix_supplement) || 0,
+                quantite:        Number(v.quantite)        || 0,
+                image:           v.image                   || '',
+                attributs: (v.attributs || [])
+                  .filter(a => a.nom?.trim() && a.valeur?.trim())
+                  .map(a => ({ nom: a.nom.trim(), valeur: a.valeur.trim() }))
+              }));
 
-                // Remplace complètement
-                produit.variantes = variantesParsed;
+              // ── Calcule les ajustements par rapport à l'ancien stock ──
+              const mouvementsAjustement = [];
 
-                //  Recalcule quantité totale si mode VARIANTES
-                if (produit.gestion_stock === 'VARIANTES' && variantesParsed.length > 0) {
-                  const quantiteTotale = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
-                  produit.quantite = quantiteTotale;
+              for (const nouvelleVariante of variantesParsed) {
+                const ancienneVariante = produit.variantes.find(
+                  v => v.sku === nouvelleVariante.sku
+                );
+                const ancienneQte = ancienneVariante ? ancienneVariante.quantite : 0;
+                const diff = nouvelleVariante.quantite - ancienneQte;
 
+                if (diff !== 0) {
+                  mouvementsAjustement.push({
+                    produit:           produit._id,
+                    type:              diff > 0 ? 'ENTREE' : 'SORTIE',
+                    quantite:          Math.abs(diff),
+                    motif:             'Ajustement stock (mise à jour variante)',
+                    boutique:          req.user.boutiqueId,
+                    variante_sku:      nouvelleVariante.sku || null,
+                    variante_nom:      nouvelleVariante.nom || null,
+                    variante_attributs: nouvelleVariante.attributs || [],
+                    quantite_avant:    ancienneQte,
+                    quantite_apres:    nouvelleVariante.quantite,
+                    cree_par:          req.user._id
+                  });
                 }
+              }
+
+              // Remplace les variantes et recalcule le total
+              produit.variantes = variantesParsed;
+              if (produit.gestion_stock === 'VARIANTES' && variantesParsed.length > 0) {
+                produit.quantite = variantesParsed.reduce((sum, v) => sum + v.quantite, 0);
+              }
+
+              // Sauvegarder puis enregistrer les mouvements
+              await produit.save();
+
+              if (mouvementsAjustement.length > 0) {
+                await MouvementStock.insertMany(mouvementsAjustement);
+              }
               } catch (e) {
               
               }
@@ -827,20 +878,16 @@ exports.addStock = async (req, res) => {
     const produitId = req.params.id;
     const { quantite } = req.body;
 
-    // Vérifier rôle
     if (req.user.role !== 'BOUTIQUE') {
       return res.status(403).json({ message: 'Accès réservé aux boutiques' });
     }
-
     if (!req.user.boutiqueId) {
       return res.status(400).json({ message: 'Boutique non liée à cet utilisateur' });
     }
-
     if (!quantite || quantite <= 0) {
       return res.status(400).json({ message: 'Quantité invalide' });
     }
 
-    // Récupérer le produit
     const produit = await Produit.findOne({
       _id: produitId,
       boutique: req.user.boutiqueId
@@ -850,21 +897,24 @@ exports.addStock = async (req, res) => {
       return res.status(404).json({ message: 'Produit non trouvé' });
     }
 
-    // Mettre à jour la quantité
-    produit.quantite += quantite;
+    // ── Traçabilité ──────────────────────────────
+    const quantiteAvant = produit.quantite;
+    produit.quantite += Number(quantite);
     await produit.save();
 
-    // Créer mouvement de stock
     await MouvementStock.create({
-      produit: produit._id,
-      type: 'ENTREE',
-      quantite,
-      motif: 'Ajout stock manuel',
-      boutique: req.user.boutiqueId
+      produit:        produit._id,
+      type:           'ENTREE',
+      quantite:       Number(quantite),
+      motif:          'Ajout stock manuel',
+      boutique:       req.user.boutiqueId,
+      quantite_avant: quantiteAvant,
+      quantite_apres: produit.quantite,
+      cree_par:       req.user._id       
     });
 
     const produitPopulate = await Produit.findById(produit._id)
-      .populate('categorie', 'nom')
+      .populate('categorie',      'nom')
       .populate('sous_categorie', 'nom');
 
     res.json(produitPopulate);
