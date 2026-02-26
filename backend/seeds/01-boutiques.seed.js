@@ -138,8 +138,8 @@ const seedBoutiques = async () => {
         telephone: '+261 33 11 222 33'
       },
       localisation: {
-        zone: zoneMap['Ivato'],
-        adresse_complete: 'Ivato Business Center, Box B05, Antananarivo',
+        zone: zoneMap['Analakely'],
+        adresse_complete: 'Analakely Business Center, Box B05, Antananarivo',
         surface: 60,
         latitude: -18.9086,
         longitude: 47.5292
@@ -179,8 +179,8 @@ const seedBoutiques = async () => {
         telephone: '+261 32 44 555 66'
       },
       localisation: {
-        zone: zoneMap['Antsirabe'],
-        adresse_complete: 'Centre Commercial Antsirabe, Box C03',
+        zone: zoneMap['Analakely'],
+        adresse_complete: 'Centre Commercial Analakely, Box C03',
         surface: 75,
         latitude: -18.9132,
         longitude: 47.5238
@@ -221,8 +221,8 @@ const seedBoutiques = async () => {
         telephone: '+261 33 66 777 88'
       },
       localisation: {
-        zone: zoneMap['Ivato'],
-        adresse_complete: 'Ivato Shopping Park, Box E11',
+        zone: zoneMap['Analakely'],
+        adresse_complete: 'Analakely Shopping Park, Box E11',
         surface: 40,
         latitude: -18.9080,
         longitude: 47.5286
@@ -262,8 +262,8 @@ const seedBoutiques = async () => {
         telephone: '+261 33 22 333 44'
       },
       localisation: {
-        zone: zoneMap['Mahajanga'],
-        adresse_complete: 'Mahajanga Tech Plaza, Box F02',
+        zone: zoneMap['Analakely'],
+        adresse_complete: 'Analakely Tech Plaza, Box F02',
         surface: 65,
         latitude: -18.9072,
         longitude: 47.5247
