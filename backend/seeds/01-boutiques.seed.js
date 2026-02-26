@@ -502,7 +502,7 @@ const seedAll = async () => {
     console.log(` Reste à percevoir: ${(stats.ca_du - stats.ca_percu).toLocaleString('fr-FR')} Ar`);
     console.log('\n' + '═'.repeat(62));
 
-    process.exit(0);
+    // process.exit(0);
   } catch (error) {
     console.error(' Erreur:', error.message);
     if (error.errors) {
@@ -514,4 +514,4 @@ const seedAll = async () => {
   }
 };
 
-seedAll();
+module.exports = seedAll;

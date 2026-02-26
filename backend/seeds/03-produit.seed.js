@@ -500,11 +500,10 @@ async function seedProduitsComplet() {
       console.log(` ${nom} : ${count} produits${star}`);
     });
 
-    process.exit(0);
+    // process.exit(0);
   } catch (err) {
     console.error(' Erreur seed:', err.message);
     process.exit(1);
   }
 }
-
-seedProduitsComplet();
+module.exports = seedProduitsComplet

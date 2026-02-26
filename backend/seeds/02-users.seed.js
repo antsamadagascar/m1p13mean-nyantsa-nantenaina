@@ -261,11 +261,11 @@ async function seedUsers() {
 
     console.log('\n SEED USERS TERMINÉ !');
 
-    process.exit(0);
+    // process.exit(0);
   } catch (error) {
     console.error(' Erreur:', error.message);
     process.exit(1);
   }
 }
 
-seedUsers();
+module.exports = seedUsers

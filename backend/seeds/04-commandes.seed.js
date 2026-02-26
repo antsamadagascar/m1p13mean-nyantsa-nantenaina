@@ -877,7 +877,7 @@ const seedCommandes = async () => {
     console.log(`    CA encaissé       : ${stats.ca.toLocaleString('fr-FR')} Ar`);
     console.log('═'.repeat(58));
 
-    process.exit(0);
+    // process.exit(0);
   } catch (err) {
     console.error('\n Erreur:', err.message);
     if (err.errors) Object.keys(err.errors).forEach(k =>
@@ -887,4 +887,4 @@ const seedCommandes = async () => {
   }
 };
 
-seedCommandes();
+module.exports = seedCommandes
