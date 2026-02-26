@@ -9,7 +9,10 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware CORS
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: [
+    'http://localhost:4200',
+    'https://m1p13mean-nyantsa-nantenaina.onrender.com',  
+  ],
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
