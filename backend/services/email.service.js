@@ -25,7 +25,7 @@ const sendVerificationEmail = async (user, verificationToken) => {
   const verificationLink = `${process.env.FRONTEND_URL}/users/verify-email?token=${verificationToken}`;
 
   const mailOptions = {
-    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.RESEND_FROM}>`,
     to: user.email,
     subject: '✅ Confirmez votre inscription - M1P13 MEAN',
     html: `
@@ -128,7 +128,7 @@ const sendWelcomeEmail = async (user) => {
   const loginLink = `${process.env.FRONTEND_URL}/login`;
 
   const mailOptions = {
-    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.RESEND_FROM}>`,
     to: user.email,
     subject: '🎉 Bienvenue sur CITY MALL !',
     html: `
@@ -187,7 +187,7 @@ const sendPasswordResetEmail = async (user, resetToken) => {
   const resetLink = `${process.env.FRONTEND_URL}/users/reset-password?token=${resetToken}`;
 
   const mailOptions = {
-    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.RESEND_FROM}>`,
     to: user.email,
     subject: '🔑 Réinitialisation de votre mot de passe - City Mall',
     html: `
@@ -296,7 +296,7 @@ const sendBoutiqueCreationEmail = async (boutique) => {
   const validationLink = `${process.env.FRONTEND_URL}/gerant/boutique/${boutique._id}`;
 
   const mailOptions = {
-    from: `"CITY MALL" <${process.env.EMAIL_FROM}>`,
+    from: `"CITY MALL" <${process.env.RESEND_FROM}>`,
     to: boutique.gerant.email,
     subject: '🏪 Votre boutique a été créée - En attente de validation',
     html: `
