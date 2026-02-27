@@ -1,8 +1,12 @@
 // index.seed.js — Lance tous les seeds dans l'ordre séquentiel
 // Chaque seed doit exporter une fonction async principale
-
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const env = process.env.NODE_ENV || 'local';
+const envFile = env === 'production' ? '.env.production' : '.env';
+
+require('dotenv').config({ 
+  path: path.join(__dirname, '..', envFile) 
+});
 
 const runSeeds = async () => {
   console.log('\n' + '═'.repeat(60));

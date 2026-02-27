@@ -5,7 +5,12 @@ const Boutique = require('../models/Boutique');
 const Categorie = require('../models/Categorie');
 const SousCategorie = require('../models/SousCategorie');
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const env = process.env.NODE_ENV || 'local';
+const envFile = env === 'production' ? '.env.production' : '.env';
+
+require('dotenv').config({ 
+  path: path.join(__dirname, '..', envFile) 
+});
 
 async function seedProduitsComplet() {
   try {

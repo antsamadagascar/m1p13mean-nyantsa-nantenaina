@@ -2,10 +2,13 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const Boutique = require('../models/Boutique');
-
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const env = process.env.NODE_ENV || 'local';
+const envFile = env === 'production' ? '.env.production' : '.env';
 
+require('dotenv').config({ 
+  path: path.join(__dirname, '..', envFile) 
+});
 // Total 26 utilisateurs 
 // 1 admin 
 // 6 boutique

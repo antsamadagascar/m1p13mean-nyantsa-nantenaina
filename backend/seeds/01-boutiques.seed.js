@@ -10,7 +10,12 @@ const slugify = require('slugify');
 const path = require('path');
 const { zonesInitiales } = require('./initZones');
 
-require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
+const env = process.env.NODE_ENV || 'local';
+const envFile = env === 'production' ? '.env.production' : '.env';
+
+require('dotenv').config({ 
+  path: path.join(__dirname, '..', envFile) 
+});
 
 // ============================================================
 // HELPER — même logique que createBoutique() dans le controller
