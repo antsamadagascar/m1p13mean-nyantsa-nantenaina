@@ -78,6 +78,7 @@ export class ProduitComponent implements OnInit {
   showDeleteModal = false;
   produitToDelete: any = null;
   deleteMotif: string = '';
+  loading = false; 
 
   private apiBaseUrl = `${environment.apiUrl}`;
 
@@ -116,15 +117,18 @@ export class ProduitComponent implements OnInit {
   }
 
   loadProduits() {
+    this.loading = true;
     this.produitService.getMesProduits().subscribe({
       next: (data) => {
         this.produits = data;
         this.produitsFiltered = data;
         this.calculateStats();
+        this.loading = false;
       },
       error: (err) => {
         console.error('Erreur chargement produits:', err);
         this.alertService.error('Erreur lors du chargement des produits');
+        this.loading = false;
       }
     });
   }

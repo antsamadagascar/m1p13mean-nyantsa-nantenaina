@@ -58,7 +58,11 @@
       </div>
     </div>
   </div>
-
+  <!-- Loading -->
+  <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
+    <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+    <p class="text-gray-500 text-sm">Chargement des produits...</p>
+  </div>
   <!-- Filtres -->
   <div class="bg-white rounded-lg shadow p-4 mb-6">
     <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
@@ -139,6 +143,7 @@
   </div>
 
   <!-- Liste des produits -->
+   <div *ngIf="!loading">
   <div *ngIf="produitsFiltered.length > 0; else emptyState" class="bg-white rounded-lg shadow overflow-hidden">
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
@@ -325,7 +330,7 @@
       </table>
     </div>
   </div>
-
+  </div>
   <ng-template #emptyState>
     <div class="bg-white rounded-lg shadow p-12 text-center">
       <i class="fa-solid fa-boxes-stacked text-6xl text-gray-300 mb-4"></i>
