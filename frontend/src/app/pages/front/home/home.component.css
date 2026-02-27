@@ -523,8 +523,28 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  /* Réduire le hero */
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+
   .hero-title {
-    font-size: 2rem;
+    font-size: 1.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  /* Désactive sticky + réduire padding des filtres */
+  .filters-section {
+    position: relative;
+    padding: 1rem;
+  }
+
+  /* Réduire padding des résultats */
+  .results-section {
+    padding: 1rem;
   }
 
   .filters-container {
@@ -574,17 +594,6 @@
   .pagination {
     flex-wrap: wrap;
     gap: 0.5rem;
-  }
-
-  .pagination-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-  }
-
-  .pagination-number {
-    width: 2rem;
-    height: 2rem;
-    font-size: 0.875rem;
   }
 }
 
