@@ -171,8 +171,8 @@
           <tr class="tr-row" [class.tr--entree]="m.type==='ENTREE'" [class.tr--sortie]="m.type==='SORTIE'">
             <td class="td-date">{{ formatTime(m.createdAt) }}</td>
             <td class="td-produit">
-              <div class="produit-nom">{{ m.produit?.nom || '—' }}</div>
-              <div class="produit-ref">{{ m.produit?.reference }}</div>
+              <div class="produit-nom">{{ m.produit.nom || '—' }}</div>
+              <div class="produit-ref">{{ m.produit.reference }}</div>
             </td>
             <td class="td-variante">
               <ng-container *ngIf="m.variante_sku; else simple">
