@@ -8,11 +8,7 @@
       </h1>
       <p class="text-gray-600">Gérez tous vos produits</p>
     </div>
-      <!-- Loading -->
-    <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
-      <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
-      <p class="text-gray-500 text-sm">Chargement des produits...</p>
-    </div>
+ 
     <div class="flex gap-2">
       <button
         (click)="openCreateModal()"
@@ -141,7 +137,11 @@
       </div>
     </div>
   </div>
-
+       <!-- Loading -->
+    <div *ngIf="loading" class="flex flex-col items-center justify-center py-16">
+      <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-500 mb-4"></i>
+      <p class="text-gray-500 text-sm">Chargement des produits...</p>
+    </div>
   <!-- Liste des produits -->
    <div *ngIf="!loading">
   <div *ngIf="produitsFiltered.length > 0; else emptyState" class="bg-white rounded-lg shadow overflow-hidden">
