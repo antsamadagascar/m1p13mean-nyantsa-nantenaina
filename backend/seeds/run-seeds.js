@@ -47,6 +47,14 @@ const runSeeds = async () => {
     await seed04();
     console.log(' Étape 4 terminée\n');
 
+    // ── 5. Evalutions + commentaires produits, boutique
+    console.log('━'.repeat(60));
+    console.log(' ÉTAPE 5 — evaluation produits + commentaires');
+    console.log('━'.repeat(60));
+    const seed05 = require('./05-evaluations.seed');
+    await seed05();
+    console.log(' ÉTAPE 5 terminée\n');
+
     console.log('═'.repeat(60));
     console.log(' TOUS LES SEEDS TERMINÉS AVEC SUCCÈS');
     console.log('═'.repeat(60) + '\n');
