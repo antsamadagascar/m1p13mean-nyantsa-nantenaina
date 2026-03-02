@@ -2,7 +2,7 @@ const Boutique = require('../models/Boutique');
 const Zone = require('../models/Zone');
 const Location = require('../models/Location');
 const Emplacement = require('../models/Emplacement');
-
+const User = require('../models/User');
 const slugify = require('slugify');
 const { sendBoutiqueCreationEmail } = require('../services/email.service');
 // IMPORT DE L'UTILITAIRE
@@ -416,11 +416,26 @@ const updateBoutique = async (req, res) => {
 
     // Gérant — mise à jour partielle des sous-champs
     if (gerant) {
-      if (gerant.nom !== undefined) updateData['gerant.nom'] = gerant.nom;
-      if (gerant.prenom !== undefined) updateData['gerant.prenom'] = gerant.prenom;
-      if (gerant.email !== undefined) updateData['gerant.email'] = gerant.email;
-      if (gerant.telephone !== undefined) updateData['gerant.telephone'] = gerant.telephone;
-    }
+        if (gerant.nom !== undefined) updateData['gerant.nom'] = gerant.nom;
+        if (gerant.prenom !== undefined) updateData['gerant.prenom'] = gerant.prenom;
+        if (gerant.email !== undefined) updateData['gerant.email'] = gerant.email;
+        if (gerant.telephone !== undefined) updateData['gerant.telephone'] = gerant.telephone;
+
+        //  Synchronise User EN MÊME TEMPS
+        const userUpdateData = {};
+        if (gerant.nom !== undefined) userUpdateData.nom = gerant.nom;
+        if (gerant.prenom !== undefined) userUpdateData.prenom = gerant.prenom;
+        if (gerant.email !== undefined) userUpdateData.email = gerant.email;
+        if (gerant.telephone !== undefined) userUpdateData.telephone = gerant.telephone;
+
+        if (Object.keys(userUpdateData).length > 0) {
+          await User.findOneAndUpdate(
+            { boutiqueId: req.params.id },
+            { $set: userUpdateData },
+            { new: true }
+          );
+        }
+      }
 
     // Localisation -> mise à jour partielle des sous-champs
     if (localisation) {
