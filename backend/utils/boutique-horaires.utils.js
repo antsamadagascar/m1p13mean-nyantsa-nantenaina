@@ -4,12 +4,20 @@
  */
 
 /**
+ * Retourne la date/heure actuelle en heure de Madagascar (UTC+3)
+ */
+const getNowMadagascar = () => {
+  const now = new Date();
+  return new Date(now.getTime() + (now.getTimezoneOffset() + 180) * 60000);
+};
+
+/**
  * Obtient le nom du jour actuel en français
  * @returns {string}
  */
 const getJourActuel = () => {
   const jours = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  return jours[new Date().getDay()];
+   return jours[getNowMadagascar().getDay()];
 };
 
 /**
@@ -54,7 +62,7 @@ const estOuverte = (horaires) => {
   if (!horaires) return false;
 
   const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  const maintenant = new Date();
+  const maintenant = getNowMadagascar(); 
   const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
   const jourIndex = maintenant.getDay();
 
@@ -93,11 +101,12 @@ const estOuverte = (horaires) => {
  * @returns {string}
  */
 const getStatutMessage = (horaires) => {
+  
   if (!horaires) return 'Horaires non définis';
 
   if (estOuverte(horaires)) return 'Ouverte maintenant';
 
-  const maintenant = new Date();
+  const maintenant = getNowMadagascar(); 
   const jourActuel = maintenant.getDay();
   const heureActuelle = maintenant.getHours() * 60 + maintenant.getMinutes();
   const joursNoms = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
