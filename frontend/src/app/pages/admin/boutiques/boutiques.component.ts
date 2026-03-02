@@ -132,8 +132,13 @@ export class BoutiquesComponent implements OnInit {
     return typeof categorie === 'string' ? categorie : categorie.nom;
   }
 
+  // getZoneNom(zone: any): string {
+  //   return typeof zone === 'string' ? zone : zone.nom;
+  // }
+
   getZoneNom(zone: any): string {
-    return typeof zone === 'string' ? zone : zone.nom;
+    if (!zone) return 'Non renseignée';
+    return typeof zone === 'string' ? zone : zone.nom || 'Non renseignée';
   }
 
  loadBoutiques() {
