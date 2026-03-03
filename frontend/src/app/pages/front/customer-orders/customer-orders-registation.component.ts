@@ -38,8 +38,8 @@ export class CommandeComponent implements OnInit {
     this.adresseForm = this.fb.group({
       nom:       ['', [Validators.required, Validators.minLength(3)]],
       telephone: ['', [Validators.required, this.telephoneMalgacheValidator]],
-      adresse:   ['', [Validators.required, Validators.minLength(5)]],
-      ville:     ['', Validators.required],
+      adresse:   ['', [Validators.required, Validators.minLength(5)]],  
+      ville: [{ value: 'Antananarivo', disabled: true }, Validators.required],
     });
   }
 
@@ -65,8 +65,8 @@ export class CommandeComponent implements OnInit {
           nom:       nomComplet      || '',
           telephone: user.telephone  || '',  
           adresse:   user.adresse    || '',  
-          ville:     user.ville      || '',  
         });
+        this.adresseForm.get('ville')?.setValue('Antananarivo');
       },
       error: (err) => {
         console.error('Erreur chargement utilisateur:', err);
@@ -141,7 +141,8 @@ export class CommandeComponent implements OnInit {
     this.error = null;
 
     this.http.post(`${environment.apiUrl}/api/commandes`, {
-      adresse_livraison: this.adresseForm.value
+      // adresse_livraison: this.adresseForm.value
+       adresse_livraison: this.adresseForm.getRawValue()
     }).subscribe({
       next: (commande: any) => {
         this.submitting = false;
