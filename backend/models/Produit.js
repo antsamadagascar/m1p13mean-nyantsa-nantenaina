@@ -226,6 +226,10 @@ produitSchema.pre('save', function(next) {
   if (this.stock_total === 0 && this.statut === 'ACTIF') 
   {   this.statut = 'RUPTURE'; }
 
+  //  le stock remonte au-dessus du seuil -> on réactive
+  else if (this.stock_total >= this.stock_minimum && this.statut === 'RUPTURE')
+  {  this.statut = 'ACTIF'; }
+  
   next();
 });
 
