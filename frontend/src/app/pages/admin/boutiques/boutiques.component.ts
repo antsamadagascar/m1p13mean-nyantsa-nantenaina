@@ -401,6 +401,22 @@ export class BoutiquesComponent implements OnInit {
   }
 
   submitBoutique() {
+    if (!this.locationSelectionnee) {
+      this.alertService.error('Veuillez sélectionner un emplacement');
+      return;
+    }
+
+    //  Vérification contrat
+    if (!this.boutique.contrat.loyer_mensuel) {
+      this.alertService.error('Le loyer mensuel est requis');
+      return;
+    }
+
+    if (!this.boutique.contrat.date_debut) {
+      this.alertService.error('La date de début du contrat est requise');
+      return;
+    }
+
     this.isSubmitting = true;
 
     const localisationData = {
