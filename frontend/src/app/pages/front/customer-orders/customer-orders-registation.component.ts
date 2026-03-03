@@ -21,7 +21,7 @@ export class CommandeComponent implements OnInit {
   utilisateur: any = null;
 
   adresseForm: FormGroup;
-  telephoneMalgacheValidator(control: any) {
+    telephoneMalgacheValidator = (control: any) => {
     if (!control.value) return null;
     const clean = control.value.replace(/[\s\-]/g, '');
     const regex = /^(032|033|034|037|038)\d{7}$/;
@@ -37,7 +37,7 @@ export class CommandeComponent implements OnInit {
     
     this.adresseForm = this.fb.group({
       nom:       ['', [Validators.required, Validators.minLength(3)]],
-      telephone: ['', [Validators.required, Validators.minLength(10)]],
+      telephone: ['', [Validators.required, this.telephoneMalgacheValidator]],
       adresse:   ['', [Validators.required, Validators.minLength(5)]],
       ville:     ['', Validators.required],
     });
