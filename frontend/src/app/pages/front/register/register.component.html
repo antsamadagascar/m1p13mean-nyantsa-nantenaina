@@ -1,0 +1,152 @@
+<div class="register-container">
+  <div class="register-card">
+    <!-- Logo comme dans le login -->
+    <div class="logo-section">
+      <img
+        src="logos/logo-lacity-mall.png"
+        alt="Logo City Mall"
+        class="logo-image"
+      />
+      <p class="subtitle">Rejoignez notre centre commercial</p>
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onRegister()" #registerForm="ngForm" class="register-form">
+      <h2 class="form-title">Créer un compte</h2>
+
+      <!-- Nom & Prénom en ligne -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="nom">Nom</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user input-icon"></i>
+            <input
+              type="text"
+              id="nom"
+              placeholder="Rakoto"
+              name="nom"
+              [(ngModel)]="user.nom"
+              required
+              #nomInput="ngModel">
+          </div>
+          <span class="error-message" *ngIf="nomInput.invalid && nomInput.touched">
+            Le nom est requis
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="prenom">Prénom</label>
+          <div class="input-wrapper">
+            <i class="fas fa-user input-icon"></i>
+            <input
+              type="text"
+              id="prenom"
+              placeholder="Jean"
+              name="prenom"
+              [(ngModel)]="user.prenom"
+              required
+              #prenomInput="ngModel">
+          </div>
+          <span class="error-message" *ngIf="prenomInput.invalid && prenomInput.touched">
+            Le prénom est requis
+          </span>
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <div class="input-wrapper">
+          <i class="fas fa-envelope input-icon"></i>
+          <input
+            type="email"
+            id="email"
+            placeholder="exemple@email.com"
+            name="email"
+            [(ngModel)]="user.email"
+            required
+            email
+            #emailInput="ngModel">
+        </div>
+        <span class="error-message" *ngIf="emailInput.invalid && emailInput.touched">
+          Email invalide
+        </span>
+      </div>
+
+      <!-- Téléphone -->
+      <div class="form-group">
+        <label for="telephone">Téléphone</label>
+        <div class="input-wrapper">
+          <i class="fas fa-phone input-icon"></i>
+          <input
+            type="tel"
+            id="telephone"
+            placeholder="034 00 000 00"
+            name="telephone"
+            [(ngModel)]="user.telephone"
+            required
+            maxlength="10"
+            #telephoneInput="ngModel">
+        </div>
+        <span class="error-message" *ngIf="telephoneInput.invalid && telephoneInput.touched">
+          Téléphone requis (10 chiffres)
+        </span>
+      </div>
+
+      <!-- Mot de passe -->
+      <div class="form-group">
+        <label for="motDePasse">Mot de passe</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input
+            type="password"
+            id="motDePasse"
+            placeholder="••••••••"
+            name="motDePasse"
+            [(ngModel)]="user.motDePasse"
+            required
+            minlength="6"
+            #passwordInput="ngModel">
+        </div>
+        <span class="error-message" *ngIf="passwordInput.invalid && passwordInput.touched">
+          Minimum 6 caractères
+        </span>
+      </div>
+
+      <!-- Confirmation -->
+      <div class="form-group">
+        <label for="confirmation">Confirmer le mot de passe</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input
+            type="password"
+            id="confirmation"
+            placeholder="••••••••"
+            name="confirmation"
+            [(ngModel)]="user.confirmation"
+            required
+            minlength="6"
+            #confirmInput="ngModel">
+        </div>
+        <span class="error-message" *ngIf="confirmInput.invalid && confirmInput.touched">
+          Confirmation requise
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="submit-btn"
+        [disabled]="registerForm.invalid">
+        <span class="btn-text">S'inscrire</span>
+      </button>
+
+      <!-- Login Link -->
+      <div class="form-footer">
+        <p>Vous avez déjà un compte ?
+          <a routerLink="/connexion" class="login-link">Se connecter</a>
+        </p>
+      </div>
+    </form>
+  </div>
+</div>

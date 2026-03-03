@@ -1,0 +1,14 @@
+/* dashboard.component.css — minimal, tout est géré par Tailwind */
+
+/* Spin animation pour le loader */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Hover card lift */
+.hover\:-translate-y-0\.5:hover {
+  transform: translateY(-2px);
+}

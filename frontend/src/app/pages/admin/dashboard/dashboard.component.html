@@ -1,0 +1,290 @@
+<div class="p-6 space-y-6">
+
+  <!-- HEADER -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <!-- Titre différencié admin / boutique -->
+      <h1 class="text-2xl font-bold text-slate-800">
+        <ng-container *ngIf="isAdmin">Pilotage CA des boutiques</ng-container>
+        <ng-container *ngIf="!isAdmin">Mon Chiffre d'affaires</ng-container>
+      </h1>
+      <!-- Sous-titre analytique visible seulement admin -->
+      <p class="text-sm text-blue-400 mt-1 flex items-center gap-1" *ngIf="isAdmin">
+        <i class="fa-solid fa-circle-info text-xs"></i>
+        Analysez les performances pour ajuster les loyers en conséquence
+      </p>
+      <p class="text-sm text-slate-400 mt-1" *ngIf="stats && !isAdmin">
+        Du {{ stats.periode.debut | date:'dd/MM/yyyy' }}
+        au {{ stats.periode.fin   | date:'dd/MM/yyyy' }}
+      </p>
+      <p class="text-sm text-slate-400 mt-1" *ngIf="stats && isAdmin">
+        Du {{ stats.periode.debut | date:'dd/MM/yyyy' }}
+        au {{ stats.periode.fin   | date:'dd/MM/yyyy' }}
+      </p>
+    </div>
+    <div class="flex flex-wrap gap-2">
+      <button *ngFor="let p of periodes"
+        class="px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150"
+        [class]="periodeActive === p.value
+          ? 'bg-blue-500 text-white border-blue-500'
+          : 'bg-white text-slate-500 border-slate-200 hover:border-blue-400 hover:text-blue-500'"
+        (click)="changerPeriode(p.value)">{{ p.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- FILTRES -->
+  <div class="flex flex-wrap gap-4 items-end bg-white border border-slate-100 rounded-xl p-4 shadow-sm">
+    <!-- Filtre boutique (admin uniquement) -->
+    <div class="flex flex-col gap-1" *ngIf="isAdmin">
+      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">
+        Boutique à analyser
+      </label>
+      <select [(ngModel)]="boutiqueIdFiltreAdmin" (change)="chargerStats()"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-400 bg-white">
+        <option value="">Toutes les boutiques</option>
+        <option *ngFor="let b of boutiquesDispos" [value]="b._id">{{ b.nom }}</option>
+      </select>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Du</label>
+      <input type="date" [(ngModel)]="dateDebut" (change)="chargerStats()"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-400" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Au</label>
+      <input type="date" [(ngModel)]="dateFin" (change)="chargerStats()"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-400" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label class="text-xs font-medium text-slate-400 uppercase tracking-wide">Année</label>
+      <select [(ngModel)]="anneeSelectionnee" (change)="filtrerParAnnee()"
+        class="px-3 py-2 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:border-blue-400 bg-white">
+        <option value="">Toutes</option>
+        <option *ngFor="let a of anneesDispo" [value]="a">{{ a }}</option>
+      </select>
+    </div>
+    <button (click)="reinitialiserFiltres()"
+      class="px-4 py-2 text-sm text-slate-400 border border-slate-200 rounded-lg hover:text-red-400 hover:border-red-300 transition-all">
+      <i class="fa-solid fa-rotate-left mr-1"></i> Réinitialiser
+    </button>
+  </div>
+
+  <!-- LOADER -->
+  <div *ngIf="loading" class="flex items-center gap-3 py-10 text-slate-400 text-sm">
+    <div class="w-5 h-5 border-2 border-slate-200 border-t-blue-500 rounded-full animate-spin"></div>
+    Chargement...
+  </div>
+
+  <!-- ERREUR -->
+  <div *ngIf="erreur && !loading"
+    class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-3 text-sm">
+    <i class="fa-solid fa-triangle-exclamation"></i> {{ erreur }}
+  </div>
+
+  <ng-container *ngIf="stats && !loading">
+
+    <!-- BANDEAU CONTEXTE ADMIN -->
+    <div *ngIf="isAdmin"
+      class="flex items-center gap-3 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 text-sm text-blue-700">
+      <i class="fa-solid fa-magnifying-glass-chart text-blue-400 text-base"></i>
+      <span>
+        <strong>Vue analytique admin</strong> —
+        <ng-container *ngIf="boutiqueIdFiltreAdmin">
+          Boutique sélectionnée · CA utilisable pour révision de loyer
+        </ng-container>
+        <ng-container *ngIf="!boutiqueIdFiltreAdmin">
+          Consolidé toutes boutiques · Sélectionnez une boutique pour une analyse ciblée
+        </ng-container>
+      </span>
+    </div>
+
+    <!-- KPI CARDS : 3 réel + 3 prévisionnel -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+      <!-- Bloc CA Réel -->
+      <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-green-400"></span>
+          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <ng-container *ngIf="isAdmin">CA Réel boutique</ng-container>
+            <ng-container *ngIf="!isAdmin">CA Encaissé</ng-container>
+          </h2>
+          <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">LIVREE + PAYÉ</span>
+          <!-- Badge admin : base loyer -->
+          <span *ngIf="isAdmin"
+            class="text-xs text-green-600 bg-green-50 border border-green-100 px-2 py-0.5 rounded-full font-medium">
+            <i class="fa-solid fa-key mr-1"></i>Base loyer
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="text-center">
+            <p class="text-xs text-slate-400 mb-1">Total CA</p>
+            <p class="text-lg font-bold text-slate-800">{{ stats.reel.totaux.total_ca | number:'1.0-0' }}</p>
+            <p class="text-xs text-slate-400">Ar</p>
+          </div>
+          <div class="text-center border-x border-slate-100">
+            <p class="text-xs text-slate-400 mb-1">Commandes</p>
+            <p class="text-lg font-bold text-slate-800">{{ stats.reel.totaux.total_commandes }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-slate-400 mb-1">Articles</p>
+            <p class="text-lg font-bold text-slate-800">{{ stats.reel.totaux.total_articles }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bloc CA Prévisionnel -->
+      <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span>
+          <h2 class="text-sm font-semibold text-slate-600 uppercase tracking-wide">
+            <ng-container *ngIf="isAdmin">CA Potentiel boutique</ng-container>
+            <ng-container *ngIf="!isAdmin">CA Prévisionnel</ng-container>
+          </h2>
+          <span class="ml-auto text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">EN_COURS</span>
+          <!-- Badge admin : projection -->
+          <span *ngIf="isAdmin"
+            class="text-xs text-orange-500 bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-medium">
+            <i class="fa-solid fa-chart-line mr-1"></i>Projection
+          </span>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div class="text-center">
+            <p class="text-xs text-slate-400 mb-1">Total CA</p>
+            <p class="text-lg font-bold text-orange-500">{{ stats.previsionnel.totaux.total_ca | number:'1.0-0' }}</p>
+            <p class="text-xs text-slate-400">Ar</p>
+          </div>
+          <div class="text-center border-x border-slate-100">
+            <p class="text-xs text-slate-400 mb-1">Commandes</p>
+            <p class="text-lg font-bold text-slate-800">{{ stats.previsionnel.totaux.total_commandes }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-slate-400 mb-1">Articles</p>
+            <p class="text-lg font-bold text-slate-800">{{ stats.previsionnel.totaux.total_articles }}</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ONGLETS vue graphique -->
+    <div class="flex gap-2 border-b border-slate-100">
+      <button (click)="changerVue('reel')"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-all"
+        [class]="vueActive === 'reel' ? 'border-green-500 text-green-600' : 'border-transparent text-slate-400 hover:text-slate-600'">
+        <span class="w-2 h-2 rounded-full bg-green-400 inline-block mr-1.5"></span>
+        <ng-container *ngIf="isAdmin">CA Réel — Base loyer</ng-container>
+        <ng-container *ngIf="!isAdmin">CA Encaissé</ng-container>
+      </button>
+      <button (click)="changerVue('previsionnel')"
+        class="px-4 py-2 text-sm font-medium border-b-2 transition-all"
+        [class]="vueActive === 'previsionnel' ? 'border-orange-500 text-orange-500' : 'border-transparent text-slate-400 hover:text-slate-600'">
+        <span class="w-2 h-2 rounded-full bg-orange-400 inline-block mr-1.5"></span>
+        <ng-container *ngIf="isAdmin">CA Potentiel — Projection</ng-container>
+        <ng-container *ngIf="!isAdmin">CA Prévisionnel</ng-container>
+      </button>
+    </div>
+
+    <!-- COURBE -->
+    <div class="bg-white border border-slate-100 rounded-xl p-5 shadow-sm"
+      *ngIf="evolutionActive.length > 0">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-base font-semibold text-slate-700">
+          <ng-container *ngIf="isAdmin">Évolution CA — Aide à la décision loyer</ng-container>
+          <ng-container *ngIf="!isAdmin">Évolution</ng-container>
+        </h2>
+        <span class="text-xs text-slate-400 flex items-center gap-1">
+          <i class="fa-solid fa-hand-pointer"></i> Cliquez sur un point
+        </span>
+      </div>
+      <div class="relative" style="height: 260px;">
+        <canvas #chartCanvas class="w-full h-full block"
+          style="cursor: crosshair;"
+          (click)="onCanvasClick($event)"
+          (mouseleave)="fermerTooltip()">
+        </canvas>
+        <div *ngIf="tooltip.visible"
+          class="absolute z-10 pointer-events-none"
+          [style.left.px]="tooltip.x"
+          [style.top.px]="tooltip.y"
+          style="transform: translate(-50%, -100%) translateY(-10px);">
+          <div class="bg-slate-900 text-white rounded-xl px-4 py-3 shadow-xl text-sm whitespace-nowrap">
+            <p class="text-slate-400 text-xs mb-1">{{ tooltip.label }}</p>
+            <p class="font-bold text-blue-400 text-base">{{ tooltip.ca }}</p>
+            <p class="text-slate-300 text-xs mt-1">{{ tooltip.commandes }} commande{{ tooltip.commandes > 1 ? 's' : '' }}</p>
+            <div class="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0"
+              style="border:6px solid transparent; border-top-color:#0f172a;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLEAU -->
+    <div class="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden"
+      *ngIf="evolutionActive.length > 0">
+      <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full"
+          [class]="vueActive === 'reel' ? 'bg-green-400' : 'bg-orange-400'"></span>
+        <h2 class="text-base font-semibold text-slate-700">
+          <ng-container *ngIf="isAdmin">
+            Détail {{ vueActive === 'reel' ? 'CA Réel' : 'CA Potentiel' }} —
+            {{ boutiqueIdFiltreAdmin ? 'Boutique sélectionnée' : 'Toutes boutiques' }}
+          </ng-container>
+          <ng-container *ngIf="!isAdmin">
+            Détail — {{ vueActive === 'reel' ? 'CA Encaissé' : 'CA Prévisionnel' }}
+          </ng-container>
+        </h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="bg-slate-50">
+              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Période</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                <ng-container *ngIf="isAdmin">CA Boutique (Ar)</ng-container>
+                <ng-container *ngIf="!isAdmin">CA (Ar)</ng-container>
+              </th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Commandes</th>
+              <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wide">Articles</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-50">
+            <tr *ngFor="let ligne of evolutionActive" class="hover:bg-slate-50 transition-colors">
+              <td class="px-5 py-3 text-slate-600 font-medium">{{ formatPeriodeTableau(ligne.periode) }}</td>
+              <td class="px-5 py-3 font-semibold"
+                [class]="vueActive === 'reel' ? 'text-green-600' : 'text-orange-500'">
+                {{ ligne.chiffre_affaires | number:'1.0-0' }}
+              </td>
+              <td class="px-5 py-3 text-slate-600">{{ ligne.nb_commandes }}</td>
+              <td class="px-5 py-3 text-slate-600">{{ ligne.nb_articles }}</td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="bg-slate-50 border-t-2 border-slate-200">
+              <td class="px-5 py-3 font-bold text-slate-700">Total</td>
+              <td class="px-5 py-3 font-bold"
+                [class]="vueActive === 'reel' ? 'text-green-600' : 'text-orange-500'">
+                {{ totauxActifs.total_ca | number:'1.0-0' }}
+              </td>
+              <td class="px-5 py-3 font-bold text-slate-700">{{ totauxActifs.total_commandes }}</td>
+              <td class="px-5 py-3 font-bold text-slate-700">{{ totauxActifs.total_articles }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIDE -->
+    <div *ngIf="evolutionActive.length === 0"
+      class="flex flex-col items-center justify-center py-20 text-slate-400">
+      <i class="fa-solid fa-inbox text-5xl mb-4"></i>
+      <p *ngIf="isAdmin">
+        Aucune commande sur cette période
+        {{ boutiqueIdFiltreAdmin ? 'pour cette boutique' : 'pour l\'ensemble des boutiques' }}.
+      </p>
+      <p *ngIf="!isAdmin">Aucune commande sur cette période.</p>
+    </div>
+
+  </ng-container>
+</div>

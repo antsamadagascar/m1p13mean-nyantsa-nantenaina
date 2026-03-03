@@ -60,13 +60,11 @@ mongod --dbpath /var/lib/mongodb
 
 ##  URLs de l'application local
 
-- **Frontend** : http://localhost:4200
-- **Backend** : http://localhost:5000
+- **Frontoffice** : http://localhost:4200
+- **Backoffice** : http://localhost:5000/backoffice
 
 ##  URLs de l'application sur server prod
-
-- **Frontend** : https://m1p13mean-nyantsa-nantenaina.onrender.com/
-- **Backend** : https://m1p13mean-nyantsa-nantenaina-backend.onrender.com
+ https://m1p13mean-nyantsa-nantenaina.onrender.com
 
 ---
 

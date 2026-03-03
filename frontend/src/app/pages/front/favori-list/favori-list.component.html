@@ -1,0 +1,65 @@
+<div class="produits-section">
+  <div class="container">
+          <!-- Barre de tri -->
+      <div class="produits-toolbar">
+        <h2>Mes favoris</h2>
+        
+      </div>
+    <!-- Spinner pendant le chargement -->
+    <div *ngIf="loading" class="spinner-container">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- Grille des favoris -->
+    <div class="produits-grid" *ngIf="!loading && produits.length > 0">
+      <div class="product-card" *ngFor="let produit of produits">
+        <a [routerLink]="['/produits', produit.slug]" class="product-link">
+
+          <!-- Image -->
+          <div class="product-image">
+            <img [src]="getImagePrincipale(produit)" [alt]="produit.nom" />
+            
+            <!-- Bouton favori en haut à droite -->
+            <app-btn-favori
+              [produitId]="produit._id"
+              taille="sm"
+              style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+            </app-btn-favori>
+
+            <!-- Badges -->
+            <div class="product-badges">
+              <span class="badge badge-promo" *ngIf="produit.en_promotion">
+                -{{ produit.pourcentage_reduction }}%
+              </span>
+              <span class="badge badge-rupture" *ngIf="produit.en_rupture">
+                Rupture
+              </span>
+            </div>
+          </div>
+
+          <!-- Contenu du produit -->
+          <div class="product-content">
+            <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
+            <h3 class="product-name">{{ produit.nom }}</h3>
+
+            <!-- Prix -->
+            <div class="product-price">
+              <span class="price-current" [class.price-promo]="produit.en_promotion">
+                {{ formatPrix(produit.prix_final || produit.prix) }}
+              </span>
+              <span class="price-original" *ngIf="produit.en_promotion">
+                {{ formatPrix(produit.prix) }}
+              </span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Message si aucun favori -->
+    <div *ngIf="!loading && produits.length === 0" class="empty-message">
+      Vous n'avez aucun favori pour le moment.
+    </div>
+  </div>
+</div>
+

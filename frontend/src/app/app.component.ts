@@ -1,12 +1,14 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { AlertComponent } from './shared/alert/alert.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  standalone: true,
+  imports: [RouterOutlet, AlertComponent],
+  template: `
+    <app-alert></app-alert>
+    <router-outlet></router-outlet>
+  `
 })
-export class AppComponent {
-  title = 'frontend';
-}
+export class AppComponent {}

@@ -1,0 +1,291 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="mb-6 flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800 mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-box text-blue-600"></i>
+        Gestion des Produits
+      </h1>
+      <p class="text-gray-600">
+        Validez et gérez les produits des boutiques
+      </p>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="bg-white rounded-lg shadow p-4 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <!-- Boutique -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fa-solid fa-store mr-1"></i> Boutique
+        </label>
+        <select
+          [(ngModel)]="boutiqueSelectionnee"
+          (ngModelChange)="appliquerFiltres()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+          <option value="">Toutes les boutiques</option>
+          <option *ngFor="let b of toutesBoutiques" [value]="b._id">
+            {{ b.nom }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Recherche -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fa-solid fa-search mr-1"></i> Recherche
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="rechercheTexte"
+          (ngModelChange)="appliquerFiltres()"
+          placeholder="Nom, référence..."
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none" />
+      </div>
+
+      <!-- Catégorie -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fa-solid fa-tag mr-1"></i> Catégorie
+        </label>
+        <select
+          [(ngModel)]="categorieSelectionnee"
+          (ngModelChange)="appliquerFiltres()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+          <option value="">Toutes</option>
+          <option *ngFor="let c of filtresDisponibles?.categories" [value]="c._id">
+            {{ c.nom }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Statut -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fa-solid fa-filter mr-1"></i> Statut
+        </label>
+        <select
+          [(ngModel)]="statutSelectionne"
+          (ngModelChange)="appliquerFiltres()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+          <option value="">Tous les statuts</option>
+          <option value="BROUILLON">Brouillon</option>
+          <option value="ACTIF">Actif</option>
+          <option value="RUPTURE">Rupture</option>
+          <option value="ARCHIVE">Archivé</option>
+        </select>
+      </div>
+
+      <!-- Tri -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          <i class="fa-solid fa-sort mr-1"></i> Trier par
+        </label>
+        <select
+          [(ngModel)]="filtres.tri"
+          (ngModelChange)="changerTri(filtres.tri!)"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none">
+          <option value="nouveaute">Plus récents</option>
+          <option value="prix_asc">Prix croissant</option>
+          <option value="prix_desc">Prix décroissant</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center py-12">
+    <i class="fa-solid fa-spinner fa-spin text-4xl text-blue-600"></i>
+    <p class="text-gray-600 mt-4">Chargement...</p>
+  </div>
+
+  <!-- Liste des produits -->
+  <div *ngIf="!loading" class="space-y-4">
+    <!-- Card pour chaque produit -->
+    <div *ngFor="let produit of produits" class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 p-6">
+        
+        <!-- Image et info de base -->
+        <div class="lg:col-span-3">
+          <img
+            [src]="produit.images.length ? produit.images[0].url : 'assets/images/no-image.png'"
+            [alt]="produit.nom"
+            class="w-full h-48 object-cover rounded-lg mb-3" />
+          
+          <h3 class="text-lg font-bold text-gray-900 mb-1">{{ produit.nom }}</h3>
+          <p class="text-sm text-gray-500 mb-1">Réf: {{ produit.reference }}</p>
+          <div *ngIf="produit.marque" class="text-sm text-gray-400">
+            <i class="fa-solid fa-tag"></i> {{ produit.marque }}
+          </div>
+        </div>
+
+        <!-- Détails produit -->
+        <div class="lg:col-span-5">
+          <div class="space-y-3">
+            <!-- Boutique -->
+            <div class="flex items-start">
+              <i class="fa-solid fa-store w-5 text-gray-400 mt-1"></i>
+              <div class="ml-3">
+                <p class="text-xs text-gray-500 uppercase">Boutique</p>
+                <p class="text-sm font-medium text-gray-900">{{ produit.boutique.nom || 'N/A' }}</p>
+              </div>
+            </div>
+
+            <!-- Catégorie -->
+            <div class="flex items-start">
+              <i class="fa-solid fa-folder w-5 text-gray-400 mt-1"></i>
+              <div class="ml-3">
+                <p class="text-xs text-gray-500 uppercase">Catégorie</p>
+                <p class="text-sm font-medium text-gray-900">
+                  {{ produit.categorie.nom || 'N/A' }}
+                  <span *ngIf="produit.sous_categorie" class="text-gray-600">
+                    / {{ produit.sous_categorie.nom }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Condition -->
+            <div class="flex items-start">
+              <i class="fa-solid fa-box-open w-5 text-gray-400 mt-1"></i>
+              <div class="ml-3">
+                <p class="text-xs text-gray-500 uppercase">État</p>
+                <p class="text-sm font-medium text-gray-900">
+                  <span *ngIf="produit.condition === 'NEUF'" class="text-green-600">Neuf</span>
+                  <span *ngIf="produit.condition === 'OCCASION'" class="text-orange-600">Occasion</span>
+                  <span *ngIf="produit.condition === 'RECONDITIONNE'" class="text-blue-600">Reconditionné</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- Description courte -->
+            <div *ngIf="produit.description_courte" class="flex items-start">
+              <i class="fa-solid fa-info-circle w-5 text-gray-400 mt-1"></i>
+              <div class="ml-3">
+                <p class="text-xs text-gray-500 uppercase">Description</p>
+                <p class="text-sm text-gray-700 line-clamp-2">{{ produit.description_courte }}</p>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="flex items-center gap-4 text-sm">
+              <!-- <div class="flex items-center gap-1">
+                <i class="fa-solid fa-eye text-gray-400"></i>
+                <span class="text-gray-600">{{ produit.vues || 0 }} vues</span>
+              </div> -->
+              <!-- <div class="flex items-center gap-1">
+                <i class="fa-solid fa-shopping-cart text-gray-400"></i>
+                <span class="text-gray-600">{{ produit.ventes || 0 }} ventes</span>
+              </div> -->
+              <div *ngIf="produit.note_moyenne" class="flex items-center gap-1">
+                <i class="fa-solid fa-star text-yellow-500"></i>
+                <span class="text-gray-600">{{ produit.note_moyenne }}/5 ({{ produit.nombre_avis }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prix, Stock et Actions -->
+        <div class="lg:col-span-4">
+          <div class="space-y-4">
+            
+            <!-- Prix -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <p class="text-xs text-gray-500 uppercase mb-2">Prix</p>
+              <div class="flex items-baseline gap-2">
+                <span class="text-2xl font-bold text-gray-900">
+                  {{ produit.prix_promo || produit.prix | number:'1.0-0' }} Ar
+                </span>
+                <span *ngIf="produit.prix_promo" class="text-sm text-gray-500 line-through">
+                  {{ produit.prix | number:'1.0-0' }} Ar
+                </span>
+              </div>
+              <div *ngIf="produit.prix_promo" class="mt-1">
+                <span class="inline-block bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">
+                  -{{ produit.pourcentage_reduction }}%
+                </span>
+              </div>
+            </div>
+
+            <!-- Stock -->
+            <div>
+              <p class="text-xs text-gray-500 uppercase mb-2">Stock</p>
+              <div class="flex items-center gap-2">
+                <span 
+                  class="px-3 py-1 text-sm font-semibold rounded-full"
+                  [ngClass]="produit.quantite > 10 ? 'bg-green-100 text-green-800' : 
+                             produit.quantite > 0 ? 'bg-orange-100 text-orange-800' : 
+                             'bg-red-100 text-red-800'">
+                  {{ produit.quantite }} unité(s)
+                </span>
+              </div>
+            </div>
+
+            <!-- Statut actuel -->
+            <div>
+              <p class="text-xs text-gray-500 uppercase mb-2">Statut actuel</p>
+              <span 
+                class="inline-block px-3 py-1 text-sm font-semibold rounded-lg"
+                [ngClass]="getStatutClass(produit.statut)">
+                {{ getStatutLabel(produit.statut) }}
+              </span>
+            </div>
+
+            <!-- Modifier le statut -->
+            <div>
+              <p class="text-xs text-gray-500 uppercase mb-2">Changer le statut</p>
+              <select
+                [value]="produit.statut"
+                (change)="onStatutChange($event, produit)"
+                class="w-full px-3 py-2 text-sm font-semibold rounded-lg border-2 focus:ring-2 focus:ring-blue-500 cursor-pointer bg-white">
+                <option value="BROUILLON">Brouillon</option>
+                <option value="ACTIF">Actif</option>
+                <option value="RUPTURE">Rupture</option>
+                <option value="ARCHIVE">Archivé</option>
+              </select>
+            </div>
+
+            <!-- Date de création -->
+            <div class="text-xs text-gray-500 text-center pt-2 border-t">
+             <div> Créé le {{ produit.date_creation | date:'dd/MM/yyyy à HH:mm' }} </div>
+             <div *ngIf="produit.date_modification">
+                Modifié le {{ produit.date_modification |  date:'dd/MM/yyyy à HH:mm' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Message si vide -->
+    <div *ngIf="produits.length === 0" class="text-center py-12 bg-white rounded-lg">
+      <i class="fa-solid fa-box-open text-4xl text-gray-400 mb-4"></i>
+      <p class="text-gray-600">Aucun produit trouvé</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="totalPages > 1" class="bg-white rounded-lg shadow p-4 mt-6">
+    <div class="flex items-center justify-between">
+      <button
+        (click)="changerPage(filtres.page! - 1)"
+        [disabled]="filtres.page === 1"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <i class="fa-solid fa-chevron-left mr-2"></i>
+        Précédent
+      </button>
+      <span class="text-gray-600">
+        Page {{ filtres.page }} sur {{ totalPages }} ({{ totalProduits }} produits)
+      </span>
+      <button
+        (click)="changerPage(filtres.page! + 1)"
+        [disabled]="filtres.page === totalPages"
+        class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        Suivant
+        <i class="fa-solid fa-chevron-right ml-2"></i>
+      </button>
+    </div>
+  </div>
+</div>

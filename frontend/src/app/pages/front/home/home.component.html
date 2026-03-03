@@ -1,0 +1,388 @@
+<div class="boutiques-page">
+  
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <div class="hero-content">
+       <h1 class="hero-title">
+          Bienvenue  sur 
+          <span class="brand">City Mall</span>
+         <span *ngIf="currentUser">, {{ currentUser.prenom }} !</span>
+        </h1>
+        <h2 class="hero-title">Découvrez nos boutiques</h2>
+      <p class="hero-subtitle">Plus de {{ boutiques.length }} boutiques à votre service</p>
+    </div>
+  </div>
+
+  <!-- Filtres Section -->
+  <div class="filters-section">
+    <div class="filters-container">
+      
+      <!-- Barre de recherche -->
+      <div class="search-box">
+        <i class="fa-solid fa-search"></i>
+        <input
+          type="text"
+          [(ngModel)]="filters.search"
+          (ngModelChange)="applyFilters()"
+          placeholder="Rechercher une boutique..."
+          class="search-input"
+        />
+      </div>
+
+      <!-- Filtres rapides -->
+      <div class="quick-filters">
+        
+        <!-- Catégorie -->
+        <select
+          [(ngModel)]="filters.categorie"
+          (ngModelChange)="applyFilters()"
+          class="filter-select"
+        >
+          <option value="">Toutes les catégories</option>
+         <option *ngFor="let cat of getUniqueCategories()" [value]="cat._id">
+            {{ cat.nom }}
+          </option>
+        </select>
+        <input
+          type="text"
+          [(ngModel)]="filters.lieu"
+          (ngModelChange)="applyFilters()"
+          placeholder="Lieu (zone, étage, n°)"
+          class="filter-input"
+        />
+
+
+      <select [(ngModel)]="filters.heure_ouverture" (ngModelChange)="applyFilters()" class="filter-select">
+        <option value="">Heure d'ouverture</option>
+        <option *ngFor="let h of heures" [value]="h">
+          {{ h | number:'2.0' }}h
+        </option>
+      </select>
+
+
+        <!-- Ouvertes maintenant -->
+        <label class="checkbox-filter">
+          <input
+            type="checkbox"
+            [(ngModel)]="filters.ouvertes"
+            (ngModelChange)="applyFilters()"
+          />
+          <span>Ouvertes maintenant</span>
+        </label>
+
+        <!-- Bouton reset -->
+        <button (click)="resetFilters()" class="btn-reset">
+          <i class="fa-solid fa-rotate-right"></i>
+          Réinitialiser
+        </button>
+      </div>
+
+      <!-- Changement de vue -->
+      <div class="view-toggle">
+        <button 
+          (click)="viewMode = 'grid'" 
+          [class.active]="viewMode === 'grid'"
+          class="view-btn"
+        >
+          <i class="fa-solid fa-grip"></i>
+        </button>
+        <button 
+          (click)="viewMode = 'list'" 
+          [class.active]="viewMode === 'list'"
+          class="view-btn"
+        >
+          <i class="fa-solid fa-list"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Résultats -->
+  <div class="results-section">
+    <div class="results-container">
+      
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-state">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Chargement des boutiques...</p>
+      </div>
+
+      <!-- Nombre de résultats -->
+      <div *ngIf="!loading" class="results-count">
+        {{ boutiquesFiltered.length }} boutique(s) trouvée(s) - Page {{ currentPage }} sur {{ totalPages }}
+      </div>
+
+      <!-- Grille de boutiques -->
+      <div *ngIf="!loading && viewMode === 'grid'" class="boutiques-grid">
+        <div *ngFor="let boutique of boutiquesPaginated" class="boutique-card">
+          
+          <!-- Image -->
+        <div class="card-image">
+          <img [src]="boutique.logo" [alt]="boutique.nom" />
+
+          <div class="card-badge" [class.open]="boutique.estOuverte" [class.closed]="!boutique.estOuverte">
+            
+            <i 
+              class="fa-solid mr-1"
+              [ngClass]="boutique.estOuverte ? 'fa-circle-check text-green-600' : 'fa-circle-xmark text-red-600'">
+            </i>
+
+            {{ boutique.estOuverte ? 'Ouvert' : 'Fermé' }}
+          </div>
+        </div>
+
+
+          <!-- Contenu -->
+          <div class="card-content">
+            <h3 class="card-title">{{ boutique.nom }}</h3>
+            <p class="card-location">
+                <i class="fa-solid fa-location-dot"></i>
+                {{ getAdresseComplete(boutique) }}
+            </p>
+
+ 
+            <p class="card-description">
+              {{ boutique.description | slice:0:100 }}{{ boutique.description.length > 100 ? '...' : '' }}
+            </p>
+          </div>
+
+          <!-- ================================================ -->
+          <!-- CARD RATING (vue grille)                         -->
+          <!-- ================================================ -->
+          <div class="card-rating">
+            <div class="rating-left">
+              <div class="stars-row">
+                <i *ngFor="let star of [1,2,3,4,5]"
+                  class="fa-star"
+                  [ngClass]="getClassEtoile(star, boutique.evaluation?.moyenne || 0)">
+                </i>
+              </div>
+              <div class="rating-info">
+                <span class="rating-score">{{ boutique.evaluation?.moyenne ? (boutique.evaluation!.moyenne | number:'1.1-1') : '0.0' }}</span>
+                <span class="rating-sep">·</span>
+                <span class="rating-count">{{ boutique.evaluation?.total || 0 }} avis</span>
+              </div>
+            </div>
+            <button
+              *ngIf="currentUser"
+              (click)="ouvrirEvaluation(boutique, $event)"
+              class="btn-evaluer"
+              title="Donner mon avis">
+              <i class="fa-solid fa-star-half-stroke"></i>
+              <span>Noter</span>
+            </button>
+          </div>
+
+          <!-- Actions -->
+          <div class="card-actions">
+            <button (click)="voirDetails(boutique._id)" class="btn-primary">
+              <i class="fa-solid fa-arrow-right"></i>
+              Voir la boutique
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste de boutiques -->
+      <div *ngIf="!loading && viewMode === 'list'" class="boutiques-list">
+        <div *ngFor="let boutique of boutiquesPaginated" class="boutique-list-item">
+          <img [src]="boutique.logo" [alt]="boutique.nom" class="list-logo" />
+          
+          <div class="list-content">
+          <div class="list-header">
+            <h3>{{ boutique.nom }}</h3>
+
+            <span class="badge"
+                  [class.open]="boutique.estOuverte"
+                  [class.closed]="!boutique.estOuverte">
+
+              <i class="fa-solid"
+                [ngClass]="boutique.estOuverte ? 'fa-circle-check' : 'fa-circle-xmark'">
+              </i>
+
+              {{ boutique.estOuverte ? ' Ouvert' : ' Fermé' }}
+            </span>
+          </div>
+
+            <p class="list-meta">
+             <span><i class="fa-solid fa-tag"></i>  {{ getCategorieNom(boutique.categorie) }}</span>
+            <!-- <span><i class="fa-solid fa-location-dot"></i> {{ getZoneNom(boutique.localisation.zone) }}</span> -->
+            </p>
+            <!-- ================================================ -->
+            <!-- LIST RATING (vue liste)                          -->
+            <!-- ================================================ -->
+            <div class="list-rating">
+              <div class="stars-row">
+                <i *ngFor="let star of [1,2,3,4,5]"
+                  class="fa-star"
+                  [ngClass]="getClassEtoile(star, boutique.evaluation?.moyenne || 0)">
+                </i>
+              </div>
+              <span class="rating-score">{{ boutique.evaluation?.moyenne ? (boutique.evaluation!.moyenne | number:'1.1-1') : '0.0' }}</span>
+              <span class="rating-pill">{{ boutique.evaluation?.total || 0 }} avis</span>
+              <button
+                *ngIf="currentUser"
+                (click)="ouvrirEvaluation(boutique, $event)"
+                class="btn-evaluer-sm"
+                title="Donner mon avis">
+                <i class="fa-solid fa-pen-nib"></i>
+              </button>
+            </div>
+
+            <p class="list-description">{{ boutique.description }}</p>
+          </div>
+
+          <button (click)="voirDetails(boutique._id)" class="btn-view">
+            Voir <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!--  PAGINATION -->
+      <div *ngIf="!loading && boutiquesFiltered.length > 0" class="pagination">
+        <button 
+          (click)="previousPage()" 
+          [disabled]="currentPage === 1"
+          class="pagination-btn"
+        >
+          <i class="fa-solid fa-chevron-left"></i>
+          Précédent
+        </button>
+
+        <div class="pagination-pages">
+          <button 
+            *ngFor="let page of getPaginationPages()"
+            (click)="goToPage(page)"
+            [class.active]="page === currentPage"
+            class="pagination-number"
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button 
+          (click)="nextPage()" 
+          [disabled]="currentPage === totalPages"
+          class="pagination-btn"
+        >
+          Suivant
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Aucun résultat -->
+      <div *ngIf="!loading && boutiquesFiltered.length === 0" class="empty-state">
+        <i class="fa-solid fa-store-slash"></i>
+        <h3>Aucune boutique trouvée</h3>
+        <p>Essayez de modifier vos filtres</p>
+        <button (click)="resetFilters()" class="btn-secondary">
+          Réinitialiser les filtres
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+    <!-- ================================================ -->
+    <!-- MODAL ÉVALUATION — redesigné                     -->
+    <!-- ================================================ -->
+    <div *ngIf="modalOuvert" class="modal-overlay" (click)="fermerModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <!-- Décoration haut -->
+        <div class="modal-deco"></div>
+
+        <!-- Header -->
+        <div class="modal-header">
+          <div class="modal-header-text">
+            <p class="modal-pretitle">Votre expérience</p>
+            <h3 class="modal-title">{{ boutiqueSelectionnee?.nom }}</h3>
+          </div>
+          <button (click)="fermerModal()" class="modal-close">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+
+          <!-- Étoiles interactives -->
+          <div class="stars-section">
+            <p class="stars-label">Quelle note donnez-vous ?</p>
+            <div class="stars-interactive">
+              <button
+                *ngFor="let star of etoiles"
+                class="star-btn"
+                (mouseenter)="survolEtoile(star)"
+                (mouseleave)="quitterSurvol()"
+                (click)="selectionnerNote(star)">
+                <i class="fa-star fa-2x"
+                  [ngClass]="etoilePleine(star) ? 'fa-solid' : 'fa-regular'"
+                  [class.active]="etoilePleine(star)">
+                </i>
+              </button>
+            </div>
+
+            <!-- Badge note -->
+            <div *ngIf="noteSelectionnee > 0" class="note-badge"
+                [ngClass]="'note-' + noteSelectionnee">
+              <i class="fa-solid" [ngClass]="{
+                'fa-face-tired': noteSelectionnee === 1,
+                'fa-face-frown': noteSelectionnee === 2,
+                'fa-face-meh': noteSelectionnee === 3,
+                'fa-face-smile': noteSelectionnee === 4,
+                'fa-face-grin-stars': noteSelectionnee === 5
+              }"></i>
+              {{ ['', 'Très mauvais', 'Mauvais', 'Correct', 'Bien', 'Excellent !'][noteSelectionnee] }}
+            </div>
+          </div>
+
+          <!-- Commentaire -->
+          <div class="comment-section">
+            <label class="comment-label">
+              Commentaire
+              <span class="optional-tag">optionnel</span>
+            </label>
+            <div class="textarea-wrapper">
+              <textarea
+                [(ngModel)]="commentaire"
+                rows="4"
+                maxlength="1000"
+                placeholder="Décrivez votre expérience dans cette boutique..."
+                class="modal-textarea">
+              </textarea>
+              <span class="char-count" [class.warn]="commentaire.length > 900">
+                {{ commentaire.length }}/1000
+              </span>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div *ngIf="messageRetour" class="alert-success">
+            <i class="fa-solid fa-circle-check"></i>
+            {{ messageRetour }}
+          </div>
+          <div *ngIf="messageErreur" class="alert-error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            {{ messageErreur }}
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button (click)="fermerModal()" class="btn-cancel">
+            Annuler
+          </button>
+          <button
+            (click)="soumettrEvaluation()"
+            [disabled]="noteSelectionnee === 0 || soumissionEnCours"
+            class="btn-submit">
+            <i *ngIf="soumissionEnCours" class="fa-solid fa-spinner fa-spin"></i>
+            <i *ngIf="!soumissionEnCours" class="fa-solid fa-paper-plane"></i>
+            {{ soumissionEnCours ? 'Envoi en cours...' : 'Publier mon avis' }}
+          </button>
+        </div>
+
+      </div>
+    </div>
+</div>

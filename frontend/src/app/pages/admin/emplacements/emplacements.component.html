@@ -1,0 +1,169 @@
+<div class="p-6 bg-gray-50 min-h-screen">
+
+  <!-- HEADER -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Emplacements</h1>
+      <p class="text-sm text-gray-400 mt-1">Gérer les espaces physiques à louer</p>
+    </div>
+    <button (click)="openModal()" class="px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 transition">
+      + Ajouter un emplacement
+    </button>
+  </div>
+
+  <!-- STATS -->
+  <div class="grid grid-cols-3 gap-4 mb-6">
+  <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Total</p>
+    <p class="text-xl font-bold text-gray-900">{{ emplacements.length }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Libre</p>
+    <p class="text-xl font-bold text-emerald-600">{{ nbActifs }}</p>
+  </div>
+  <div class="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
+    <p class="text-xs text-gray-400 uppercase font-semibold mb-1">Occupé</p>
+    <p class="text-xl font-bold text-red-500">{{ nbInactifs }}</p>
+  </div>
+</div>
+
+  <!-- FILTRE -->
+  <!-- <div class="flex gap-3 mb-4">
+    <select [(ngModel)]="filtreZone" (change)="load()"
+      class="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white outline-none">
+      <option value="">Toutes les zones</option>
+      <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
+    </select>
+  </div> -->
+
+  <!-- TABLE -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div *ngIf="loading" class="flex justify-center items-center py-16">
+      <div class="w-6 h-6 border-2 border-gray-300 border-t-gray-900 rounded-full animate-spin"></div>
+    </div>
+
+    <table *ngIf="!loading && emplacements.length > 0" class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-100">
+        <tr>
+          <!-- <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Zone</th> -->
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Numéro</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Type</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Surface</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Coordonnées</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Statut</th>
+          <th class="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <tr *ngFor="let e of emplacements" class="hover:bg-gray-50 transition">
+          <!-- <td class="px-4 py-3 font-medium text-gray-900">{{ getZoneNom(e.zone) }}</td> -->
+          <td class="px-4 py-3 text-gray-700">{{ e.numero_local }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ getTypeLabel(e.type) }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ e.surface ? e.surface + ' m²' : '—' }}</td>
+          <td class="px-4 py-3 text-gray-500 text-xs">
+            {{ e.latitude && e.longitude ? e.latitude + ', ' + e.longitude : '—' }}
+          </td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-1 rounded-md text-xs font-semibold"
+              [ngClass]="e.actif ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600'">
+              {{ e.actif ? 'Libre' : 'Occupé' }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex gap-3">
+              <button (click)="openEditModal(e)" class="text-xs text-gray-400 hover:text-gray-700 font-medium transition">
+                Modifier
+              </button>
+              <button (click)="delete(e._id)" class="text-xs text-red-400 hover:text-red-600 font-medium transition">
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="!loading && emplacements.length === 0" class="text-center py-16 text-gray-400">
+      <p class="text-sm">Aucun emplacement trouvé</p>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div *ngIf="showModal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4" (click)="closeModal()">
+  <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="flex items-center justify-between p-6 border-b border-gray-100">
+      <h2 class="font-bold text-gray-900">{{ editMode ? 'Modifier' : 'Nouvel emplacement' }}</h2>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">x</button>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="p-6 space-y-4">
+      <div>
+        <!-- <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Zone *</label>
+          <select formControlName="zone"
+            (change)="onZoneChange(form.get('zone')?.value)"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
+            <option value="">-- Sélectionner --</option>
+            <option *ngFor="let z of zones" [value]="z._id">{{ z.nom }}</option>
+          </select>
+        </div> -->
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Numéro local *</label>
+          <input type="text" formControlName="numero_local" placeholder="Ex: B-12"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Type *</label>
+          <select formControlName="type"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400">
+            <option *ngFor="let t of typeOptions" [value]="t.value">{{ t.label }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Surface (m²)</label>
+          <input type="number" formControlName="surface" placeholder="Ex: 25"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Latitude</label>
+          <input type="number" step="any" formControlName="latitude" placeholder="Ex: -18.8792"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Longitude</label>
+          <input type="number" step="any" formControlName="longitude" placeholder="Ex: 47.5079"
+            class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+        <input type="text" formControlName="description" placeholder="Optionnel"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-gray-400" />
+      </div>
+
+      <div class="flex items-center gap-2">
+        <input type="checkbox" formControlName="actif" id="actif" class="rounded" />
+        <label for="actif" class="text-sm text-gray-600">Emplacement actif</label>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" (click)="closeModal()"
+          class="flex-1 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50">
+          Annuler
+        </button>
+        <button type="submit" [disabled]="form.invalid || saving"
+          class="flex-1 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-700 disabled:opacity-50 transition">
+          {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

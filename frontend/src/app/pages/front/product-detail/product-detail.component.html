@@ -1,0 +1,439 @@
+<div class="product-detail-page" *ngIf="!loading && produit">
+  <!-- Breadcrumb -->
+  <div class="container">
+    <nav class="breadcrumb">
+      <a routerLink="/">Accueil</a>
+      <span class="separator">/</span>
+      <a routerLink="/produits">Produits</a>
+      <span class="separator">/</span>
+      <a *ngIf="produit.categorie" [routerLink]="['/produits']" [queryParams]="{categorie: produit.categorie._id}">
+        {{ produit.categorie.nom }}
+      </a>
+      <span class="separator" *ngIf="produit.categorie">/</span>
+      <span class="current">{{ produit.nom }}</span>
+    </nav>
+  </div>
+
+  <!-- Contenu principal -->
+  <div class="container">
+    <div class="product-grid">
+      <!-- Galerie d'images -->
+      <div class="product-gallery">
+        <!-- Image principale -->
+        <div class="main-image">
+          <img [src]="getImagePrincipale()" [alt]="produit.nom" />
+          <app-btn-favori
+                [produitId]="produit._id"
+                taille="sm"
+                style="position: absolute; top: 8px; right: 8px; z-index: 2;">
+          </app-btn-favori>
+          <!-- Badges -->
+          <div class="image-badges">
+           <!-- Badges -->
+            <span class="badge badge-promo" *ngIf="produit.promotion_active_valide">
+                -{{ produit.promotion_active?.valeur }}%
+            </span>
+            <span class="badge badge-new" *ngIf="produit.condition === 'NEUF'">
+              Neuf
+            </span>
+            <span class="badge badge-rupture" *ngIf="produit.en_rupture">
+              Rupture
+            </span>
+          </div>
+
+          <!-- Navigation images -->
+          <button 
+            class="nav-btn prev" 
+            *ngIf="imageSelectionnee > 0"
+            (click)="imagePrecedente()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button 
+            class="nav-btn next" 
+            *ngIf="imageSelectionnee < produit.images.length - 1"
+            (click)="imageSuivante()"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Miniatures -->
+        <div class="thumbnails" *ngIf="produit.images.length > 1">
+          <button
+            *ngFor="let image of produit.images; let i = index"
+            class="thumbnail"
+            [class.active]="i === imageSelectionnee"
+            (click)="selectionnerImage(i)"
+          >
+            <img [src]="image.url" [alt]="image.alt || produit.nom" />
+          </button>
+        </div>
+      </div>
+
+        <!-- Informations produit -->
+      <div class="product-info">
+
+        <!-- En-tête -->
+        <div class="product-header">
+          <span class="product-brand" *ngIf="produit.marque">{{ produit.marque }}</span>
+          <h1 class="product-title">{{ produit.nom }}</h1>
+          <p class="product-ref">Réf: {{ produit.reference }}</p>
+        </div>
+
+        <!-- Note et avis -->
+        <div class="product-rating" *ngIf="produit.nombre_avis > 0">
+          <div class="stars">
+            <svg
+              *ngFor="let filled of getEtoiles()"
+              viewBox="0 0 24 24"
+              [attr.fill]="filled ? 'currentColor' : 'none'"
+              stroke="currentColor"
+              stroke-width="2">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+          </div>
+          <span class="rating-text">
+            {{ produit.note_moyenne.toFixed(1) }} ({{ produit.nombre_avis }} avis)
+          </span>
+        </div>
+
+        <!-- Prix -->
+        <div class="product-pricing">
+
+          <!-- Badge + description promotion -->
+          <ng-container *ngIf="produit.promotion_active_valide">
+            <div class="promo-badge">
+              <i class="fa-solid fa-tag"></i>
+              {{ produit.promotion_active?.nom }}
+            </div>
+            <p class="promo-description" *ngIf="produit.promotion_active?.description">
+              {{ produit.promotion_active?.description }}
+            </p>
+          </ng-container>
+
+          <!-- Affichage prix -->
+          <div class="price-main">
+            <span class="price-current" [class.has-promo]="produit.promotion_active_valide">
+              {{ formatPrix(getPrixFinal()) }}
+            </span>
+   
+            <span class="price-original" *ngIf="produit.promotion_active_valide">
+              {{ formatPrix(getPrixBaseAvecVariante()) }}
+            </span>
+          </div>
+
+          <!-- Économie + date fin -->
+          <div class="promo-details" *ngIf="produit.promotion_active_valide">
+            <p class="price-info">
+              <i class="fa-solid fa-piggy-bank"></i>
+              Vous économisez {{ formatPrix(getPrixBaseAvecVariante() - getPrixFinal()) }}
+            </p>
+            
+            <p class="promo-dates">
+              <i class="fa-solid fa-clock"></i>
+              Offre valable jusqu'au {{ produit.promotion_active?.date_fin | date:'dd/MM/yyyy à HH:mm' }}
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Description courte -->
+        <div class="product-description" *ngIf="produit.description_courte">
+          <p>{{ produit.description_courte }}</p>
+        </div>
+
+        <!-- Variantes -->
+        <div class="product-variants" *ngIf="produit.variantes && produit.variantes.length > 0">
+          <h3>Options disponibles</h3>
+          <div class="variants-grid">
+            <button
+              *ngFor="let variante of produit.variantes"
+              class="variant-btn"
+              [class.active]="varianteSelectionnee === variante"
+              [class.disabled]="variante.quantite === 0"
+              [disabled]="variante.quantite === 0"
+              (click)="selectionnerVariante(variante)"
+            >
+              <span class="variant-name">{{ variante.nom }}</span>
+              <span class="variant-price" *ngIf="variante.prix_supplement > 0">
+                +{{ formatPrix(variante.prix_supplement) }}
+              </span>
+              <span class="variant-stock" *ngIf="variante.quantite === 0">
+                Rupture
+              </span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stock -->
+        <div class="product-stock">
+          <div class="stock-indicator" [class.in-stock]="isEnStock()" [class.out-of-stock]="!isEnStock()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" *ngIf="!isEnStock()"></circle>
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" *ngIf="isEnStock()"></path>
+              <polyline points="22 4 12 14.01 9 11.01" *ngIf="isEnStock()"></polyline>
+            </svg>
+            <span *ngIf="isEnStock()">En stock ({{ getStockDisponible() }} disponibles)</span>
+            <span *ngIf="!isEnStock()">Rupture de stock</span>
+          </div>
+        </div>
+
+        <!-- Quantité et actions -->
+        <div class="product-actions">
+          <div class="quantity-selector">
+            <label>Quantité</label>
+            <div class="quantity-controls">
+              <button class="qty-btn" (click)="diminuerQuantite()" [disabled]="quantite <= 1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+              <span class="qty-value">{{ quantite }}</span>
+              <button class="qty-btn" (click)="augmenterQuantite()" [disabled]="quantite >= getStockDisponible()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+            <button 
+              class="btn-add-cart" 
+              [disabled]="!peutAcheter()"
+              (click)="ajouterAuPanier()"
+              [class.disabled]="!peutAcheter()"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span>{{ getMessageAchat() }}</span>
+            </button>
+
+            <div> 
+                   <span>{{ getStatutBoutique() }}</span>
+            <p class="status-info">{{ getHorairesAujourdhui() }}</p>
+            </div>
+        </div>
+
+        <!-- Informations boutique -->
+        <div class="seller-info">
+          <div class="seller-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <div class="seller-details">
+              <span class="seller-label">Vendu par</span>
+              <strong class="seller-name">{{ produit.boutique.nom }}</strong>
+            </div>
+          </div>
+          <a [routerLink]="['/produits']" [queryParams]="{boutique: produit.boutique._id}" class="seller-link">
+            Voir tous les produits de cette boutique
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Onglets détails -->
+    <div class="product-tabs">
+      <div class="tabs-navigation">
+        <button 
+          class="tab-btn" 
+          [class.active]="ongletActif === 'description'"
+          (click)="changerOnglet('description')">
+          Description
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="ongletActif === 'specs'"
+          (click)="changerOnglet('specs')">
+          Caractéristiques
+        </button>
+        <button 
+          class="tab-btn"
+          [class.active]="ongletActif === 'avis'"
+          (click)="changerOnglet('avis')">
+          Avis ({{ produit.nombre_avis }})
+        </button>
+      </div>
+
+      <div class="tabs-content">
+
+        <!-- Description -->
+        <div class="tab-panel" [class.active]="ongletActif === 'description'">
+          <div class="description-content">
+            <p>{{ produit.description }}</p>
+          </div>
+          <div class="product-tags" *ngIf="produit.tags && produit.tags.length > 0">
+            <span class="tag" *ngFor="let tag of produit.tags">#{{ tag }}</span>
+          </div>
+        </div>
+
+        <!-- Caractéristiques -->
+        <div class="tab-panel" [class.active]="ongletActif === 'specs'">
+          <div class="specs-grid">
+            <div class="spec-item">
+              <span class="spec-label">Référence</span>
+              <span class="spec-value">{{ produit.reference }}</span>
+            </div>
+            <div class="spec-item" *ngIf="produit.marque">
+              <span class="spec-label">Marque</span>
+              <span class="spec-value">{{ produit.marque }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">État</span>
+              <span class="spec-value">{{ produit.condition }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Catégorie</span>
+              <span class="spec-value">{{ produit.categorie.nom }}</span>
+            </div>
+            <div class="spec-item" *ngIf="produit.sous_categorie">
+              <span class="spec-label">Sous-catégorie</span>
+              <span class="spec-value">{{ produit.sous_categorie.nom }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Stock</span>
+              <span class="spec-value">{{ produit.quantite }} unités</span>
+            </div>
+
+            <!--  Caractéristiques dynamiques -->
+            <div 
+              class="spec-item" 
+              *ngFor="let carac of produit.caracteristiques">
+              <span class="spec-label">{{ carac.nom }}</span>
+              <span class="spec-value">
+                {{ carac.valeur }}
+                <small *ngIf="carac.unite"> {{ carac.unite }}</small>
+              </span>
+            </div>
+
+          </div>
+
+          <!-- Message si aucune caractéristique -->
+          <div 
+            *ngIf="!produit.caracteristiques || produit.caracteristiques.length === 0"
+            class="reviews-empty">
+            <p>Aucune caractéristique renseignée</p>
+          </div>
+        </div>
+
+        <!-- Avis -->
+        <!-- Avis -->
+        <div class="tab-panel" [class.active]="ongletActif === 'avis'">
+
+          <!-- Résumé note globale -->
+          <div class="avis-resume">
+            <span class="big-score">
+              {{ produit.note_moyenne > 0 ? (produit.note_moyenne | number:'1.1-1') : '0.0' }}
+            </span>
+            <div class="resume-stars">
+              <i *ngFor="let star of [1,2,3,4,5]"
+                class="fa-star"
+                [ngClass]="star <= mathRound(produit.note_moyenne) ? 'fa-solid' : 'fa-regular'"
+                [style.color]="star <= mathRound(produit.note_moyenne) ? '#f59e0b' : '#d1d5db'">
+              </i>
+            </div>
+            <span class="resume-total">{{ produit.nombre_avis }} avis clients</span>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="loadingAvis" class="avis-loading">
+            <i class="fa-solid fa-spinner fa-spin"></i> Chargement des avis...
+          </div>
+
+          <!-- Aucun avis -->
+          <div *ngIf="!loadingAvis && evaluationsProduit.length === 0" class="avis-empty">
+            <i class="fa-regular fa-comments fa-2x"></i>
+            <p>Aucun avis pour le moment.</p>
+          </div>
+
+          <!-- Liste -->
+          <div class="avis-liste" *ngIf="!loadingAvis && evaluationsProduit.length > 0">
+            <div *ngFor="let avis of evaluationsProduit" class="avis-card">
+              <div class="avis-header">
+                <div class="avis-avatar">
+                  <span *ngIf="!avis.client?.avatar">
+                    {{ getInitiales(avis) }}
+                  </span>
+                </div>
+                <div class="avis-meta">
+                  <strong>{{ avis.client?.prenom }} {{ avis.client?.nom }}</strong>
+                  <div class="avis-stars">
+                    <i *ngFor="let star of [1,2,3,4,5]"
+                      class="fa-star fa-xs"
+                      [ngClass]="star <= avis.note ? 'fa-solid' : 'fa-regular'"
+                      [style.color]="star <= avis.note ? '#f59e0b' : '#d1d5db'">
+                    </i>
+                    <span class="avis-note-label">
+                      {{ ['','Très mauvais','Mauvais','Correct','Bien','Excellent'][avis.note] }}
+                    </span>
+                  </div>
+                </div>
+                <span class="avis-date">{{ avis.date_creation | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <p class="avis-commentaire" *ngIf="avis.commentaire">{{ avis.commentaire }}</p>
+              <p class="avis-vide" *ngIf="!avis.commentaire">Pas de commentaire</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Produits similaires -->
+    <div class="similar-products" *ngIf="produitsSimilaires.length > 0">
+      <h2>Produits similaires</h2>
+      <div class="products-grid-similar">
+        <div class="product-card" *ngFor="let similaire of produitsSimilaires">
+          <a [routerLink]="['/produits', similaire.slug]" class="product-link">
+            <div class="product-image">
+              <img [src]="similaire.images[0].url" [alt]="similaire.nom" />
+              <span class="badge-promo" *ngIf="similaire.promotion_active_valide">
+              -{{ similaire.promotion_active?.valeur }}%
+            </span>
+            </div>
+            <div class="product-content">
+              <span class="product-brand" *ngIf="similaire.marque">{{ similaire.marque }}</span>
+              <h3 class="product-name">{{ similaire.nom }}</h3>
+              <div class="product-price">
+                <span class="price-current" [class.has-promo]="similaire.promotion_active_valide">
+                 {{ formatPrix(similaire.promotion_active_valide ? (similaire.prix_promo ?? similaire.prix) : similaire.prix) }}
+                </span>
+                <span class="price-original" *ngIf="similaire.promotion_active_valide">
+                  {{ formatPrix(similaire.prix) }}
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- États de chargement et erreur -->
+<div class="loading-state" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Chargement du produit...</p>
+</div>
+
+<div class="error-state" *ngIf="error && !loading">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="12" y1="8" x2="12" y2="12"></line>
+    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+  </svg>
+  <h2>{{ error }}</h2>
+  <button class="btn-back" routerLink="/produits">
+    Retour aux produits
+  </button>
+</div>
