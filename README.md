@@ -1,13 +1,5 @@
-# PROJET MEAN Master 1 - Promotion 13 – version 1
+# PROJET MEAN Master 1 - Promotion 13 – version 1 City Mall
 
-
-
----
-
-##  Fonctionnalités
-
-
----
 
 ## Prérequis ( Linux ubuntu 24.4)
 
@@ -62,9 +54,4 @@ mongod --dbpath /var/lib/mongodb
 
 - **Frontoffice** : http://localhost:4200
 - **Backoffice** : http://localhost:5000/backoffice
-
-##  URLs de l'application sur server prod
- https://m1p13mean-nyantsa-nantenaina.onrender.com
-
----
 
